@@ -2,7 +2,7 @@
 
 # Hello My Dir!
 
-This project is specifically made for brand new directory and ease their creation with all security rules in place. It is build upon the Harden AD project and tailored in a way where:
+This project is specifically made for brand new directories and ease their creation with all security rules in place. It is build upon the Harden AD project and tailored in a way where:
 > - You can create your own OU topology, based on the hAD model
 > - You can automate the administrative accounts creation
 > - You can automate the groups creation used to manage your IT services
