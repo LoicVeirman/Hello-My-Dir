@@ -219,26 +219,26 @@ Function Write-DebugLog {
     [CmdletBinding(DefaultParameterSetName = 'ADDLOG')]
     Param(
         [Parameter(ParameterSetName = 'ADDLOG')]
-        [Parameter(mandatory, Position = 0)]
+        [Parameter(Position = 0)]
         [ValidateSet('INFO', 'WARNING', 'ERROR')]
         [ValidateNotNullorEmpty()]
         [String]
         $Criticity,
 
         [Parameter(ParameterSetName = 'ADDLOG')]
-        [Parameter(mandatory, Position = 1)]
+        [Parameter(Position = 1)]
         [ValidateNotNullorEmpty()]
         [Array]
         $DebugLog,
 
         [Parameter(ParameterSetName = 'HEARDER')]
-        [Parameter(Position = 0)]
+        [Parameter(Position = 2)]
         [ValidateNotNullorEmpty()]
         [Switch]
         $Initialize,
 
         [Parameter(ParameterSetName = 'FOOTER')]
-        [Parameter(Position = 0)]
+        [Parameter(Position = 3)]
         [ValidateNotNullorEmpty()]
         [Switch]
         $Conclude
