@@ -18,8 +18,17 @@
 #>
 Param()
 
-## FUNCTION(S)
-Function Write-Log
-{
-    
+function test-zelogmachine {
+	$test = test-EventLog
+	
+	$msg = @()
+	$msg += "Ligne 1"
+	$msg += "Ligne 2"
+	$msg += "Ligne 3"
+	
+	Write-ToEventLog INFO $msg -errorAction SilentlyContinue
 }
+
+$testouille = Test-EventLog
+
+test-zelogmachine
