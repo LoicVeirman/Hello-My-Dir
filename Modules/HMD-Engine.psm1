@@ -59,7 +59,7 @@ function Write-toEventLog {
     [String]$Message = ""
 
     foreach ($input in $EventMsg) {
-        $Message += "`n$($input)"
+        $Message += "$($input)`n"
     }
 
     # Write to EventLog. If it failed, then output to a text file (append mode)
