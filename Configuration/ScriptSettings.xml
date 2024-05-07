@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Settings>
+    <!-- Logs are stored in the Event Viewer -->
+    <Logging Name="HelloMyDir" Prefix="HmD_" />
+</Settings>
