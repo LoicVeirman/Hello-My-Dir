@@ -33,7 +33,7 @@ Function New-RandomComplexPasword {
     )
 
     # Init log
-    Test-EventLog
+    Test-EventLog | Out-Null
     $DbgLog = @()
     $DbgLog = @("GENERATE NEW COMPLEX RANDOM PASSWORD","-----------","Parameter Length: $Length","Parameter AsClearText: $AsClearText"," ")
 
@@ -119,7 +119,7 @@ Function New-RandomComplexPasword {
     }
 
     # Export to log
-    Write-ToEventLog INFO $DbgLog
+    Write-ToEventLog INFO $DbgLog | Out-Null
 
     # Return password
     return $yourPassword
