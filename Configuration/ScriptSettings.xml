@@ -1,5 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Settings>
-    <!-- Logs are stored in the Event Viewer -->
     <Logging Name="HelloMyDir" Prefix="HmD_" />
 </Settings>
+<!--
+    =============
+    DOCUMENTATION
+    =============
+    
+    ** MANDATORY (SHOULD ALWAYS BE PRESENT) **
+    -------         --------------      -----------------------------------
+    ELEMENT         PARENT ELEMENT      DESCRIPTION AND ATTRIBUTE STRING(S)
+    -------         --------------      -----------------------------------
+    <Logging />     <Settings />        Use to define the event log name (no file extension) and the prefix to append to the function or script names (must be unique):
+                                        >> Name  : Name of the log file (as appearing in the Event Viewer console)
+                                        >> Prefix: Text to append to the begining of the script or function name (used as the Source in the event log) 
+    -------         --------------      -----------------------------------
+
+    ** FILLED-UP BY THE SCRIPT (YOU CAN MODIFY OR ADD IT) **
+    -------         --------------      -----------------------------------
+    ELEMENT         PARENT ELEMENT      DESCRIPTION AND ATTRIBUTE STRING(S)
+    -------         --------------      -----------------------------------
+
+ -->

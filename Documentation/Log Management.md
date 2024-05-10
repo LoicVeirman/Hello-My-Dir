@@ -8,7 +8,7 @@ Logs are part of any code. This papersheet explains how logs should be used in y
 * You *do* use your unique log sources that should **never** be used in another log.
 
 ## How you can achieve the three Do rules?
-This script uses fonctions from the module HMD-Engine.psm1:
+This script uses fonctions from *module-logs.psm1*:
 > **Write-toEventLog**: this function write your log text in your log file. 
 >
 > **Test-EventLog**: this function ensure that your log file and log source exists.

@@ -1,4 +1,7 @@
-function Write-toEventLog {
+<#
+    THIS MODULE CONTAINS FUNCTIONS RELATED TO LOGGING PURPOSE (FILE AND EVENT LOG)
+#>
+Function Write-toEventLog {
     <#
         .SYNOPSIS
         This function write log to the event viewer.
@@ -17,6 +20,7 @@ function Write-toEventLog {
         History: 2024/05/02 -- Script creation.
     #>
 
+    [Alias("wev")]
     [CmdletBinding()]
     param ( 
         [Parameter(Position = 0)]
@@ -46,7 +50,6 @@ function Write-toEventLog {
     }
 
     # Initialize Event Data with fixed value (adapt to your script)
-    $EventLog = $xmlSettings.Settings.Logging.Name
     $Prefix = $xmlSettings.Settings.Logging.Prefix
     $EventSrc = "$Prefix$EventSrc"
 
@@ -63,10 +66,17 @@ function Write-toEventLog {
     }
 
     # Write to EventLog. If it failed, then output to a text file (append mode)
-    [System.Diagnostics.EventLog]::WriteEntry($EventSrc, $Message, $EventType, $EventID.$EventType)    
+    Try {
+        [System.Diagnostics.EventLog]::WriteEntry($EventSrc, $Message, $EventType, $EventID.$EventType)    
+    }
+    Catch {
+        foreach ($line in ($Message -split '`n')) {
+            "$(Get-Date 'yyyy-MM-dd;hh:mm:ss');EventType;$Line" | Out-File "$EventSrc.log" -Encoding utf8 -Append
+        }
+    }
 }
 
-function Test-EventLog {
+Function Test-EventLog {
     <#
         .SYNOPSIS
         Check if the source and the log file are present on this system.
@@ -82,6 +92,7 @@ function Test-EventLog {
         Version: 01.000.000 -- Loic VEIRMAN (MSSec)
         History: 2024/05/02 -- Script creation.
     #>
+    [Alias("tev")]
     [CmdletBinding()]
     Param()
 
@@ -215,7 +226,7 @@ Function Write-DebugLog {
         Version: 01.000.000 -- Loic VEIRMAN (MSSec)
         History: 2024/05/02 -- Script creation.
     #>
-
+    [Alias("wdb")]
     [CmdletBinding(DefaultParameterSetName = 'ADDLOG')]
     Param(
         [Parameter(ParameterSetName = 'ADDLOG')]
@@ -303,7 +314,7 @@ Function Export-DebugLog {
         Version: 01.000.000 -- Loic VEIRMAN (MSSec)
         History: 2024/05/02 -- Script creation.
     #>
-    
+    [Alias("edb")]
     Param(
         [Parameter(mandatory, position = 0)]
         [System.IO.FileInfo]
@@ -321,3 +332,5 @@ Function Export-DebugLog {
     $RotateLog = Get-Content $Target -Tail 1000
     $RotateLog | Out-File $Target -Force
 }
+
+#Export-ModuleMember -Function Write-toEventLog,Write-DebugLog,Test-EventLog,Export-DebugLog
