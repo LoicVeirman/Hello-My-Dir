@@ -59,7 +59,7 @@ Function New-RandomComplexPasword {
     $QuotaDigits = $minDigits
     $QuotaChars = $minChars
     
-    $Password = ''
+    $zPassword = $null
 
     $DbgLog += @("Default settings: at least $($minSpecial *2) special char, $($minDigits * 2) digits and $($minChars * 2) letters.",' ')
 
@@ -104,17 +104,17 @@ Function New-RandomComplexPasword {
         }
     
         # Adding character to password
-        $Password += $randomChar
+        $zPassword += $randomChar
         $randomChar = $null
     }
 
     # Cyphering the password before sending it
     if (-not ($AsClearText)) {
-        $yourPassword = ConvertTo-SecureString -AsPlainText $Password -Force
+        $yourPassword = ConvertTo-SecureString -AsPlainText $zPassword -Force
         $DbgLog += "final: password converted to secure string."
     }
     Else {
-        $yourPassword = $Password
+        $yourPassword = $zPassword
         $DbgLog += "final: password kept as clear text."
     }
 
