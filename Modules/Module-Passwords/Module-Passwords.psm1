@@ -110,10 +110,11 @@ Function New-RandomComplexPasword {
 
     # Cyphering the password before sending it
     if (-not ($AsClearText)) {
-        $Password = ConvertTo-SecureString -AsPlainText $Password -Force
+        $yourPassword = ConvertTo-SecureString -AsPlainText $Password -Force
         $DbgLog += "final: password converted to secure string."
     }
     Else {
+        $yourPassword = $Password
         $DbgLog += "final: password kept as clear text."
     }
 
@@ -121,7 +122,7 @@ Function New-RandomComplexPasword {
     Write-ToEventLog INFO $DbgLog
 
     # Return password
-    return $password
+    return $yourPassword
 }
 
 Export-ModuleMember -Function *
