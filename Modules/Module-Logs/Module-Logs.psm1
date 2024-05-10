@@ -24,7 +24,7 @@ Function Write-toEventLog {
     [CmdletBinding()]
     param ( 
         [Parameter(Position = 0)]
-        [ValidateSet('INFO', 'WARNING', 'ERROR')]
+        [ValidateSet('INFO', 'INFORMATION', 'WARNING', 'ERROR')]
         [AllowNull()]
         [string]$EventType,
 

@@ -61,7 +61,7 @@ Function New-RandomComplexPasword {
     
     $Password = ''
 
-    $DbgLog += "Default settings: at least $($minSpecial *2) special char, $($minDigits * 2) and $($minChars * 2) letters."
+    $DbgLog += @("Default settings: at least $($minSpecial *2) special char, $($minDigits * 2) and $($minChars * 2) letters.",' ')
 
     for ($i = 1 ; $i -le $Length ; $i++) {
         # Build allowed char list for this round
@@ -79,8 +79,6 @@ Function New-RandomComplexPasword {
             $characters += "$Special$Digits$Chars"
         }
 
-        $DbgLog += "Round $($i): select from $($characters)"
-
         # Convert to char array
         $characters = $characters.ToCharArray()
 
@@ -90,15 +88,12 @@ Function New-RandomComplexPasword {
         # decrement counter for the specific char type
         if (Compare-Object $Special.ToCharArray() $randomChar -IncludeEqual -ExcludeDifferent) {
             $QuotaSpecial--
-            $DbgLog += "Round $($i): new QuotaSpecial value = $($QuotaSpecial)"
         }
         if (Compare-Object $Digits.ToCharArray() $randomChar -IncludeEqual -ExcludeDifferent) {
             $QuotaDigits--
-            $DbgLog += "Round $($i): new QuotaDigits value = $($QuotaDigits)"
         }
         if (Compare-Object $Chars.ToCharArray() $randomChar -IncludeEqual -ExcludeDifferent) {
             $QuotaChars--
-            $DbgLog += "Round $($i): new QuotaChars value = $($QuotaChars)"
         }
         # If we have reach the middle of password length, we do reinit quota to initial values
         if ($i -eq $randomMiddle) {
