@@ -61,7 +61,7 @@ Function New-RandomComplexPasword {
     
     $Password = ''
 
-    $DbgLog += @("Default settings: at least $($minSpecial *2) special char, $($minDigits * 2) and $($minChars * 2) letters.",' ')
+    $DbgLog += @("Default settings: at least $($minSpecial *2) special char, $($minDigits * 2) digits and $($minChars * 2) letters.",' ')
 
     for ($i = 1 ; $i -le $Length ; $i++) {
         # Build allowed char list for this round
@@ -100,7 +100,7 @@ Function New-RandomComplexPasword {
             $QuotaSpecial = $minSpecial
             $QuotaDigits = $minDigits
             $QuotaChars = $minChars
-            $DbgLog += "round $($i): Quotas reinitialized."
+            $DbgLog += @("round $($i): Quotas reinitialized."," ")
         }
     
         # Adding character to password
