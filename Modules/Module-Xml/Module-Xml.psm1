@@ -30,18 +30,17 @@ Function Get-XmlContent {
     $xFile = Resolve-Path -Path $XmlFile -ErrorAction SilentlyContinue
 
     # Check if the xml file is reachable
-    if ((try {Test-Path $xFile} catch {$false})) {
-        # File is present, we will load it
-        Try {
+    Try {
+        if (Test-Path $xFile) {
+            # File is present, we will load it
             $xmlData = [xml](Get-Content $xFile -Encoding utf8 -ErrorAction Stop)
         }
-        Catch {
-            # Load has failed.
+        Else {
+            # File is unreachable
             $xmlData = $null
         }
     }
-    Else {
-        # File is unreachable
+    Catch {
         $xmlData = $null
     }
 
@@ -76,12 +75,34 @@ Function New-XmlContent {
     $DbgLog = @("Function caller: $(((Get-PSCallStack)[1].Command -split '\.')[0])"," ")
 
     # Test if the file already exists. If so, return a null object.
-    if ((try {Test-Path (Resolve-Path $XmlFile)} catch {$false})) {
-        $DbgLog += "Error: the file could not created as it already exists."
-        $DbgType = "ERROR"
-        $result = $null
+    Try {
+        if (Test-Path (Resolve-Path $XmlFile)) {
+            $DbgLog += "Error: the file could not created as it already exists."
+            $DbgType = "ERROR"
+            $result = $null
+        }
+        Else {
+            $DbgLog += @("New file creation: $(Resolve-Path $XmlFile)"," ","Encoding: UTF8", "Indent: Yes (tabulation)")
+            $DbgType = "INFO"
+            
+            # Formating XML 
+            $xmlSettings = New-Object System.Xml.XmlWriterSettings
+            $xmlSettings.Indent = $true
+            $xmlSettings.IndentChars = "`t"
+            $xmlSettings.Encoding = Encoding.utf8
+
+            # Create the document
+            $XmlWriter = [System.XML.XmlWriter]::Create((Resolve-Path $XmlFile), $xmlSettings)
+
+            # Write the XML Decleration and set the XSL
+            $xmlWriter.WriteStartDocument()
+            $xmlWriter.WriteProcessingInstruction("xml-stylesheet", "type='text/xsl' href='style.xsl'")
+
+            # Return the object handler
+            $result = $XmlWriter
+        }
     }
-    Else {
+    Catch {
         $DbgLog += @("New file creation: $(Resolve-Path $XmlFile)"," ","Encoding: UTF8", "Indent: Yes (tabulation)")
         $DbgType = "INFO"
         
@@ -99,9 +120,8 @@ Function New-XmlContent {
         $xmlWriter.WriteProcessingInstruction("xml-stylesheet", "type='text/xsl' href='style.xsl'")
 
         # Return the object handler
-        $result = $XmlWriter
+        $result = $XmlWriter        
     }
-
     # Writing log
     Write-toEventLog $DbgType $DbgLog
 
