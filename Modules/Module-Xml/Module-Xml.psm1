@@ -103,17 +103,17 @@ Function New-XmlContent {
         }
     }
     Catch {
-        $DbgLog += @("New file creation: $(Resolve-Path $XmlFile)"," ","Encoding: UTF8", "Indent: Yes (tabulation)")
+        $DbgLog += @("New file creation: $($XmlFile)"," ","Encoding: UTF8", "Indent: Yes (tabulation)")
         $DbgType = "INFO"
         
         # Formating XML 
         $xmlSettings = New-Object System.Xml.XmlWriterSettings
         $xmlSettings.Indent = $true
         $xmlSettings.IndentChars = "`t"
-        $xmlSettings.Encoding = Encoding.utf8
+        $xmlSettings.Encoding = "utf-8"
 
         # Create the document
-        $XmlWriter = [System.XML.XmlWriter]::Create((Resolve-Path $XmlFile), $xmlSettings)
+        $XmlWriter = [System.XML.XmlWriter]::Create(($XmlFile), $xmlSettings)
 
         # Write the XML Decleration and set the XSL
         $xmlWriter.WriteStartDocument()
