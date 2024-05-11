@@ -110,7 +110,7 @@ Function New-XmlContent {
         $xmlSettings = New-Object System.Xml.XmlWriterSettings
         $xmlSettings.Indent = $true
         $xmlSettings.IndentChars = "`t"
-        $xmlSettings.Encoding = "utf-8"
+        $xmlSettings.Encoding = [System.Text.Encoding]::UTF8
 
         # Create the document
         $XmlWriter = [System.XML.XmlWriter]::Create(($XmlFile), $xmlSettings)
