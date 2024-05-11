@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Settings>
     <Format>
-        <Title ForegroundColor='Yellow' BackgroundColor='' Uppercase='Yes' Frame='  ' />
+        <Title ForegroundColor='White' BackgroundColor='Green' Uppercase='Yes' Frame='  ' />
         <Text ForegroundColor='Gray' BackgroundColor='' Uppercase='No' Frame='|' />
         <Input ForegroundColor='Cyan' BackgroundColor='' Uppercase='No' Frame='' />
         <Offer ForegroundColor='darkGray' BackgroundColor='' Uppercase='No' Frame='' />
