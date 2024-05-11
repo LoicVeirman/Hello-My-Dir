@@ -106,7 +106,7 @@ if ($Prepare) {
     }
 
     # Say Hello
-    $ScriptTitle = @("-----------------","  Hello My DIR!  ","version 01.00.000","     2024\05     ","-----------------")
+    $ScriptTitle = @("-------------","Hello My DIR! *","version 1.0.0 *","Lic. GNU GPL3 *","-------------")
     Write-TitleText -Text $ScriptTitle
 
     # Inquiring for setup data: context
