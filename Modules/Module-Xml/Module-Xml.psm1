@@ -71,7 +71,7 @@ Function New-XmlContent {
         $XmlFile
     )
     # Prepare for debug log. Only one entrie in event log for the whole function.
-    Test-EventLog
+    Test-EventLog | Out-Null  
     $DbgLog = @("Function caller: $(((Get-PSCallStack)[1].Command -split '\.')[0])"," ")
 
     # Test if the file already exists. If so, return a null object.
