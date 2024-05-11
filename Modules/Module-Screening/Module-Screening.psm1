@@ -84,9 +84,9 @@ Function New-ModuleScreeningXmlFile {
     # First, dealing with a badly formated xml file.
     # We backup it ONLY if a backup file is not already present. Else, we delete the file.
     if ((Test-Path .\Modules\Module-Screening\Module-Screening.xml) -and -not ((Test-Path .\Modules\Module-Screening\Module-Screening.xml.bak))) {
-        Rename-Item '.\Modules\Module-Screening\Module-Screening.xml' -NewName '.\Modules\Module-Screening\Module-Screening.xml.bak'
+        Rename-Item (Resolve-Path .\Modules\Module-Screening\Module-Screening.xml).Path -NewName (((Resolve-Path .\Modules\Module-Screening\Module-Screening.xml).Path).Replace('xml','bak'))
     } elseif ((Test-Path .\Modules\Module-Screening\Module-Screening.xml)) {
-        Remove-Item '.\Modules\Module-Screening\Module-Screening.xml'
+        Remove-Item (Resolve-Path .\Modules\Module-Screening\Module-Screening.xml).Path
     }
 
     # Second, we create our new file.
