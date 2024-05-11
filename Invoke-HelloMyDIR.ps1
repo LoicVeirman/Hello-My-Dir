@@ -46,6 +46,13 @@ if ($Prepare) {
 else {
     $DbgLog += 'No option used: the setup will perform action to configure your AD.'
 }
+
+# CHECK FOR FIRST RUN
+if (-not(Test-Path .\Configuration\RunSetup.xml) -and -not($Prepare)) {
+    $DbgLog += 'No option used: as the file RunSetup.xml is missing, the script will enfore -Prepare to True.'
+    $Prepare = $true
+}
+
 Write-toEventLog -EventType INFO -EventMsg $DbgLog | Out-Null
 $DbgLog = $null
 
@@ -148,6 +155,12 @@ if ($Prepare) {
     # # Forest Optional Attributes: Privileged Access Management
     $ProposedAnswer = $DefaultChoices.HmDSetup.Forest.ADPAM
 
+    # Closing RunSetup.xml
+    $RunSetup.WriteEndDocument()
+    $RunSetup.Flush()
+    $RunSetup.Close()
+    $DbgLog += @('File RunSetup.xml updated and saved.',' ')
+    Write-toEventLog INFO $DbgLog | Out-Null
 }
 # USE CASE 2: SETUP AD
 Else {
