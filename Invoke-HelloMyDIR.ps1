@@ -30,7 +30,7 @@ Param(
 
 # Load modules. If a module fails on load, the script will stop.
 Try {
-    Import-Module -Name (Get-ChildItem .\Modules) -ErrorAction Stop | Out-Null
+    Import-Module -Name (Get-ChildItem .\Modules).FullName -ErrorAction Stop | Out-Null
 }
 Catch {
     Write-Error "Failed to load modules."
@@ -108,7 +108,7 @@ if ($Prepare) {
     # Say Hello
     $ScriptTitle = @("Hello My DIR!","version 01.00.000      May 2024")
     Write-TitleText -Text $ScriptTitle
-    
+
     # Inquiring for setup data: context
     # # New forest?
     
