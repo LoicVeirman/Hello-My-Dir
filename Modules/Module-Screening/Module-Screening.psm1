@@ -203,6 +203,6 @@ Function Write-TitleText {
         if ($xmlSettings.Format.Title.Uppercase -eq 'Yes') {
             $line = $line.ToUpper()
         }
-        Write-Host $line $Attributes
+        Write-Host $line @Attributes
     }
 }
