@@ -89,7 +89,7 @@ Function New-XmlContent {
             $xmlSettings = New-Object System.Xml.XmlWriterSettings
             $xmlSettings.Indent = $true
             $xmlSettings.IndentChars = "`t"
-            $xmlSettings.Encoding = Encoding.utf8
+            $xmlSettings.Encoding = [System.Text.Encoding]::UTF8
 
             # Create the document
             $XmlWriter = [System.XML.XmlWriter]::Create((Resolve-Path $XmlFile), $xmlSettings)
@@ -123,7 +123,7 @@ Function New-XmlContent {
         $result = $XmlWriter        
     }
     # Writing log
-    Write-toEventLog $DbgType $DbgLog
+    Write-toEventLog $DbgType $DbgLog | Out-Null
 
     # Return result
     return $result
