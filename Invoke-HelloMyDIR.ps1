@@ -39,14 +39,14 @@ Catch {
 
 # Initiate logging
 $DbgLog = @('START: invoke-HelloMyDir')
-Test-EventLog
+Test-EventLog | Out-Null
 if ($Prepare) {
     $DbgLog += 'Option "Prepare" declared: the file RunSetup.xml will be generated'
 } 
 else {
     $DbgLog += 'No option used: the setup will perform action to configure your AD.'
 }
-Write-toEventLog -EventType INFO -EventMsg $DbgLog
+Write-toEventLog -EventType INFO -EventMsg $DbgLog | Out-Null
 $DbgLog = $null
 
 # USE CASE 1: PREPARE XML SETUP FILE
@@ -59,7 +59,7 @@ if ($Prepare) {
         if (Test-Path .\Configuration\RunSetup.last) {
             $DbgLog += 'As a file named ".\Configuration\RunSetup.last" is already present, this file will overwrite the existing one.'
             Remove-Item -Path .\Configuration\RunSetup.last -Force | Out-Null
-            Rename-item -Path .\Configuration\RunSetup.xml -NewName .\Configuration\RunSetup.last -ErrorAction SilentlyContinue
+            Rename-item -Path .\Configuration\RunSetup.xml -NewName .\Configuration\RunSetup.last -ErrorAction SilentlyContinue | Out-Null
             
             # Loading .last file as default option for the script.
             $DbgLog += 'As a file named ".\Configuration\RunSetup.last" is already present, this file will overwrite the existing one.'
@@ -69,7 +69,7 @@ if ($Prepare) {
             $DbgLog += 'No previous run detected.'
         }
     }
-    Write-toEventLog INFO $DbgLog
+    Write-toEventLog INFO $DbgLog | Out-Null
     $DbgLog = $null
 
     # Preload previous run options
@@ -77,13 +77,13 @@ if ($Prepare) {
     if (Test-Path .\Configuration\RunSetup.last) {
         Try {
             $lastRunOptions = Get-XmlContent -XmlFile .\Configuration\RunSetup.last -ErrorAction Stop
-            $DbgLog += @('Variable: $LastRunOptions','Loaded with .\Configuration\RunSetup.last xml data.')
-            Write-toEventLog INFO $DbgLog
+            $DbgLog += @('Variable: LastRunOptions','Loaded with .\Configuration\RunSetup.last xml data.')
+            Write-toEventLog INFO $DbgLog | Out-Null
         }
         Catch {
             $lastRunOptions = $null
             $DbgLog += @('Variable: $LastRunOptions','Failed to be loaded with .\Configuration\RunSetup.last xml data.')
-            Write-toEventLog WARNING $DbgLog
+            Write-toEventLog WARNING $DbgLog | Out-Null
         }
     }
     $DbgLog = $null
@@ -95,12 +95,12 @@ if ($Prepare) {
     if ($RunSetup) {
         $DbgLog += @("File .\Configuration\RunSetup.xml created.","The file will now be filled with user's choices.")
         $RunSetup.WriteStartElement('HmDSetup')
-        Write-toEventLog INFO $DbgLog
+        Write-toEventLog INFO $DbgLog | Out-Null
         $DbgLog = $null
     }
     Else {
         $DbgLog += @("FATAL ERROR: the file .\Configuration\RunSetup.xml could not be created.","The script will end with error code 2.")
-        Write-toEventLog ERROR $DbgLog
+        Write-toEventLog ERROR $DbgLog | Out-Null
         Write-Error "ERROR: THE CONFIGURATION FILE COULD NOT BE CREATED."
         Exit 2
     }
@@ -149,9 +149,7 @@ Else {
 
 }
 
-# Unolad modules
-Remove-Module -Name (Get-ChildItem .\Modules).Name -ErrorAction SilentlyContinue | Out-Null
-
 # Exit
 Write-toEventLog -EventType INFO -EventMsg "END: invoke-HelloMyDir"
+Remove-Module -Name (Get-ChildItem .\Modules).Name -ErrorAction SilentlyContinue | Out-Null
 Exit 0
