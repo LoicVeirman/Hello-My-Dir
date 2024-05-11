@@ -112,8 +112,11 @@ Function New-XmlContent {
         $xmlSettings.IndentChars = "`t"
         $xmlSettings.Encoding = [System.Text.Encoding]::UTF8
 
+        # Get Current Directory
+        $BaseDir = (Resolve-Path .).Path
+        $newXmlFile = "$BaseDir$($XmlFile.Substring(1))"
         # Create the document
-        $XmlWriter = [System.XML.XmlWriter]::Create(($XmlFile), $xmlSettings)
+        $XmlWriter = [System.XML.XmlWriter]::Create($newXmlFile, $xmlSettings)
 
         # Write the XML Decleration and set the XSL
         $xmlWriter.WriteStartDocument()
