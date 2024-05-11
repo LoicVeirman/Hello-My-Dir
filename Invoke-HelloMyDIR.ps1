@@ -40,6 +40,7 @@ Catch {
 # Initiate logging
 $DbgLog = @('START: invoke-HelloMyDir')
 Test-EventLog | Out-Null
+
 if ($Prepare) {
     $DbgLog += 'Option "Prepare" declared: the file RunSetup.xml will be generated'
 } 
@@ -58,13 +59,19 @@ $DbgLog = $null
 
 # USE CASE 1: PREPARE XML SETUP FILE
 if ($Prepare) {
+
     # Test if a configuration file already exists - if so, we will use it.
     $DbgLog = @('PHASE INIT: TEST IF A PREVIOUS RUN IS DETECTED.')
+
     if (Test-Path .\Configuration\RunSetup.xml) {
+    
         # A file is present. We will rename it to a previous version to read old values and offers them as default option.
         $DbgLog += 'The file ".\Configuration\RunSetup.xml" is present, it will be converted to the last backup file.'
+    
         if (Test-Path .\Configuration\RunSetup.last) {
+    
             $DbgLog += 'As a file named ".\Configuration\RunSetup.last" is already present, this file will overwrite the existing one.'
+    
             Remove-Item -Path .\Configuration\RunSetup.last -Force | Out-Null
             Rename-item -Path .\Configuration\RunSetup.xml -NewName .\Configuration\RunSetup.last -ErrorAction SilentlyContinue | Out-Null
             
@@ -72,22 +79,27 @@ if ($Prepare) {
             $DbgLog += 'As a file named ".\Configuration\RunSetup.last" is already present, this file will overwrite the existing one.'
             $DefaultChoices = Get-XmlContent .\Configuration\RunSetup.last -ErrorAction SilentlyContinue
         }
+    
         Else {
             $DbgLog += 'No previous run detected.'
         }
     }
+    
     Write-toEventLog INFO $DbgLog | Out-Null
     $DbgLog = $null
 
     # Preload previous run options
     $DbgLog = @('XML BUILDERS: PRELOAD ANSWERS FROM PREVIOUS RUN.')
+
     if (Test-Path .\Configuration\RunSetup.last) {
         Try {
+    
             $lastRunOptions = Get-XmlContent -XmlFile .\Configuration\RunSetup.last -ErrorAction Stop
             $DbgLog += @('Variable: LastRunOptions','Loaded with .\Configuration\RunSetup.last xml data.')
             Write-toEventLog INFO $DbgLog | Out-Null
         }
         Catch {
+    
             $lastRunOptions = $null
             $DbgLog += @('Variable: $LastRunOptions','Failed to be loaded with .\Configuration\RunSetup.last xml data.')
             Write-toEventLog WARNING $DbgLog | Out-Null
@@ -95,17 +107,23 @@ if ($Prepare) {
     }
     $DbgLog = $null
 
+    #Load Script Settings XML
+    $ScriptSettings = Get-XmlContent .\Configuration\ScriptSettings.xml
+
     # Create XML settings file
     $DbgLog = @('XML BUILDERS: CREATE XML SETUP FILE')
     $RunSetup = New-XmlContent -XmlFile .\Configuration\RunSetup.xml
     
     if ($RunSetup) {
+   
         $DbgLog += @("File .\Configuration\RunSetup.xml created.","The file will now be filled with user's choices.")
         $RunSetup.WriteStartElement('HmDSetup')
+   
         Write-toEventLog INFO $DbgLog | Out-Null
         $DbgLog = $null
     }
     Else {
+   
         $DbgLog += @("FATAL ERROR: the file .\Configuration\RunSetup.xml could not be created.","The script will end with error code 2.")
         Write-toEventLog ERROR $DbgLog | Out-Null
         Write-Error "ERROR: THE CONFIGURATION FILE COULD NOT BE CREATED."
@@ -120,9 +138,28 @@ if ($Prepare) {
                         ,"$([Char]0x255A)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x255D)" `
                         ,' ')
     Write-TitleText -Text $ScriptTitle
+    
+    $toDisplayXml = Select-Xml $ScriptSettings -XPath "//Text[@ID='000']" | Select-Object -ExpandProperty Node
+    $toDisplayArr = @($toDisplayXml.Line1)
+    if ($toDisplayXml.Line2) {
+        $toDisplayArr += @($toDisplayXml.Line2)
+    }
+    if ($toDisplayXml.Line3) {
+        $toDisplayArr += @($toDisplayXml.Line3)
+    }
+    if ($toDisplayXml.Line4) {
+        $toDisplayArr += @($toDisplayXml.Line4)
+    }
+    Write-InformationalText -Text $toDisplayArr
 
     # Inquiring for setup data: context
     # # New forest?
+    $toDisplayXml = Select-Xml $ScriptSettings -XPath "//Text[@ID='001']" | Select-Object -ExpandProperty Node
+    $toDisplayArr = @($toDisplayXml.Line1)
+    $toDisplayArr += $toDisplayXml.Line2
+    
+    Write-YesNoChoice $toDisplayArr
+    
     
     # Inquiring for setup data: the forest.
     $DbgLog = @("SETUP DATA COLLECT: FOREST"," ")

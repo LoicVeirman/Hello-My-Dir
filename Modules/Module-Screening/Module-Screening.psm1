@@ -206,3 +206,138 @@ Function Write-TitleText {
         Write-Host $line @Attributes
     }
 }
+
+Function Write-InformationalText {
+    <#
+        .SYNOPSIS
+        Echo a text as an information one.
+
+        .DESCRIPTION
+        Simple function to write an information on the screen.
+        This function will rely on custom value from Module-Screening.xml.
+
+        .PARAMETER Text
+        A string or array of string that contains the title text.
+
+        .NOTES
+        Version: 01.000.000 -- Loic VEIRMAN (MSSec)
+        History: 2024/05/11 -- Script creation.
+    #>
+
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory,Position=0)]
+        [Array]
+        $Text
+    )
+    
+    # No Logging.
+    # Import XML settings data.
+    $xmlSettings = Get-XmlContent .\modules\Module-Screening\Module-Screening.Xml
+
+    if (-not ($xmlSettings)) {
+        # Load as failed. We create a default one with our own values...
+        New-ModuleScreeningXmlFile
+        # Then we load it.
+        $xmlSettings = Get-XmlContent .\modules\Module-Screening\Module-Screening.Xml
+    }
+
+    # Prepare write-host attributes
+    $Attributes = @{}
+    if ($xmlSettings.Settings.Format.Text.ForegroundColor) {
+        $Attributes.Add('ForegroundColor',$xmlSettings.Settings.Format.Text.ForegroundColor)
+    } 
+    if ($xmlSettings.Settings.Format.Input.BackgroundColor) {
+        $Attributes.Add('BackgroundColor',$xmlSettings.Settings.Format.Text.BackgroundColor)
+    }
+
+    # Prepare Title Text 
+    $InfoText = Format-ScreenText $Text
+    foreach ($line in $InfoText) {
+        $FinalText += @("$($xmlSettings.Settings.Format.Text.Frame)$Line")
+    }
+
+    # Echo title text
+    foreach ($line in $FinalText) {
+        if ($xmlSettings.Format.Text.Uppercase -eq 'Yes') {
+            $line = $line.ToUpper()
+        }
+        Write-Host $line @Attributes
+    }
+}
+
+Function Write-YesNoChoice {
+    <#
+        .SYNOPSIS
+        Echo a text and ask for a Yes or No choice.
+
+        .DESCRIPTION
+        Simple function to write an information on the screen and ask for a choice.
+        This function will rely on custom value from Module-Screening.xml.
+
+        .PARAMETER Text
+        A string or array of string that contains the question text (Line1) and the keys option (Line2).
+
+        .NOTES
+        Version: 01.000.000 -- Loic VEIRMAN (MSSec)
+        History: 2024/05/11 -- Script creation.
+    #>
+
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory,Position=0)]
+        [Array]
+        $Text
+    )
+    
+    # No Logging.
+    # Import XML settings data.
+    $xmlSettings = Get-XmlContent .\modules\Module-Screening\Module-Screening.Xml
+
+    if (-not ($xmlSettings)) {
+        # Load as failed. We create a default one with our own values...
+        New-ModuleScreeningXmlFile
+        # Then we load it.
+        $xmlSettings = Get-XmlContent .\modules\Module-Screening\Module-Screening.Xml
+    }
+
+    # Prepare write-host attributes: question text
+    $qAttributes = @{}
+    if ($xmlSettings.Settings.Format.Input.ForegroundColor) {
+        $qAttributes.Add('ForegroundColor',$xmlSettings.Settings.Format.Input.ForegroundColor)
+    } 
+    if ($xmlSettings.Settings.Format.Input.BackgroundColor) {
+        $qAttributes.Add('BackgroundColor',$xmlSettings.Settings.Format.Input.BackgroundColor)
+    }
+
+    # Prepare write-host attributes: choice text
+    $cAttributes = @{}
+    if ($xmlSettings.Settings.Format.Text.ForegroundColor) {
+        $cAttributes.Add('ForegroundColor',$xmlSettings.Settings.Format.Text.ForegroundColor)
+    } 
+    if ($xmlSettings.Settings.Format.Text.BackgroundColor) {
+        $cAttributes.Add('BackgroundColor',$xmlSettings.Settings.Format.Text.BackgroundColor)
+    }
+
+    # Prepare Question Text 
+    $InfoText = Format-ScreenText $Text[0]
+    foreach ($line in $InfoText) {
+        $FinalText += @("$($xmlSettings.Settings.Format.Input.Frame)$Line")
+    }
+
+    # Echo Question
+    $LastLine = $FinalText.Count
+    $i = 1
+    foreach ($line in $FinalText) {
+        if ($i -eq $LastLine) {
+            $qAttributes.Add('NoNewLine',$True)
+        }
+        if ($xmlSettings.Format.Input.Uppercase -eq 'Yes') {
+            $line = $line.ToUpper()
+        }
+        Write-Host $line @qAttributes
+    }
+
+    # Echo Choice
+    Write-host " $($Text[1])" @cAttributes -NoNewline
+}

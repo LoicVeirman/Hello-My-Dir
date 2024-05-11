@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Settings>
     <Logging Name="HelloMyDir" Prefix="HmD_" />
+    <Message>
+        <Text ID='000' Line1="Welcome!" Line2="This script will assist you in creating a new domain fully secured." Line3="" Line4="" />
+        <Text ID='001' Line1="Are we building a new domain in a new forest?" Line2="[Y/N]" Line3="" Line4="" />
+    </Message>
 </Settings>
 <!--
     =============
@@ -11,9 +15,18 @@
     =======         ==============      ===================================
     ELEMENT         PARENT ELEMENT      DESCRIPTION AND ATTRIBUTE STRING(S)
     =======         ==============      ===================================
-    <Logging />     <Settings />        Use to define the event log name (no file extension) and the prefix to append to the function or script names (must be unique):
-                                        >> Name  : Name of the log file (as appearing in the Event Viewer console)
-                                        >> Prefix: Text to append to the begining of the script or function name (used as the Source in the event log) 
+    <Logging>       <Settings>          Use to define the event log name (no file extension) and the prefix to append to the function or script names (must be unique):
+                                        >> Name...: Name of the log file (as appearing in the Event Viewer console)
+                                        >> Prefix.: Text to append to the begining of the script or function name (used as the Source in the event log) 
+
+    <Message>       <Settings>          Contains text to display on screen when calling to action.
+
+    <Text>          <Message>           Composed of the following element:
+                                        >> ID.....: Unique ID for this text.
+                                        >> Line1..: first line block.
+                                        >> Line2..: second line block.
+                                        >> Line3..: third line block.
+                                        >> Line4..: fourth line block.
     =======         ==============      ===================================
 
     ** FILLED=UP BY THE SCRIPT (YOU CAN MODIFY OR ADD IT) **
