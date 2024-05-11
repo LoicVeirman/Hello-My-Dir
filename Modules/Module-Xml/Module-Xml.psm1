@@ -31,7 +31,7 @@ Function Get-XmlContent {
 
     # Check if the xml file is reachable
     Try {
-        if (Test-Path $xFile) {
+        if (Test-Path $xFile -ErrorAction Stop) {
             # File is present, we will load it
             $xmlData = [xml](Get-Content $xFile -Encoding utf8 -ErrorAction Stop)
         }
@@ -76,7 +76,7 @@ Function New-XmlContent {
 
     # Test if the file already exists. If so, return a null object.
     Try {
-        if (Test-Path (Resolve-Path $XmlFile)) {
+        if (Test-Path (Resolve-Path $XmlFile -ErrorAction Stop)) {
             $DbgLog += "Error: the file could not created as it already exists."
             $DbgType = "ERROR"
             $result = $null
