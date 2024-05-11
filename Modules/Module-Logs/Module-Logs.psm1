@@ -71,7 +71,7 @@ Function Write-toEventLog {
     }
     Catch {
         foreach ($line in ($Message -split '`n')) {
-            "$(Get-Date 'yyyy-MM-dd;hh:mm:ss');EventType;$Line" | Out-File "$EventSrc.log" -Encoding utf8 -Append
+            "$(Get-Date -UFormat);EventType;$Line" | Out-File "$EventSrc.log" -Encoding utf8 -Append
         }
     }
 }

@@ -21,7 +21,6 @@ Function Get-XmlContent {
     Param(
         # Xml file path and name
         [Parameter(mandatory, Position=0)]
-        [ValidateNotNullOrEmpty]
         [String]
         $XmlFile
     )
@@ -69,7 +68,6 @@ Function New-XmlContent {
     Param(
         # Xml file path and name
         [Parameter(mandatory, Position=0)]
-        [ValidateNotNullOrEmpty]
         [String]
         $XmlFile
     )
