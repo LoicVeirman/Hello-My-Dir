@@ -195,7 +195,7 @@ Function Write-TitleText {
     # Prepare Title Text 
     $TitleText = Format-ScreenText $Text
     foreach ($line in $TitleText) {
-        $FinalText += @("$($xmlSettings.Settings.Format.Title.Frame) $Line")
+        $FinalText += @("$($xmlSettings.Settings.Format.Title.Frame)$Line")
     }
 
     # Echo title text
