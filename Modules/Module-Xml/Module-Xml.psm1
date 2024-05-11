@@ -30,7 +30,7 @@ Function Get-XmlContent {
     $xFile = Resolve-Path -Path $XmlFile -ErrorAction SilentlyContinue
 
     # Check if the xml file is reachable
-    if (Test-Path $xFile -ErrorAction SilentlyContinue) {
+    if ((try {Test-Path $xFile} catch {$false})) {
         # File is present, we will load it
         Try {
             $xmlData = [xml](Get-Content $xFile -Encoding utf8 -ErrorAction Stop)
@@ -76,7 +76,7 @@ Function New-XmlContent {
     $DbgLog = @("Function caller: $(((Get-PSCallStack)[1].Command -split '\.')[0])"," ")
 
     # Test if the file already exists. If so, return a null object.
-    if (Test-Path (Resolve-Path $XmlFile)) {
+    if ((try {Test-Path (Resolve-Path $XmlFile)} catch {$false})) {
         $DbgLog += "Error: the file could not created as it already exists."
         $DbgType = "ERROR"
         $result = $null
