@@ -158,7 +158,7 @@ Function Write-TitleText {
         This function will rely on custom value from Module-Screening.xml.
 
         .PARAMETER Text
-        A string that contains the title text.
+        A string or array of string that contains the title text.
 
         .NOTES
         Version: 01.000.000 -- Loic VEIRMAN (MSSec)
@@ -168,7 +168,7 @@ Function Write-TitleText {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory,Position=0)]
-        [String]
+        [Array]
         $Text
     )
 
@@ -183,5 +183,26 @@ Function Write-TitleText {
         $xmlSettings = Get-XmlContent .\modules\Module-Screening\Module-Screening.Xml
     }
 
-    $xmlSettings
+    # Prepare write-host attributes
+    $Attributes = @{}
+    if ($xmlSettings.Settings.Format.Title.ForegroundColor) {
+        $Attributes.Add('ForegroundColor',$xmlSettings.Settings.Format.Title.ForegroundColor)
+    } 
+    if ($xmlSettings.Settings.Format.Title.BackgroundColor) {
+        $Attributes.Add('BackgroundColor',$xmlSettings.Settings.Format.Title.BackgroundColor)
+    }
+
+    # Prepare Title Text 
+    $TitleText = Format-ScreenText $Text
+    foreach ($line in $TitleText) {
+        $FinalText += @("$($xmlSettings.Settings.Format.Title.Frame) $Line")
+    }
+
+    # Echo title text
+    foreach ($line in $FinalText) {
+        if ($xmlSettings.Format.Title.Uppercase -eq 'Yes') {
+            $line = $line.ToUpper()
+        }
+        Write-Host $line $Attributes
+    }
 }
