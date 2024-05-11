@@ -90,7 +90,7 @@ if ($Prepare) {
 
     # Create XML settings file
     $DbgLog = @('XML BUILDERS: CREATE XML SETUP FILE')
-    $RunSetup = New-XmlContent -XmlFile (.\Configuration\RunSetup.xml)
+    $RunSetup = New-XmlContent -XmlFile .\Configuration\RunSetup.xml
     
     if ($RunSetup) {
         $DbgLog += @("File .\Configuration\RunSetup.xml created.","The file will now be filled with user's choices.")
