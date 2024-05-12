@@ -3,7 +3,7 @@
     <Format>
         <Title ForegroundColor='White' BackgroundColor='DarkCyan' Uppercase='Yes' Frame='' />
         <Text ForegroundColor='White' BackgroundColor='' Uppercase='No' Frame='|' />
-        <Input ForegroundColor='Cyan' BackgroundColor='' Uppercase='No' Frame='' />
+        <Input ForegroundColor='Cyan' BackgroundColor='' Uppercase='No' Frame=' ' />
         <Offer ForegroundColor='darkGray' BackgroundColor='' Uppercase='No' Frame='' />
         <Dynamic>
             <Disable color="darGray" />
