@@ -162,6 +162,7 @@ if ($Prepare) {
     $toDisplayArr = @($toDisplayXml.Line1)
     $toDisplayArr += $toDisplayXml.Line2
     Write-YesNoChoice $toDisplayArr
+    Write-Host
     
     ### Yes/No time
     ### Get current cursor position and create the Blanco String
@@ -171,8 +172,8 @@ if ($Prepare) {
     }
 
     ### Querying input
-    $isOK = $null
-    While ($null -eq $isOK)
+    $isKO = $True
+    While ($isKO)
     {
         $key = $Host.UI.RawUI.ReadKey("IncludeKeyDown,NoEcho")
         if ($key.VirtualKeyCode -eq 89 -or $key.VirtualKeyCode -eq 13)
@@ -180,11 +181,11 @@ if ($Prepare) {
             Write-Host $StringCleanSet -NoNewline
             $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
             Write-Host "Yes" -ForegroundColor White
-            $isOK = $true
+            $isKO = $false
         } Else {
             Write-Host $StringCleanSet -NoNewline
             Write-Host (random $LurchMood) -ForegroundColor DarkGray -NoNewline
-            $isOK = $false
+            $isKO = $true
         }
     }
     
