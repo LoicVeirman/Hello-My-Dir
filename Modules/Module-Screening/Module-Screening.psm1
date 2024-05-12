@@ -329,13 +329,15 @@ Function Write-YesNoChoice {
     $LastLine = $FinalText.Count
     $i = 1
     foreach ($line in $FinalText) {
-        if ($i -eq $LastLine) {
-            $qAttributes.Add('NoNewLine',$True)
-        }
         if ($xmlSettings.Format.Input.Uppercase -eq 'Yes') {
             $line = $line.ToUpper()
+        } 
+        if ($i -eq $LastLine) {
+            Write-Host $line @qAttributes -NoNewline
         }
-        Write-Host $line @qAttributes
+            Else {
+            Write-Host $line @qAttributes
+        }
     }
 
     # Echo Choice
