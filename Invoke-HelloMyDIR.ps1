@@ -167,8 +167,9 @@ if ($Prepare) {
     ### Yes/No time
     ### Get current cursor position and create the Blanco String
     $StringCleanSet = " "
+    $MaxStringLength = ($LurchMood | Measure-Object -Property Length -Maximum).Maximum
     $CursorPosition = $Host.UI.RawUI.CursorPosition
-    for ($i=2 ; $i -le (Measure-Object -InputObject $LurchMood -Maximum -Property Length).Maximum ; $i++) { 
+    for ($i=2 ; $i -le $MaxStringLength ; $i++) { 
         $StringCleanSet += " " 
     }
 
