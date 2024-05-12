@@ -192,7 +192,7 @@ if ($Prepare) {
             Write-Host "No" -ForegroundColor Red
             $isKO = $false
         }
-        } Else {
+        Else {
             $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
             Write-Host $StringCleanSet -NoNewline
             $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
