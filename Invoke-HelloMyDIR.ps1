@@ -180,10 +180,11 @@ if ($Prepare) {
         {
             Write-Host $StringCleanSet -NoNewline
             $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
-            Write-Host "Yes" -ForegroundColor White
+            Write-Host " Yes" -ForegroundColor White
             $isKO = $false
         } Else {
             Write-Host $StringCleanSet -NoNewline
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
             Write-Host (random $LurchMood) -ForegroundColor DarkGray -NoNewline
             $isKO = $true
         }
