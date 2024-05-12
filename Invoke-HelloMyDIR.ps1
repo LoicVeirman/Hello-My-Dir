@@ -166,8 +166,9 @@ if ($Prepare) {
     
     ### Yes/No time
     ### Get current cursor position and create the Blanco String
+    $StringCleanSet = " "
     $CursorPosition = $Host.UI.RawUI.CursorPosition
-    for ($i=1 ; $i -le (Measure-Object -InputObject $LurchMood -Maximum -Property Length).Maximum ; $i++) { 
+    for ($i=2 ; $i -le (Measure-Object -InputObject $LurchMood -Maximum -Property Length).Maximum ; $i++) { 
         $StringCleanSet += " " 
     }
 
@@ -178,11 +179,21 @@ if ($Prepare) {
         $key = $Host.UI.RawUI.ReadKey("IncludeKeyDown,NoEcho")
         if ($key.VirtualKeyCode -eq 89 -or $key.VirtualKeyCode -eq 13)
         {
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
             Write-Host $StringCleanSet -NoNewline
             $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
-            Write-Host " Yes" -ForegroundColor White
+            Write-Host "Yes" -ForegroundColor White
             $isKO = $false
+        }
+        elseif ($key.VirtualKeyCode -eq 78) {
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+            Write-Host $StringCleanSet -NoNewline
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+            Write-Host "No" -ForegroundColor Red
+            $isKO = $false
+        }
         } Else {
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
             Write-Host $StringCleanSet -NoNewline
             $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
             Write-Host (random $LurchMood) -ForegroundColor DarkGray -NoNewline
