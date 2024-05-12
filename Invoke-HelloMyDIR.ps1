@@ -151,6 +151,7 @@ if ($Prepare) {
         $toDisplayArr += @($toDisplayXml.Line4)
     }
     Write-InformationalText -Text $toDisplayArr
+    Write-Host
 
     # Inquiring for setup data: context
     ## New forest?
@@ -162,7 +163,6 @@ if ($Prepare) {
     $toDisplayArr = @($toDisplayXml.Line1)
     $toDisplayArr += $toDisplayXml.Line2
     Write-YesNoChoice $toDisplayArr
-    Write-Host
     
     ### Yes/No time
     ### Get current cursor position and create the Blanco String
