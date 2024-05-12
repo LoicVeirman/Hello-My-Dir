@@ -153,13 +153,40 @@ if ($Prepare) {
     Write-InformationalText -Text $toDisplayArr
 
     # Inquiring for setup data: context
-    # # New forest?
+    ## New forest?
+    ### Calling Lurch from Adam's family...
+    $LurchMood = @(($ScriptSettings.Settings.Lurch.BadKeyPress).Split(';'))
+
+    ### Display question 
     $toDisplayXml = Select-Xml $ScriptSettings -XPath "//Text[@ID='001']" | Select-Object -ExpandProperty Node
     $toDisplayArr = @($toDisplayXml.Line1)
     $toDisplayArr += $toDisplayXml.Line2
-    
     Write-YesNoChoice $toDisplayArr
     
+    ### Yes/No time
+    ### Get current cursor position and create the Blanco String
+    $CursorPosition = $Host.UI.RawUI.CursorPosition
+    for ($i=1 ; $i -le (Measure-Object -InputObject $LurchMood -Maximum -Property Length).Maximum ; $i++) { 
+        $StringCleanSet += " " 
+    }
+
+    ### Querying input
+    $isOK = $null
+    While ($null -eq $isOK)
+    {
+        $key = $Host.UI.RawUI.ReadKey("IncludeKeyDown,NoEcho")
+        if ($key.VirtualKeyCode -eq 89 -or $key.VirtualKeyCode -eq 13)
+        {
+            Write-Host $StringCleanSet -NoNewline
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+            Write-Host "Yes" -ForegroundColor White
+            $isOK = $true
+        } Else {
+            Write-Host $StringCleanSet -NoNewline
+            Write-Host (random $LurchMood) -ForegroundColor DarkGray -NoNewline
+            $isOK = $false
+        }
+    }
     
     # Inquiring for setup data: the forest.
     $DbgLog = @("SETUP DATA COLLECT: FOREST"," ")

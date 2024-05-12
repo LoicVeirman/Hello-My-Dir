@@ -5,6 +5,9 @@
         <Text ID='000' Line1="Welcome!" Line2="This script will assist you in creating a new domain fully secured." Line3="" Line4="" />
         <Text ID='001' Line1="Are we building a new domain in a new forest?" Line2="[Y/N]" Line3="" Line4="" />
     </Message>
+    <Lurch>
+        <BadKeyPress>No;Nop;Han Han...;Try Again;No way;Are you kidding me?;Grmpf...;Not a chance;I don't think so;That's negative...;Sorry, but... No;I'll pass;Forget it;Not happening;I have better things to do;I have to feed my pet rock;I already have a subscription to the 'no' magazine;I don't have energy for that right now;I'm not really into that sort of thing;Maybe some other time?</BadKeyPress>
+    </Lurch>
 </Settings>
 <!--
     =============
