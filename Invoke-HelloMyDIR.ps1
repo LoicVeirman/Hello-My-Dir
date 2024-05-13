@@ -184,7 +184,7 @@ if ($Prepare) {
             Write-Host $StringCleanSet -NoNewline
             $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
             Write-Host "Yes" -ForegroundColor White
-            $Choice = "Yes"
+            $ForestChoice = "Yes"
             $isKO = $false
         }
         elseif ($key.VirtualKeyCode -eq 78) {
@@ -192,7 +192,7 @@ if ($Prepare) {
             Write-Host $StringCleanSet -NoNewline
             $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
             Write-Host "No" -ForegroundColor Red
-            $Choice = "No"
+            $ForestChoice = "No"
             $isKO = $false
         }
         Else {
@@ -210,11 +210,15 @@ if ($Prepare) {
     ## Writing result to XML.
     $RunSetup.WriteStartElement('Configuration')
     $RunSetup.WriteStartElement('Forest')
-    $RunSetup.WriteElementString('Installation',$Choice)
-    $DbgLog += @("Install a new forest: $Choice")
+    $RunSetup.WriteElementString('Installation',$ForestChoice)
+    $DbgLog += @("Install a new forest: $ForestChoice")
+
+    ## Getting Forest Data
+    $ForestData = Get-HmDForest $ForestChoice $DefaultChoices
 
     ## Forest Root Domain Fullname
     $ProposedAnswer = $DefaultChoices.HmDSetup.Forest.Domain.Name
+    
 
     ## Forest Root Domain NetBIOS
     $ProposedAnswer = $DefaultChoices.HmDSetup.Forest.Domain.NetBIOS
