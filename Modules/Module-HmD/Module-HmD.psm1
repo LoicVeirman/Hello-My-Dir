@@ -46,9 +46,9 @@ Function New-HmDRunSetupXml {
     $myXml.WriteEndElement()
 
     # Closing document
-    $RunSetup.WriteEndDocument()
-    $RunSetup.Flush()
-    $RunSetup.Close()
+    $MyXml.WriteEndDocument()
+    $myXml.Flush()
+    $myXml.Close()
 }
 Function Get-HmDForest {
     <#
