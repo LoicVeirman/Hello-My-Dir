@@ -90,25 +90,14 @@ Function Get-HmDForest {
     $ExitLevel = 'INFO'
     $DbgLog = @('START: Get-HmDForest',' ','Called by: $CalledBy',' ')
 
-    # Collecting historical choices, if any
-    if ($NewForest -eq 'Yes') {
-        # We review if a previous choice was avail.
-        $OldForestDNS = $PreviousChoices.Configuration.Forest.Fullname
-        $OldForestNtB = $PreviousChoices.Configuration.Forest.NetBIOS
-        $OldForestFFL = $PreviousChoices.Configuration.Forest.FunctionalLevel
-        $OldForestBIN = $PreviousChoices.Configuration.Forest.OptionalFeatures.RecycleBin
-        $OldForestPAM = $PreviousChoices.Configuration.Forest.OptionalFeatures.PAM
-    }
-    Else {
-        # We set all old value to Blank
-        $OldForestDNS = ''
-        $OldForestNtB = ''
-        $OldForestFFL = ''
-        $OldForestBIN = ''
-        $OldForestPAM = ''
-    }
+    # Getting previous data
+    $ForestDNS = $PreviousChoices.Configuration.Forest.Fullname
+    $ForestNtB = $PreviousChoices.Configuration.Forest.NetBIOS
+    $ForestFFL = $PreviousChoices.Configuration.Forest.FunctionalLevel
+    $ForestBIN = $PreviousChoices.Configuration.Forest.RecycleBin
+    $ForestPAM = $PreviousChoices.Configuration.Forest.PAM
 
-    $DbgLog += @('Previous choices:',"> Forest Fullname: $OldForestDNS","> Forest NetBIOS name: $OldForestNtB","> Forest Functional Level: $OldForestFFL","> Enable Recycle Bin: $OldForestBIN","> Enable PAM: $OldForestPAM",' ')
+    $DbgLog += @('Previous choices:',"> Forest Fullname: $ForestDNS","> Forest NetBIOS name: $ForestNtB","> Forest Functional Level: $ForestFFL","> Enable Recycle Bin: $ForestBIN","> Enable PAM: $ForestPAM",' ')
 
     # Question party! Each time a 'OlfForestXXX' will be empty, a defaut choice will be offered.
     ## 
