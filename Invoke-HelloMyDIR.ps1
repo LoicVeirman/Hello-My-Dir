@@ -176,7 +176,7 @@ if ($Prepare) {
         }
     }
     ### Writing result to XML.
-    $RunSetup.Installation=$ForestChoice
+    $RunSetup.Configuration.Forest.Installation=$ForestChoice
     $DbgLog += @("Install a new forest: $ForestChoice")
 
     ## Getting Forest Data
