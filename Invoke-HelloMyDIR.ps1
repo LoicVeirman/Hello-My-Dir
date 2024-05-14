@@ -51,6 +51,7 @@ else {
 # CHECK FOR FIRST RUN
 if (-not(Test-Path .\Configuration\RunSetup.xml) -and -not($Prepare)) {
     $DbgLog += 'No option used: as the file RunSetup.xml is missing, the script will enfore -Prepare to True.'
+    New-HMDRunSetupXml | Out-Null
     $Prepare = $true
 }
 
@@ -61,76 +62,44 @@ $DbgLog = $null
 if ($Prepare) {
 
     # Test if a configuration file already exists - if so, we will use it.
-    $DbgLog = @('PHASE INIT: TEST IF A PREVIOUS RUN IS DETECTED.')
+    $DbgLog = @('PHASE INIT: LOAD PREVIOUS CHOICE SELECTION.')
 
     if (Test-Path .\Configuration\RunSetup.xml) {
     
         # A file is present. We will rename it to a previous version to read old values and offers them as default option.
-        $DbgLog += 'The file ".\Configuration\RunSetup.xml" is present, it will be converted to the last backup file.'
-    
-        if (Test-Path .\Configuration\RunSetup.last) {
-    
-            $DbgLog += 'As a file named ".\Configuration\RunSetup.last" is already present, this file will overwrite the existing one.'
-    
-            Remove-Item -Path .\Configuration\RunSetup.last -Force | Out-Null
-            Rename-item -Path .\Configuration\RunSetup.xml -NewName .\Configuration\RunSetup.last -ErrorAction SilentlyContinue | Out-Null
-            
-            # Loading .last file as default option for the script.
-            $DbgLog += 'As a file named ".\Configuration\RunSetup.last" is already present, this file will overwrite the existing one.'
-            $DefaultChoices = Get-XmlContent .\Configuration\RunSetup.last -ErrorAction SilentlyContinue
-        }
-    
-        Else {
-            $DbgLog += 'No previous run detected.'
-        }
-    }
-    
-    Write-toEventLog INFO $DbgLog | Out-Null
-    $DbgLog = $null
+        $DbgLog += 'The file ".\Configuration\RunSetup.xml" is present.'
 
-    # Preload previous run options
-    $DbgLog = @('XML BUILDERS: PRELOAD ANSWERS FROM PREVIOUS RUN.')
-
-    if (Test-Path .\Configuration\RunSetup.last) {
+        # Loading .last file as default option for the script.
         Try {
-    
-            $lastRunOptions = Get-XmlContent -XmlFile .\Configuration\RunSetup.last -ErrorAction Stop
-            $DbgLog += @('Variable: LastRunOptions','Loaded with .\Configuration\RunSetup.last xml data.')
-            Write-toEventLog INFO $DbgLog | Out-Null
+            $RunSetup = Get-XmlContent .\Configuration\RunSetup.xml -ErrorAction SilentlyContinue
+            $DbgLog += '{RunSetup} now contains previous selection.'
+            $DbgType = 'INFO'
         }
         Catch {
-    
-            $lastRunOptions = $null
-            $DbgLog += @('Variable: $LastRunOptions','Failed to be loaded with .\Configuration\RunSetup.last xml data.')
-            Write-toEventLog WARNING $DbgLog | Out-Null
+            $DbgLog += '{RunSetup} could not be loaded from runSetup.xml!'
+            $DbgType = 'ERROR'
         }
     }
+    Else {
+        $DbgLog += 'The file ".\Configuration\RunSetup.xml" is missing!'
+        $DbgType = 'ERROR'
+    }
+        
+    Write-toEventLog $DbgType $DbgLog | Out-Null
     $DbgLog = $null
 
-    #Load Script Settings XML
-    $ScriptSettings = Get-XmlContent .\Configuration\ScriptSettings.xml
-
-    # Create XML settings file
-    $DbgLog = @('XML BUILDERS: CREATE XML SETUP FILE')
-    $RunSetup = New-XmlContent -XmlFile .\Configuration\RunSetup.xml
-    
-    if ($RunSetup) {
-   
-        $DbgLog += @("File .\Configuration\RunSetup.xml created.","The file will now be filled with user's choices.")
-        $RunSetup.WriteStartElement('HmDSetup')
-   
-        Write-toEventLog INFO $DbgLog | Out-Null
-        $DbgLog = $null
-    }
-    Else {
-   
-        $DbgLog += @("FATAL ERROR: the file .\Configuration\RunSetup.xml could not be created.","The script will end with error code 2.")
-        Write-toEventLog ERROR $DbgLog | Out-Null
-        Write-Error "ERROR: THE CONFIGURATION FILE COULD NOT BE CREATED."
+    if ($DbgType -eq 'ERROR') {
+        # This is an unrecoverable error. The script leaves.
+        Write-toEventLog -EventType INFO -EventMsg "END: invoke-HelloMyDir"
+        Remove-Module -Name (Get-ChildItem .\Modules).Name -ErrorAction SilentlyContinue | Out-Null
+        Write-Error "The script match an unrecoverable error, please review logs for further details."
         Exit 2
     }
 
-    # Say Hello
+    # Load Script Settings XML
+    $ScriptSettings = Get-XmlContent .\Configuration\ScriptSettings.xml
+
+    # Say Hello: Write Header
     $ScriptTitle = @(' ',"$([Char]0x2554)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2557)" `
                         ,"$([Char]0x2551) Hello My DIR! $([Char]0x2551)" `
                         ,"$([Char]0x2551) version 1.0.0 $([Char]0x2551)" `
@@ -139,6 +108,7 @@ if ($Prepare) {
                         ,' ')
     Write-TitleText -Text $ScriptTitle
     
+    # Say Hello: Display welcome text
     $toDisplayXml = Select-Xml $ScriptSettings -XPath "//Text[@ID='000']" | Select-Object -ExpandProperty Node
     $toDisplayArr = @($toDisplayXml.Line1)
     if ($toDisplayXml.Line2) {
@@ -153,8 +123,10 @@ if ($Prepare) {
     Write-InformationalText -Text $toDisplayArr
     Write-Host
 
-    # Inquiring for setup data: context
-    ## New forest?
+    # Inquiring for setup data: Forest
+    $DbgLog = @("SETUP DATA COLLECT: FOREST"," ")
+
+    ## Is it a new forest?
     ### Calling Lurch from Adam's family...
     $LurchMood = @(($ScriptSettings.Settings.Lurch.BadKeyPress).Split(';'))
 
@@ -173,7 +145,7 @@ if ($Prepare) {
         $StringCleanSet += " " 
     }
 
-    ### Querying input
+    ### Querying input: waiting for Y,N or ENTER.
     $isKO = $True
     While ($isKO)
     {
@@ -183,7 +155,7 @@ if ($Prepare) {
             $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
             Write-Host $StringCleanSet -NoNewline
             $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
-            Write-Host "Yes" -ForegroundColor White
+            Write-Host "Yes" -ForegroundColor Green
             $ForestChoice = "Yes"
             $isKO = $false
         }
@@ -203,55 +175,44 @@ if ($Prepare) {
             $isKO = $true
         }
     }
-
-    # Inquiring for setup data: the forest.
-    $DbgLog = @("SETUP DATA COLLECT: FOREST"," ")
-
-    ## Writing result to XML.
-    $RunSetup.WriteStartElement('Configuration')
-    $RunSetup.WriteStartElement('Forest')
-    $RunSetup.WriteElementString('Installation',$ForestChoice)
+    ### Writing result to XML.
+    $RunSetup.Installation=$ForestChoice
     $DbgLog += @("Install a new forest: $ForestChoice")
 
     ## Getting Forest Data
-    $ForestData = Get-HmDForest $ForestChoice $DefaultChoices
+    $ForestData = Get-HmDForest $ForestChoice $RunSetup
 
     ## Forest Root Domain Fullname
-    $ProposedAnswer = $DefaultChoices.HmDSetup.Forest.Domain.Name
+    #$ProposedAnswer = $DefaultChoices.HmDSetup.Forest.Domain.Name
     
 
     ## Forest Root Domain NetBIOS
-    $ProposedAnswer = $DefaultChoices.HmDSetup.Forest.Domain.NetBIOS
+    #$ProposedAnswer = $DefaultChoices.HmDSetup.Forest.Domain.NetBIOS
 
     ## Forest FFL
-    $ProposedAnswer = $DefaultChoices.HmDSetup.Forest.FunctionalLevel
+    #$ProposedAnswer = $DefaultChoices.HmDSetup.Forest.FunctionalLevel
 
     ## Forest DFL
-    $ProposedAnswer = $DefaultChoices.HmDSetup.Forest.Domain.FunctionalLevel
+    #$ProposedAnswer = $DefaultChoices.HmDSetup.Forest.Domain.FunctionalLevel
 
     ## Forest Root domain SafeMode Admin Pwd
     ## The default password is generated by the function as clear text. It will not be written to any file.
-    $ProposedAnswer = New-RandomComplexPasword -Length 24 -AsClearText
+    #$ProposedAnswer = New-RandomComplexPasword -Length 24 -AsClearText
 
     ## Forest Database path
-    $ProposedAnswer = $DefaultChoices.HmDSetup.Forest.Domain.Path.NTDS
+    #$ProposedAnswer = $DefaultChoices.HmDSetup.Forest.Domain.Path.NTDS
 
     # # Forest Sysvol path
-    $ProposedAnswer = $DefaultChoices.HmDSetup.Forest.Domain.Path.SysVol
+    #$ProposedAnswer = $DefaultChoices.HmDSetup.Forest.Domain.Path.SysVol
 
     ## Forest Optional Attributes: Recycle Bin
-    $ProposedAnswer = $DefaultChoices.HmDSetup.Forest.ADRecycleBin
+    #$ProposedAnswer = $DefaultChoices.HmDSetup.Forest.ADRecycleBin
 
     ## Forest Optional Attributes: Privileged Access Management
-    $ProposedAnswer = $DefaultChoices.HmDSetup.Forest.ADPAM
+    #$ProposedAnswer = $DefaultChoices.HmDSetup.Forest.ADPAM
 
-    ## Closing Forest element
-    $RunSetup.WriteEndElement()
-
-    # Closing RunSetup.xml
-    $RunSetup.WriteEndDocument()
-    $RunSetup.Flush()
-    $RunSetup.Close()
+    # Saving RunSetup.xml
+    $RunSetup.save((Resolve-Path .\Configuration\RunSetup.xml).Path)
     $DbgLog += @('File RunSetup.xml updated and saved.',' ')
     Write-toEventLog INFO $DbgLog | Out-Null
 }

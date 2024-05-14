@@ -1,6 +1,55 @@
 <#
     THIS MODULE CONTAINS FUNCTIONS ONLY USABLE BY HELLO MY DIR.
 #>
+Function New-HmDRunSetupXml {
+    <#
+        .SYNOPSIS
+        Create an empty runSetup.xml file.
+
+        .DESCRIPTION
+        The file runSetup.xml is a prerequesite for the script to run. This function generates one with no value set.
+
+        .NOTES
+        Version: 01.000.000 -- Loic VEIRMAN (MSSec)
+        History: 2024/05.14 -- Script creation.
+    #>
+    Param()
+
+    # No logging.
+    # Create xml file
+    $myXml = New-XmlContent -XmlFile .\Configuration\RunSetup.xml
+
+    # Add content
+    # - Start: Configuration
+    $myXml.WriteStartElement('Configuration')
+    # - Start: Forest
+    $myXml.WriteStartElement('Forest')
+    $myXml.WriteElementString('Installation','')
+    $myXml.WriteElementString('FullName','')
+    $myXml.WriteElementString('NetBIOS','')
+    $myXml.WriteElementString('FunctionalLevel','')
+    $myXml.WriteElementString('RecycleBin','')
+    $myXml.WriteElementString('PAM','')
+    # - End: Forest
+    $myXml.WriteEndElement()
+    # - Start: Domain
+    $myXml.WriteStartElement('Domain')
+    $myXml.WriteElementString('Type','')
+    $myXml.WriteElementString('FullName','')
+    $myXml.WriteElementString('NetBIOS','')
+    $myXml.WriteElementString('FunctionalLevel','')
+    $myXml.WriteElementString('SysvolPath','')
+    $myXml.WriteElementString('NtdsPath','')
+    # - End: Domain
+    $myXml.WriteEndElement()
+    # - End: Configuration
+    $myXml.WriteEndElement()
+
+    # Closing document
+    $RunSetup.WriteEndDocument()
+    $RunSetup.Flush()
+    $RunSetup.Close()
+}
 Function Get-HmDForest {
     <#
         .SYNOPSIS
@@ -39,7 +88,7 @@ Function Get-HmDForest {
     $callStack = Get-PSCallStack
     $CalledBy = ($CallStack[1].Command -split '\.')[0]
     $ExitLevel = 'INFO'
-    $DbgLog = @('START: invoke-HelloMyDir',' ','Called by: $CalledBy',' ')
+    $DbgLog = @('START: Get-HmDForest',' ','Called by: $CalledBy',' ')
 
     # Collecting historical choices, if any
     if ($NewForest -eq 'Yes') {
