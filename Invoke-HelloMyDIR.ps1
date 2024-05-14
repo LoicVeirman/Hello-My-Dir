@@ -154,7 +154,9 @@ if ($Prepare) {
     $isKO = $True
     While ($isKO)
     {
+        # Reading key press
         $key = $Host.UI.RawUI.ReadKey("IncludeKeyDown,NoEcho")
+        # Analyzong key pressed
         if ($key.VirtualKeyCode -eq 13) {
             # Is Last Choice or Yes if no previous choice
             if ($RunSetup.Configuration.Forest.Installation -eq '' -or $null -eq $RunSetup.Configuration.Forest.Installation) {
