@@ -163,8 +163,8 @@ if ($Prepare) {
                 # No previous choice, so it's a Yes
                 Write-Host "Yes" -ForegroundColor Green
                 $ForestChoice = "Yes"
-                $isKO = $false
             }
+            $isKO = $false
         }
         Elseif ($key.VirtualKeyCode -eq 89) {
             # Is Yes
