@@ -140,18 +140,32 @@ if ($Prepare) {
     ### Get current cursor position and create the Blanco String
     $StringCleanSet = " "
     $MaxStringLength = ($LurchMood | Measure-Object -Property Length -Maximum).Maximum
-    $CursorPosition = $Host.UI.RawUI.CursorPosition
     for ($i=2 ; $i -le $MaxStringLength ; $i++) { 
         $StringCleanSet += " " 
     }
+
+    ### Getting cursor position for relocation
+    $CursorPosition = $Host.UI.RawUI.CursorPosition
+
+    ### Writing default previous choice (will be used if RETURN is pressed)
+    Write-Host $RunSetup.Configuration.Forest.Installation -NoNewline -ForegroundColor Magenta
 
     ### Querying input: waiting for Y,N or ENTER.
     $isKO = $True
     While ($isKO)
     {
         $key = $Host.UI.RawUI.ReadKey("IncludeKeyDown,NoEcho")
-        if ($key.VirtualKeyCode -eq 89 -or $key.VirtualKeyCode -eq 13)
-        {
+        if ($key.VirtualKeyCode -eq 13) {
+            # Is Last Choice or Yes if no previous choice
+            if ($RunSetup.Configuration.Forest.Installation -eq '' -or $null -eq $RunSetup.Configuration.Forest.Installation) {
+                # No previous choice, so it's a Yes
+                Write-Host "Yes" -ForegroundColor Green
+                $ForestChoice = "Yes"
+                $isKO = $false
+            }
+        }
+        Elseif ($key.VirtualKeyCode -eq 89) {
+            # Is Yes
             $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
             Write-Host $StringCleanSet -NoNewline
             $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
@@ -160,6 +174,7 @@ if ($Prepare) {
             $isKO = $false
         }
         elseif ($key.VirtualKeyCode -eq 78) {
+            # Is No
             $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
             Write-Host $StringCleanSet -NoNewline
             $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
@@ -168,6 +183,7 @@ if ($Prepare) {
             $isKO = $false
         }
         Else {
+            # Is do it again!
             $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
             Write-Host $StringCleanSet -NoNewline
             $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
@@ -175,7 +191,7 @@ if ($Prepare) {
             $isKO = $true
         }
     }
-    ### Writing result to XML.
+    ### Writing result to XML
     $RunSetup.Configuration.Forest.Installation=$ForestChoice
     $DbgLog += @("Install a new forest: $ForestChoice")
 
