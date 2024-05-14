@@ -164,6 +164,16 @@ if ($Prepare) {
                 Write-Host "Yes" -ForegroundColor Green
                 $ForestChoice = "Yes"
             }
+            Else {
+                if ($RunSetup.Configuration.Forest.Installation -eq 'No') {
+                    $color = 'Red'
+                } 
+                Else {
+                    $color = 'Green'
+                }
+                $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                Write-Host $RunSetup.Configuration.Forest.Installation
+            }
             $isKO = $false
         }
         Elseif ($key.VirtualKeyCode -eq 89) {
