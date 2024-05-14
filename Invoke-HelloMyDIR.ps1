@@ -172,7 +172,8 @@ if ($Prepare) {
                     $color = 'Green'
                 }
                 $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
-                Write-Host $RunSetup.Configuration.Forest.Installation
+                Write-Host $RunSetup.Configuration.Forest.Installation -ForegroundColor $color
+                $ForestChoice = $RunSetup.Configuration.Forest.Installation
             }
             $isKO = $false
         }
