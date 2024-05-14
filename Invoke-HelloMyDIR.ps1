@@ -49,7 +49,7 @@ else {
 }
 
 # CHECK FOR FIRST RUN
-if (-not(Test-Path .\Configuration\RunSetup.xml) -and -not($Prepare)) {
+if (-not(Test-Path .\Configuration\RunSetup.xml)) {
     $DbgLog += 'No option used: as the file RunSetup.xml is missing, the script will enfore -Prepare to True.'
     New-HMDRunSetupXml | Out-Null
     $Prepare = $true
