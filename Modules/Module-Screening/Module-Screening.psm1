@@ -266,7 +266,7 @@ Function Write-InformationalText {
     }
 }
 
-Function Write-YesNoChoice {
+Function Write-UserChoice {
     <#
         .SYNOPSIS
         Echo a text and ask for a Yes or No choice.

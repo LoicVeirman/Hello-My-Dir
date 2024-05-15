@@ -135,7 +135,7 @@ if ($Prepare) {
     $toDisplayXml = Select-Xml $ScriptSettings -XPath "//Text[@ID='001']" | Select-Object -ExpandProperty Node
     $toDisplayArr = @($toDisplayXml.Line1)
     $toDisplayArr += $toDisplayXml.Line2
-    Write-YesNoChoice $toDisplayArr
+    Write-UserChoice $toDisplayArr
     
     ### Yes/No time
     ### Get current cursor position and create the Blanco String
@@ -210,7 +210,9 @@ if ($Prepare) {
     $DbgLog += @("Install a new forest: $ForestChoice")
 
     ## Getting Forest Data
-    $ForestData = Get-HmDForest $ForestChoice $RunSetup
+    $RunSetup = Get-HmDForest $ForestChoice $RunSetup
+    $DbgLog += @("Forest - FullName: $($RunSetup.Configuration.Forest.FullName)","Forest - NetBIOS: $($RunSetup.Configuration.Forest.NetBIOS)","Forest - FFL: $($RunSetup.Configuration.Forest.FullName)")
+    $DbgLog += @("Forest - RecycleBin: $($RunSetup.Configuration.Forest.RecycleBin)","Forest - PAM: $($RunSetup.Configuration.Forest.PAM)")
 
     ## Forest Root Domain Fullname
     #$ProposedAnswer = $DefaultChoices.HmDSetup.Forest.Domain.Name
