@@ -107,6 +107,7 @@ Function Get-HmDForest {
     }
     ## Now query user
     ### Calling Lurch from Adam's family...
+    $ScriptSettings = Get-XmlContent .\Configuration\ScriptSettings.xml
     $LurchMood = @(($ScriptSettings.Settings.Lurch.BadInputFormat).Split(';'))
 
     ### Display question 
