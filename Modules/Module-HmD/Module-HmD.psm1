@@ -254,7 +254,7 @@ Function Get-HmDForest {
     }
 
     ## Writing result to XML
-    $PreviousChoices.Configuration.Forest.FullName = $answer
+    $PreviousChoices.Configuration.Forest.NetBIOS = $answer
 
     # End logging
     Write-toEventLog $ExitLevel $DbgLog | Out-Null
