@@ -278,11 +278,11 @@ Function Get-HmDForest {
     Write-Host
 
     ### Display options on screen
-    for ($id = 1 ; $id -le 7 ; $id++) {
+    for ($id = 7 ; $id -le 1 ; $id--) {
         if ($id -match $IdRegexFL) {
-            Write-Host " [" -ForegroundColor Gray -NoNewline
-            Write-Host $id -ForegroundColor Yellow -NoNewline
-            Write-Host "] " -ForegroundColor Gray -NoNewline
+            Write-Host " [" -ForegroundColor White -NoNewline
+            Write-Host $id -ForegroundColor Cyan -NoNewline
+            Write-Host "] " -ForegroundColor White -NoNewline
             Write-Host $(($ScriptSettings.Settings.FunctionalLevel.Definition | Where-Object { $_.ID -eq $id }).Desc) -ForegroundColor Yellow
         }
     }

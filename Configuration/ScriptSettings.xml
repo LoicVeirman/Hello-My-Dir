@@ -18,11 +18,11 @@
         <OS Caption="2019" Regex="^[3-7]$" />
         <OS Caption="2016" Regex="^[2-7]$" />
         <Definition Id="1" Desc="Windows 2003" />
-        <Definition Id="2" Desc="Windows 2003r2" />
+        <Definition Id="2" Desc="Windows 2003 R2" />
         <Definition Id="3" Desc="Windows 2008" />
-        <Definition Id="4" Desc="Windows 2008r2" />
+        <Definition Id="4" Desc="Windows 2008 R2" />
         <Definition Id="5" Desc="Windows 2012" />
-        <Definition Id="6" Desc="Windows 2012r2" />
+        <Definition Id="6" Desc="Windows 2012 R2" />
         <Definition Id="7" Desc="Windows 2016" />
     </FunctionalLevel>
 </Settings>
