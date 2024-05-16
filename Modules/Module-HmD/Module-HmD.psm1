@@ -215,7 +215,7 @@ Function Get-HmDForest {
         Analyzing answer.
         The regex make input match NetBIOS rules (15 char, etc.)
     #>
-    $Regex = '^[A-Za-z\\d_!@#$%^()\\-''{}\\.~]{1,15}$'
+    $Regex = '^.[a-zA-Z0-9-][a-zA-Z0-9-]{1,14}$'
 
     ### Querying input: waiting for Y,N or ENTER.
     $isKO = $True
