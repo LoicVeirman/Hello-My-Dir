@@ -136,7 +136,7 @@ Function Get-HmDForest {
         There're two approaches to choose from when validating domains.
         1. By-the-books FQDN matching (theoretical definition, rarely encountered in practice):
         > max 253 character long (as per RFC-1035/3.1, RFC-2181/11)
-        > max 63 character long per label (as per RFC-1035/3.1, RFC-2181/11)
+        > max 63 character long per label (as per RFC-1035/3.1, RFC-2181/11)@
         > any characters are allowed (as per RFC-2181/11)
         > TLDs cannot be all-numeric (as per RFC-3696/2)
         > FQDNs can be written in a complete form, which includes the root zone (the trailing dot)
@@ -184,7 +184,7 @@ Function Get-HmDForest {
         }
     }
     ### Writing result to XML
-    PreviousChoices.Configuration.Forest.FullName = $answer
+    $PreviousChoices.Configuration.Forest.FullName = $answer
 
     # End logging
     Write-toEventLog $ExitLevel $DbgLog | Out-Null
