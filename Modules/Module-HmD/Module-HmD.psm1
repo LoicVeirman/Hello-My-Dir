@@ -101,9 +101,9 @@ Function Get-HmDForest {
 
     # Question: Forest DNS name
     ## Fist, check if the host is member of a domain. If so, the domain will be used as 
-    if ((gwmi win32_computersystem).partofdomain -eq $true) {
+    if ((gwmi win32_computersystem).partofdomain -eq $true -and $ForestDNS -ne '' -and $null -ne $ForestDNS) {
             # Set the value as default root domain name
-            $ForestDNS = $env:USERDNSDomain
+            $ForestDNS = (gwmi win32_computersystem).domain
     }
     ## Now query user
     ### Calling Lurch from Adam's family...
@@ -157,7 +157,7 @@ Function Get-HmDForest {
     {
         # relocate cursor
         $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
-        
+
         # Getting user $input
         [string]$answer = read-host
 
@@ -186,7 +186,74 @@ Function Get-HmDForest {
             }
         }
     }
-    ### Writing result to XML
+
+
+    ## Writing result to XML
+    $PreviousChoices.Configuration.Forest.FullName = $answer
+
+    # Question: netBIOS forest domain
+    ## First check if the host is member of a domain. If so, we will use it as default (whenever $forestNtB is null).
+    if ($ForestNtB -eq '' -or $null -eq $ForestNtB) {
+        $ForestNtB = ($ForestDNS -split '\.')[0]
+    }
+
+    ## Now query user
+    ### Display question 
+    $toDisplayXml = Select-Xml $ScriptSettings -XPath "//Text[@ID='003']" | Select-Object -ExpandProperty Node
+    $toDisplayArr = @($toDisplayXml.Line1)
+    $toDisplayArr += $toDisplayXml.Line2
+    Write-UserChoice $toDisplayArr
+       
+    ### Input time
+    ### Getting cursor position for relocation
+    $CursorPosition = $Host.UI.RawUI.CursorPosition
+   
+    ### Writing default previous choice (will be used if RETURN is pressed)
+    Write-Host $ForestNtB -NoNewline -ForegroundColor Magenta
+
+    <# 
+        Analyzing answer.
+        The regex make input match NetBIOS rules (15 char, etc.)
+    #>
+    $Regex = '^[A-Za-z\\d_!@#$%^()\\-''{}\\.~]{1,15}$'
+
+    ### Querying input: waiting for Y,N or ENTER.
+    $isKO = $True
+    While ($isKO)
+    {
+        # relocate cursor
+        $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+
+        # Getting user $input
+        [string]$answer = read-host
+
+        # if $answer is null, then we use the default choice
+        if (($answer -eq '' -or $null -eq $answer) -and ($ForestNtB -ne '' -or $null -ne $ForestNtB)) {
+            $answer = $ForestNtB
+        }
+
+        # if answer is not null, we ensure that the regex for netbios is matched
+        if ($answer -ne '' -and $null -ne $answer) {
+            switch ($answer -match $Regex) {
+                $true {
+                    $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                    Write-Host $StringCleanSet -NoNewline
+                    $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                    Write-Host $answer -ForegroundColor Green
+                    $isKO = $false
+                }
+                $False {
+                    $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                    Write-Host $StringCleanSet -NoNewline
+                    $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                    Write-Host (Get-Random $LurchMood) -ForegroundColor DarkGray -NoNewline
+                    $isKO = $true
+                }
+            }
+        }
+    }
+
+    ## Writing result to XML
     $PreviousChoices.Configuration.Forest.FullName = $answer
 
     # End logging
