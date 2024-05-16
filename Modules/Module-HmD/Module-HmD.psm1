@@ -156,7 +156,7 @@ Function Get-HmDForest {
     While ($isKO)
     {
         # Getting user $input
-        $answer = read-host
+        [string]$answer = read-host
 
         # if $answer is null, then we use the default choice
         if (($answer -eq '' -or $null -eq $answer) -and ($ForestDNS -ne '' -or $null -ne $ForestDNS)) {
