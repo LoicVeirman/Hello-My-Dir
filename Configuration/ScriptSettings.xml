@@ -6,11 +6,25 @@
         <Text ID='001' Line1="Are we building a new domain in a new forest?" Line2="[Y/N] " Line3="" Line4="" />
         <Text ID='002' Line1="What is the Root Domain full Name of the forest?" Line2="[your.domain.here] " Line3="" Line4="" />
         <Text ID='003' Line1="What is the Root Domain NetBIOS name of the forest?" Line2="[your] " Line3="" Line4="" />
+        <Text ID='004' Line1='The following Functional Level are available to you:' Line2="" Line3="" Line4="" />
+        <Text ID='005' Line1='What will be the Forest Functional Level?' Line2="" Line3="" Line4="" />
     </Message>
     <Lurch>
         <BadKeyPress>No;Nop;Han Han...;Try Again;No way;Are you kidding me?;Grmpf...;Not a chance;I don't think so;That's negative...;Sorry, but... No;I'll pass;Forget it;Not happening;I have better things to do;I have to feed my pet rock;I already have a subscription to the 'no' magazine;I don't have energy for that right now;I'm not really into that sort of thing;Maybe some other time?</BadKeyPress>
         <BadInputFormat>Let’s consider a different angle on this;I’ve encountered some contrasting insights;Might there be another side to this story?;This calls for a deeper dive into the facts;Perhaps there’s more to it than meets the eye;Are we in a parallel universe where wrong is right?;Can’t say I agree with your logic there;Don’t be fooled by your neurons</BadInputFormat>
     </Lurch>
+    <FunctionalLevel>
+        <OS Caption="2022" Regex="^[3-7]$" />
+        <OS Caption="2019" Regex="^[3-7]$" />
+        <OS Caption="2016" Regex="^[2-7]$" />
+        <Definition Id="1" Desc="Windows 2003" />
+        <Definition Id="2" Desc="Windows 2003r2" />
+        <Definition Id="3" Desc="Windows 2008" />
+        <Definition Id="4" Desc="Windows 2008r2" />
+        <Definition Id="5" Desc="Windows 2012" />
+        <Definition Id="6" Desc="Windows 2012r2" />
+        <Definition Id="7" Desc="Windows 2016" />
+    </FunctionalLevel>
 </Settings>
 <!--
     =============

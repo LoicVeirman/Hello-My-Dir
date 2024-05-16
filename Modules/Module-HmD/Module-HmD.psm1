@@ -256,6 +256,79 @@ Function Get-HmDForest {
     ## Writing result to XML
     $PreviousChoices.Configuration.Forest.NetBIOS = $answer
 
+    # Question: FFL
+    ### Calling Lurch from Adam's family...
+    $LurchMood = @(($ScriptSettings.Settings.Lurch.BadInputFormat).Split(';'))
+
+    $StringCleanSet = " "
+    $MaxStringLength = ($LurchMood | Measure-Object -Property Length -Maximum).Maximum
+    for ($i=2 ; $i -le $MaxStringLength ; $i++) { 
+        $StringCleanSet += " " 
+    }
+    
+    ### Getting option available for this host
+    $OSCaption = (gwmi Win32_OperatingSystem).Caption
+    $IdRegexFL = ($ScriptSettings.Settings.FunctionalLevel.OS | Where-Object { $OSCaption -match $_.Caption }).Regex
+    
+    ## Now query user
+    $toDisplayXml = Select-Xml $ScriptSettings -XPath "//Text[@ID='004']" | Select-Object -ExpandProperty Node
+    $toDisplayArr = @($toDisplayXml.Line1)
+    Write-InformationalText $toDisplayArr
+
+    ### Display options on screen
+    for ($id = 1 ; $id -le 7 ; $id++) {
+        if ($id -match $IdRegexFL) {
+            Write-Host "[" -ForegroundColor Gray -NoNewline
+            Write-Host $id -ForegroundColor Yellow -NoNewline
+            Write-Host "] " -ForegroundColor Gray -NoNewline
+            Write-Host $(($ScriptSettings.Settings.FunctionalLevel.Definition | Where-Object { $_.ID -eq $id }).Desc) -ForegroundColor White
+        }
+    }
+    ### Display question 
+    $toDisplayXml = Select-Xml $ScriptSettings -XPath "//Text[@ID='005']" | Select-Object -ExpandProperty Node
+    $toDisplayArr = @($toDisplayXml.Line1)
+    $toDisplayArr += $toDisplayXml.Line2
+    Write-UserChoice $toDisplayArr
+    
+    ### Input time
+    ### Getting cursor position for relocation
+    $CursorPosition = $Host.UI.RawUI.CursorPosition
+   
+    ### Writing default previous choice (will be used if RETURN is pressed)
+    Write-Host $ForestFFL -NoNewline -ForegroundColor Magenta
+
+    ### Querying input: waiting for Y,N or ENTER.
+    $isKO = $True
+    While ($isKO)
+    {
+        # relocate cursor
+        $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+
+        # Getting user $input
+        $answer = $Host.UI.RawUI.ReadKey("IncludeKeyDown,NoEcho")
+
+        # if answer is part of the accepted value, we echo the desc and move next. Else... Lurch?
+        switch ($answer.character -match $IdRegexFL) {
+            $true {
+                $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                Write-Host $StringCleanSet -NoNewline
+                $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                Write-Host $(($ScriptSettings.Settings.FunctionalLevel.Definition | Where-Object { $_.Id -eq $answer.character}).Desc) -ForegroundColor Green
+                $isKO = $false
+            }
+            $False {
+                $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                Write-Host $StringCleanSet -NoNewline
+                $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                Write-Host (Get-Random $LurchMood) -ForegroundColor DarkGray -NoNewline
+                $isKO = $true
+            }
+        }
+    }
+
+    ## Writing result to XML
+    $PreviousChoices.Configuration.Forest.FunctionalLevel = $answer.character
+
     # End logging
     Write-toEventLog $ExitLevel $DbgLog | Out-Null
 
