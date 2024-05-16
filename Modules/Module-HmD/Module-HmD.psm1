@@ -307,27 +307,27 @@ Function Get-HmDForest {
         $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
 
         # Getting user $input
-        $answer = $Host.UI.RawUI.ReadKey("IncludeKeyDown,NoEcho")
+        $key = $Host.UI.RawUI.ReadKey("IncludeKeyDown,NoEcho")
 
         # if answer is part of the accepted value, we echo the desc and move next. Else... Lurch?
-        if ($answer.character -match $IdRegexFL) {
-                $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
-                Write-Host $StringCleanSet -NoNewline
-                $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
-                Write-Host $(($ScriptSettings.Settings.FunctionalLevel.Definition | Where-Object { $_.Id -eq $answer.character}).Desc) -ForegroundColor Green
-                $isKO = $false
-            }
+        if ($key.character -match $IdRegexFL) {
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+            Write-Host $StringCleanSet -NoNewline
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+            Write-Host $(($ScriptSettings.Settings.FunctionalLevel.Definition | Where-Object { $_.Id -eq $key.character}).Desc) -ForegroundColor Green
+            $isKO = $false
+        }
         else {
-                $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
-                Write-Host $StringCleanSet -NoNewline
-                $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
-                Write-Host (Get-Random $LurchMood) -ForegroundColor DarkGray -NoNewline
-                $isKO = $true
-            }
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+            Write-Host $StringCleanSet -NoNewline
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+            Write-Host (Get-Random $LurchMood) -ForegroundColor DarkGray -NoNewline
+            $isKO = $true
+        }
     }
 
     ## Writing result to XML
-    $PreviousChoices.Configuration.Forest.FunctionalLevel = $answer.character
+    $PreviousChoices.Configuration.Forest.FunctionalLevel = $key.character
 
     # End logging
     Write-toEventLog $ExitLevel $DbgLog | Out-Null
