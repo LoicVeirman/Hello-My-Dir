@@ -272,7 +272,8 @@ Function Get-HmDForest {
     
     ## Now query user
     $toDisplayXml = Select-Xml $ScriptSettings -XPath "//Text[@ID='004']" | Select-Object -ExpandProperty Node
-    $toDisplayArr = @($toDisplayXml.Line1,$toDisplayXml.Line2)
+    $toDisplayArr = @($toDisplayXml.Line1)
+    Write-Host
     Write-InformationalText $toDisplayArr
 
     ### Display options on screen
@@ -286,7 +287,8 @@ Function Get-HmDForest {
     }
     ### Display question 
     $toDisplayXml = Select-Xml $ScriptSettings -XPath "//Text[@ID='005']" | Select-Object -ExpandProperty Node
-    $toDisplayArr = @($toDisplayXml.Line1,$toDisplayXml.Line2)
+    $toDisplayArr = @($toDisplayXml.Line1)
+    Write-Host
     Write-UserChoice $toDisplayArr
     
     ### Input time
@@ -314,7 +316,7 @@ Function Get-HmDForest {
                 Write-Host $(($ScriptSettings.Settings.FunctionalLevel.Definition | Where-Object { $_.Id -eq $answer.character}).Desc) -ForegroundColor Green
                 $isKO = $false
             }
-            else {
+        else {
                 $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
                 Write-Host $StringCleanSet -NoNewline
                 $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
