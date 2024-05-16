@@ -275,6 +275,7 @@ Function Get-HmDForest {
     $toDisplayArr = @($toDisplayXml.Line1)
     Write-Host
     Write-InformationalText $toDisplayArr
+    Write-Host
 
     ### Display options on screen
     for ($id = 1 ; $id -le 7 ; $id++) {
@@ -282,7 +283,7 @@ Function Get-HmDForest {
             Write-Host " [" -ForegroundColor Gray -NoNewline
             Write-Host $id -ForegroundColor Yellow -NoNewline
             Write-Host "] " -ForegroundColor Gray -NoNewline
-            Write-Host $(($ScriptSettings.Settings.FunctionalLevel.Definition | Where-Object { $_.ID -eq $id }).Desc) -ForegroundColor White
+            Write-Host $(($ScriptSettings.Settings.FunctionalLevel.Definition | Where-Object { $_.ID -eq $id }).Desc) -ForegroundColor Yellow
         }
     }
     ### Display question 
