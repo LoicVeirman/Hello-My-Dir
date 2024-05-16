@@ -258,7 +258,7 @@ Function Get-HmDForest {
 
     # Question: FFL
     ### Calling Lurch from Adam's family...
-    $LurchMood = @(($ScriptSettings.Settings.Lurch.BadInputFormat).Split(';'))
+    $LurchMood = @(($ScriptSettings.Settings.Lurch.BadKeyPress).Split(';'))
 
     $StringCleanSet = " "
     $MaxStringLength = ($LurchMood | Measure-Object -Property Length -Maximum).Maximum
@@ -278,7 +278,7 @@ Function Get-HmDForest {
     ### Display options on screen
     for ($id = 1 ; $id -le 7 ; $id++) {
         if ($id -match $IdRegexFL) {
-            Write-Host "[" -ForegroundColor Gray -NoNewline
+            Write-Host " [" -ForegroundColor Gray -NoNewline
             Write-Host $id -ForegroundColor Yellow -NoNewline
             Write-Host "] " -ForegroundColor Gray -NoNewline
             Write-Host $(($ScriptSettings.Settings.FunctionalLevel.Definition | Where-Object { $_.ID -eq $id }).Desc) -ForegroundColor White
@@ -305,7 +305,7 @@ Function Get-HmDForest {
         $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
 
         # Getting user $input
-        $answer = $Host.UI.RawUI.ReadKey("IncludeKeyDown,NoEcho")
+        [STRING]$answer = ($Host.UI.RawUI.ReadKey("IncludeKeyDown,NoEcho")).Character
 
         # if answer is part of the accepted value, we echo the desc and move next. Else... Lurch?
         switch ($answer.character -match $IdRegexFL) {

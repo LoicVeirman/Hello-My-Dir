@@ -6,8 +6,8 @@
         <Text ID='001' Line1="Are we building a new domain in a new forest?" Line2="[Y/N] " Line3="" Line4="" />
         <Text ID='002' Line1="What is the Root Domain full Name of the forest?" Line2="[your.domain.here] " Line3="" Line4="" />
         <Text ID='003' Line1="What is the Root Domain NetBIOS name of the forest?" Line2="[your] " Line3="" Line4="" />
-        <Text ID='004' Line1='The following Functional Level are available to you:' Line2="" Line3="" Line4="" />
-        <Text ID='005' Line1='What will be the Forest Functional Level?' Line2="" Line3="" Line4="" />
+        <Text ID='004' Line1="" Line2="The following Functional Level are available to you:" Line3="" Line4="" />
+        <Text ID='005' Line1="" Line2="What will be the Forest Functional Level?" Line3="" Line4="" />
     </Message>
     <Lurch>
         <BadKeyPress>No;Nop;Han Han...;Try Again;No way;Are you kidding me?;Grmpf...;Not a chance;I don't think so;That's negative...;Sorry, but... No;I'll pass;Forget it;Not happening;I have better things to do;I have to feed my pet rock;I already have a subscription to the 'no' magazine;I don't have energy for that right now;I'm not really into that sort of thing;Maybe some other time?</BadKeyPress>
