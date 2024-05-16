@@ -297,7 +297,7 @@ Function Get-HmDForest {
     $CursorPosition = $Host.UI.RawUI.CursorPosition
    
     ### Writing default previous choice (will be used if RETURN is pressed)
-    Write-Host $ForestFFL -NoNewline -ForegroundColor Magenta
+    Write-Host $(($ScriptSettings.Settings.FunctionalLevel.Definition | Where-Object { $_.ID -eq $ForestFFL }).Desc) -NoNewline -ForegroundColor Magenta
 
     ### Querying input: waiting for Y,N or ENTER.
     $isKO = $True
@@ -311,13 +311,21 @@ Function Get-HmDForest {
 
         # if answer is part of the accepted value, we echo the desc and move next. Else... Lurch?
         if ($key.character -match $IdRegexFL) {
+            $ForestFFL = [String]"$($key.character)"
             $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
             Write-Host $StringCleanSet -NoNewline
             $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
-            Write-Host $(($ScriptSettings.Settings.FunctionalLevel.Definition | Where-Object { $_.Id -eq $key.character}).Desc) -ForegroundColor Green
+            Write-Host $(($ScriptSettings.Settings.FunctionalLevel.Definition | Where-Object { $_.Id -eq $ForestFFL}).Desc) -ForegroundColor Green
             $isKO = $false
         }
-        else {
+        elseif ($key.VirtualKeyCode -eq 13) {
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+            Write-Host $StringCleanSet -NoNewline
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+            Write-Host $(($ScriptSettings.Settings.FunctionalLevel.Definition | Where-Object { $_.Id -eq $ForestFFL}).Desc) -ForegroundColor Green
+            $isKO = $false
+        }
+        Else {
             $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
             Write-Host $StringCleanSet -NoNewline
             $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
@@ -327,7 +335,7 @@ Function Get-HmDForest {
     }
 
     ## Writing result to XML
-    $PreviousChoices.Configuration.Forest.FunctionalLevel = [String]"$($key.character)"
+    $PreviousChoices.Configuration.Forest.FunctionalLevel = $ForestFFL
 
     # End logging
     Write-toEventLog $ExitLevel $DbgLog | Out-Null
