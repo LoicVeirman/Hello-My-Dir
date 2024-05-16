@@ -327,7 +327,7 @@ Function Get-HmDForest {
     }
 
     ## Writing result to XML
-    $PreviousChoices.Configuration.Forest.FunctionalLevel = $key.character
+    $PreviousChoices.Configuration.Forest.FunctionalLevel = [String]"$($key.character)"
 
     # End logging
     Write-toEventLog $ExitLevel $DbgLog | Out-Null
