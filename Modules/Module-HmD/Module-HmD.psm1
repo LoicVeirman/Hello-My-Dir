@@ -272,7 +272,7 @@ Function Get-HmDForest {
     
     ## Now query user
     $toDisplayXml = Select-Xml $ScriptSettings -XPath "//Text[@ID='004']" | Select-Object -ExpandProperty Node
-    $toDisplayArr = @($toDisplayXml.Line1)
+    $toDisplayArr = @($toDisplayXml.Line1,$toDisplayXml.Line2)
     Write-InformationalText $toDisplayArr
 
     ### Display options on screen
@@ -286,8 +286,7 @@ Function Get-HmDForest {
     }
     ### Display question 
     $toDisplayXml = Select-Xml $ScriptSettings -XPath "//Text[@ID='005']" | Select-Object -ExpandProperty Node
-    $toDisplayArr = @($toDisplayXml.Line1)
-    $toDisplayArr += $toDisplayXml.Line2
+    $toDisplayArr = @($toDisplayXml.Line1,$toDisplayXml.Line2)
     Write-UserChoice $toDisplayArr
     
     ### Input time
@@ -305,18 +304,17 @@ Function Get-HmDForest {
         $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
 
         # Getting user $input
-        [STRING]$answer = ($Host.UI.RawUI.ReadKey("IncludeKeyDown,NoEcho")).Character
+        $answer = $Host.UI.RawUI.ReadKey("IncludeKeyDown,NoEcho")
 
         # if answer is part of the accepted value, we echo the desc and move next. Else... Lurch?
-        switch ($answer.character -match $IdRegexFL) {
-            $true {
+        if ($answer.character -match $IdRegexFL) {
                 $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
                 Write-Host $StringCleanSet -NoNewline
                 $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
                 Write-Host $(($ScriptSettings.Settings.FunctionalLevel.Definition | Where-Object { $_.Id -eq $answer.character}).Desc) -ForegroundColor Green
                 $isKO = $false
             }
-            $False {
+            else {
                 $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
                 Write-Host $StringCleanSet -NoNewline
                 $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
