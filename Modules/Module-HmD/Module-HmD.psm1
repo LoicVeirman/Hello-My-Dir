@@ -321,7 +321,6 @@ Function Get-HmDForest {
                 Write-Host (Get-Random $LurchMood) -ForegroundColor DarkGray -NoNewline
                 $isKO = $true
             }
-        }
     }
 
     ## Writing result to XML
