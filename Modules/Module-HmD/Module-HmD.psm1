@@ -278,7 +278,7 @@ Function Get-HmDForest {
     Write-Host
 
     ### Display options on screen
-    for ($id = 7 ; $id -le 1 ; $id--) {
+    for ($id = 7 ; $id -ge 1 ; $id--) {
         if ($id -match $IdRegexFL) {
             Write-Host " [" -ForegroundColor White -NoNewline
             Write-Host $id -ForegroundColor Cyan -NoNewline
