@@ -155,6 +155,9 @@ Function Get-HmDForest {
     $isKO = $True
     While ($isKO)
     {
+        # relocate cursor
+        $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+        
         # Getting user $input
         [string]$answer = read-host
 
