@@ -3,11 +3,13 @@
     <Logging Name="HelloMyDir" Prefix="HmD_" />
     <Message>
         <Text ID='000' Line1="Welcome!" Line2="This script will assist you in creating a new domain fully secured." Line3="" Line4="" />
-        <Text ID='001' Line1="Are we building a new domain in a new forest?" Line2="[Y/N] " Line3="" Line4="" />
+        <Text ID='001' Line1="Are we building a new domain in a new forest?" Line2="[Y/n] " Line3="" Line4="" />
         <Text ID='002' Line1="What is the Root Domain full Name of the forest?" Line2="[your.domain.here] " Line3="" Line4="" />
         <Text ID='003' Line1="What is the Root Domain NetBIOS name of the forest?" Line2="[your] " Line3="" Line4="" />
         <Text ID='004' Line1="The following Functional Level are available to you:" Line2="" Line3="" Line4="" />
         <Text ID='005' Line1="What will be the Forest Functional Level?" Line2="" Line3="" Line4="" />
+        <Text ID='008' Line1="Do you want to enable the AD REcycle Bin Feature?" Line2="[Y/n] " Line3="" Line4="" />
+        <Text ID='009' Line1="Do you want to enable the Privilege Access Management Feature (require FIM)?" Line2="[y/N] " Line3="" Line4="" />
     </Message>
     <Lurch>
         <BadKeyPress>No;Nop;Han Han...;Try Again;No way;Are you kidding me?;Grmpf...;Not a chance;I don't think so;That's negative...;Sorry, but... No;I'll pass;Forget it;Not happening;I have better things to do;I have to feed my pet rock;I already have a subscription to the 'no' magazine;I don't have energy for that right now;I'm not really into that sort of thing;Maybe some other time?</BadKeyPress>
@@ -17,6 +19,7 @@
         <OS Caption="2022" Regex="^[3-7]$" />
         <OS Caption="2019" Regex="^[3-7]$" />
         <OS Caption="2016" Regex="^[2-7]$" />
+        <OS Caption="2012" Regex="^[2-7]$" />
         <Definition Id="1" Desc="Windows 2003" />
         <Definition Id="2" Desc="Windows 2003 R2" />
         <Definition Id="3" Desc="Windows 2008" />
@@ -32,22 +35,29 @@
     =============
     
     ** MANDATORY (SHOULD ALWAYS BE PRESENT) **
-    =======         ==============      ===================================
-    ELEMENT         PARENT ELEMENT      DESCRIPTION AND ATTRIBUTE STRING(S)
-    =======         ==============      ===================================
-    <Logging>       <Settings>          Use to define the event log name (no file extension) and the prefix to append to the function or script names (must be unique):
-                                        >> Name...: Name of the log file (as appearing in the Event Viewer console)
-                                        >> Prefix.: Text to append to the begining of the script or function name (used as the Source in the event log) 
+    =======             ==============      ===================================
+    ELEMENT             PARENT ELEMENT      DESCRIPTION AND ATTRIBUTE STRING(S)
+    =======             ==============      ===================================
+    <Logging>           <Settings>          Use to define the event log name (no file extension) and the prefix to append to the function or script names (must be unique):
+                                            >> Name...: Name of the log file (as appearing in the Event Viewer console)
+                                            >> Prefix.: Text to append to the begining of the script or function name (used as the Source in the event log) 
 
-    <Message>       <Settings>          Contains text to display on screen when calling to action.
-
-    <Text>          <Message>           Composed of the following element:
-                                        >> ID.....: Unique ID for this text.
-                                        >> Line1..: first line block.
-                                        >> Line2..: second line block.
-                                        >> Line3..: third line block.
-                                        >> Line4..: fourth line block.
-    =======         ==============      ===================================
+    <Message>           <Settings>          Contains text to display on screen when calling to action.
+    <Text>              <Message>           Composed of the following element:
+                                            >> ID.....: Unique ID for this text.
+                                            >> Line1..: first line block.
+                                            >> Line2..: second line block.
+                                            >> Line3..: third line block.
+                                            >> Line4..: fourth line block.
+        
+    <Lurch>             <Settings>          The IA that tells you you're going bad... Randomly.
+    <BadKeyPRess>       <Lurch>             Lurch loves when you press one the offered key choices. Only then.
+    <BadInputformat>    <Lurch>             Lurch keep an eye on what you're typing in. And feel good only if it match the rules...
+    
+    <FunctionalLevel>   <Settings>          Settings to ease on detect/display DFL / FFL data
+    <OS>                <FunctionalLevel>   Caption will match the OS Caption (win32 OperatingSystem) and offer a Regex for compatible FL.
+    <Definition>        <FunctionalLevel>   FL ID and its description for text echoing.
+    =======             ==============      ===================================
 
     ** FILLED=UP BY THE SCRIPT (YOU CAN MODIFY OR ADD IT) **
     =======         ==============      ===================================

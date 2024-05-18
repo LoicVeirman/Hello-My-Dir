@@ -99,7 +99,9 @@ Function Get-HmDForest {
 
     $DbgLog += @('Previous choices:',"> Forest Fullname: $ForestDNS","> Forest NetBIOS name: $ForestNtB","> Forest Functional Level: $ForestFFL","> Enable Recycle Bin: $ForestBIN","> Enable PAM: $ForestPAM",' ')
 
-    # Question: Forest DNS name
+    #############################
+    # QUESTION: FOREST DNS NAME #
+    #############################
     ## Fist, check if the host is member of a domain. If so, the domain will be used as 
     if ((gwmi win32_computersystem).partofdomain -eq $true -and $ForestDNS -ne '' -and $null -ne $ForestDNS) {
             # Set the value as default root domain name
@@ -191,7 +193,9 @@ Function Get-HmDForest {
     ## Writing result to XML
     $PreviousChoices.Configuration.Forest.FullName = $answer
 
-    # Question: netBIOS forest domain
+    ###################################
+    # QUESTION: NETBIOS FOREST DOMAIN #
+    ###################################
     ## First check if the host is member of a domain. If so, we will use it as default (whenever $forestNtB is null).
     if ($ForestNtB -eq '' -or $null -eq $ForestNtB) {
         $ForestNtB = ($ForestDNS -split '\.')[0]
@@ -256,7 +260,9 @@ Function Get-HmDForest {
     ## Writing result to XML
     $PreviousChoices.Configuration.Forest.NetBIOS = $answer
 
-    # Question: FFL
+    #################
+    # QUESTION: FFL #
+    #################
     ### Calling Lurch from Adam's family...
     $LurchMood = @(($ScriptSettings.Settings.Lurch.BadKeyPress).Split(';'))
 
@@ -334,8 +340,80 @@ Function Get-HmDForest {
         }
     }
 
+    ############################
+    # QUESTION: AD RECYCLE BIN #
+    ############################
+    ## Display question 
+    $toDisplayXml = Select-Xml $ScriptSettings -XPath "//Text[@ID='008']" | Select-Object -ExpandProperty Node
+    $toDisplayArr = @($toDisplayXml.Line1)
+    $toDisplayArr += $toDisplayXml.Line2
+    Write-UserChoice $toDisplayArr
+    
+    ## Yes/No time
+    ### Getting cursor position for relocation
+    $CursorPosition = $Host.UI.RawUI.CursorPosition
+
+    ### Writing default previous choice (will be used if RETURN is pressed)
+    Write-Host $ForestBIN -NoNewline -ForegroundColor Magenta
+
+    ### Querying input: waiting for Y,N or ENTER.
+    $isKO = $True
+    While ($isKO)
+    {
+        ## Reading key press
+        $key = $Host.UI.RawUI.ReadKey("IncludeKeyDown,NoEcho")
+        ## Analyzing key pressed
+        ## Pressed ENTER
+        if ($key.VirtualKeyCode -eq 13) {
+            # Is Last Choice or Yes if no previous choice
+            if ([String]::IsNullOrEmpty($ForestBIN)) {
+                $ForestBIN = "Yes"
+                $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                Write-Host $StringCleanSet -NoNewline
+                $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                Write-Host $ForestBIN -ForegroundColor Green
+                $isKO = $false
+            }
+            Else {
+                if ($RunSetup.Configuration.Forest.Installation -eq 'No') { $color = 'Red' } Else { $color = 'Green' }
+                $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                Write-Host $ForestBIN -ForegroundColor $color
+            }
+            $isKO = $false
+        }
+        ## Pressed Y or y
+        Elseif ($key.VirtualKeyCode -eq 89) {
+            # Is Yes
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+            Write-Host $StringCleanSet -NoNewline
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+            Write-Host "Yes" -ForegroundColor Green
+            $ForestBIN = "Yes"
+            $isKO = $false
+        }
+        ## Pressed N or N
+        elseif ($key.VirtualKeyCode -eq 78) {
+            # Is No
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+            Write-Host $StringCleanSet -NoNewline
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+            Write-Host "No" -ForegroundColor Red
+            $ForestBIN = "No"
+            $isKO = $false
+        }
+        ## Pressed any other key
+        Else {
+            # Do it again!
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+            Write-Host $StringCleanSet -NoNewline
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+            Write-Host (Get-Random $LurchMood) -ForegroundColor DarkGray -NoNewline
+            $isKO = $true
+        }
+    }
+
     ## Writing result to XML
-    $PreviousChoices.Configuration.Forest.FunctionalLevel = $ForestFFL
+    $PreviousChoices.Configuration.Forest.RecycleBin = $ForestBIN
 
     # End logging
     Write-toEventLog $ExitLevel $DbgLog | Out-Null
