@@ -189,7 +189,6 @@ Function Get-HmDForest {
         }
     }
 
-
     ## Writing result to XML
     $PreviousChoices.Configuration.Forest.FullName = $answer
 
@@ -489,6 +488,161 @@ Function Get-HmDForest {
 
     ## Writing result to XML
     $PreviousChoices.Configuration.Forest.PAM = $ForestPAM
+
+    # End logging
+    Write-toEventLog $ExitLevel $DbgLog | Out-Null
+
+    # Return result
+    return $PreviousChoices
+}
+
+Function Get-HmDDomain {
+    <#
+        .SYNOPSIS
+        Collect data about the target domain where the new domain will be installed.
+
+        .DESCRIPTION
+        Collect data about the domain that will be created. Return an array.
+
+        .PARAMETER NewForest
+        Parameter indicating wether or not this forest is to be build.
+
+        .PARAMETER PreviousChoices
+        XML dataset with previous choices to offer a more dynamic experience.
+
+        .NOTES
+        Version: 01.000.000 -- Loic VEIRMAN (MSSec)
+        History: 2024/05/18 -- Script creation.
+    #>
+
+    [CmdletBinding()]
+    param (
+        # Forest installation choice
+        [Parameter(Mandatory,Position=0)]
+        [ValidateSet('Yes','No')]
+        [String]
+        $NewForest,
+
+        # XML dataset with previous choices
+        [Parameter(Mandatory,Position=1)]
+        [XML]
+        $PreviousChoices
+    )
+
+    # Initiate logging. A specific variable is used to inform on the final result (info, warning or error).
+    Test-EventLog | Out-Null
+    $callStack = Get-PSCallStack
+    $CalledBy = ($CallStack[1].Command -split '\.')[0]
+    $ExitLevel = 'INFO'
+    $DbgLog = @('START: Get-HmDDomain',' ','Called by: $CalledBy',' ')
+
+    # Getting previous data
+    $ForestDNS = $PreviousChoices.Configuration.Forest.Fullname
+    $ForestNtB = $PreviousChoices.Configuration.Forest.NetBIOS
+    $ForestFFL = $PreviousChoices.Configuration.Forest.FunctionalLevel
+    $DomainDNS = $PreviousChoices.Configuration.Domain.Fullname
+    $DomainNtB = $PreviousChoices.Configuration.Domain.NetBIOS
+    $DomainDFL = $PreviousChoices.Configuration.Domain.FunctionalLevel
+
+    $DbgLog += @('Previous choices:',"> Domain Fullname: $domainDNS","> Domain NetBIOS name: $DomainNtB","> Domain Functional Level: $DomainDFL",' ')    
+
+    # Loading Script Settings
+    $ScriptSettings = Get-XmlContent .\Configuration\ScriptSettings.xml
+
+    #########################
+    # QUESTION: DOMAIN FQDN #
+    #########################
+    # IF this is a new forest, then we already have this information. We won't bother you with it, uh?
+    if ($NewForest -eq 'Yes') {
+        # Duplicating value
+        $DomainDNS = $ForestDNS
+    }
+    Else {
+        # Enquiring for the new name
+        ## Calling Lurch from Adam's family...
+        $LurchMood = @(($ScriptSettings.Settings.Lurch.BadInputFormat).Split(';'))
+
+        ## Display question 
+        $toDisplayXml = Select-Xml $ScriptSettings -XPath "//Text[@ID='010']" | Select-Object -ExpandProperty Node
+        $toDisplayArr = @($toDisplayXml.Line1)
+        $toDisplayArr += $toDisplayXml.Line2
+        Write-UserChoice $toDisplayArr
+    
+        ## Input time
+        ## Get current cursor position and create the Blanco String
+        $StringCleanSet = " "
+        $MaxStringLength = ($LurchMood | Measure-Object -Property Length -Maximum).Maximum
+        for ($i=2 ; $i -le $MaxStringLength ; $i++) { 
+            $StringCleanSet += " " 
+        }
+
+        ## Getting cursor position for relocation
+        $CursorPosition = $Host.UI.RawUI.CursorPosition
+
+        ## Writing default previous choice (will be used if RETURN is pressed)
+        Write-Host $DomainDNS -NoNewline -ForegroundColor Magenta
+
+        <# 
+            Analyzing answer.
+            Proof and explanation: https://regex101.com/r/FLA9Bv/40
+            There're two approaches to choose from when validating domains.
+            1. By-the-books FQDN matching (theoretical definition, rarely encountered in practice):
+            > max 253 character long (as per RFC-1035/3.1, RFC-2181/11)
+            > max 63 character long per label (as per RFC-1035/3.1, RFC-2181/11)@
+            > any characters are allowed (as per RFC-2181/11)
+            > TLDs cannot be all-numeric (as per RFC-3696/2)
+            > FQDNs can be written in a complete form, which includes the root zone (the trailing dot)
+            
+            2. Practical / conservative FQDN matching (practical definition, expected and supported in practice):
+            > by-the-books matching with the following exceptions/additions
+            > valid characters: [a-zA-Z0-9.-]
+            > labels cannot start or end with hyphens (as per RFC-952 and RFC-1123/2.1)
+            > TLD min length is 2 character, max length is 24 character as per currently existing records
+            > don't match trailing dot
+            The regex below contains both by-the-books and practical rules. 
+        #>
+        $Regex = '^(?!.*?_.*?)(?!(?:[\w]+?\.)?\-[\w\.\-]*?)(?![\w]+?\-\.(?:[\w\.\-]+?))(?=[\w])(?=[\w\.\-]*?\.+[\w\.\-]*?)(?![\w\.\-]{254})(?!(?:\.?[\w\-\.]*?[\w\-]{64,}\.)+?)[\w\.\-]+?(?<![\w\-\.]*?\.[\d]+?)(?<=[\w\-]{2,})(?<![\w\-]{25})$'
+
+        ### Querying input: waiting for Y,N or ENTER.
+        $isKO = $True
+        While ($isKO)
+        {
+            # relocate cursor
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+
+            # Getting user $input
+            [string]$answer = read-host
+
+            # if $answer is null, then we use the default choice
+            if ([String]::IsNullOrEmpty($answer)) {
+                [string]$answer = $DomainDNS
+            }
+
+            # if answer is not null, we ensure that the regex for domain is matched
+            if (-not([String]::IsNullOrEmpty($answer))) {
+                switch ($answer -match $Regex) {
+                    $true {
+                        $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                        Write-Host $StringCleanSet -NoNewline
+                        $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                        Write-Host $answer -ForegroundColor Green
+                        $DomainDNS = $answer
+                        $isKO = $false
+                    }
+                    $False {
+                        $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                        Write-Host $StringCleanSet -NoNewline
+                        $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                        Write-Host (Get-Random $LurchMood) -ForegroundColor DarkGray -NoNewline
+                        $isKO = $true
+                    }
+                }
+            }
+        }
+    }
+
+    ## Writing result to XML
+    $PreviousChoices.Configuration.Domain.FullName = $DomainDNS
 
     # End logging
     Write-toEventLog $ExitLevel $DbgLog | Out-Null
