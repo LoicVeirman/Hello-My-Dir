@@ -590,6 +590,9 @@ Function Get-HmDDomain {
                 $DomainTYP = "Child"
                 Write-Host $DomainTYP -NoNewline -ForegroundColor Magenta
             }
+            Else {
+                Write-Host $DomainTYP -NoNewline -ForegroundColor Magenta
+            }
         }
         ### Querying input: waiting for Y,N or ENTER.
         $isKO = $True
