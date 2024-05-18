@@ -375,7 +375,7 @@ Function Get-HmDForest {
                 $isKO = $false
             }
             Else {
-                if ($RunSetup.Configuration.Forest.Installation -eq 'No') { $color = 'Red' } Else { $color = 'Green' }
+                if ($ForestBIN -eq 'No') { $color = 'Red' } Else { $color = 'Green' }
                 $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
                 Write-Host $ForestBIN -ForegroundColor $color
             }
@@ -414,6 +414,81 @@ Function Get-HmDForest {
 
     ## Writing result to XML
     $PreviousChoices.Configuration.Forest.RecycleBin = $ForestBIN
+
+    ####################
+    # QUESTION: AD PAM #
+    ####################
+    ## Display question 
+    $toDisplayXml = Select-Xml $ScriptSettings -XPath "//Text[@ID='009']" | Select-Object -ExpandProperty Node
+    $toDisplayArr = @($toDisplayXml.Line1)
+    $toDisplayArr += $toDisplayXml.Line2
+    Write-UserChoice $toDisplayArr
+    
+    ## Yes/No time
+    ### Getting cursor position for relocation
+    $CursorPosition = $Host.UI.RawUI.CursorPosition
+
+    ### Writing default previous choice (will be used if RETURN is pressed)
+    Write-Host $ForestPAM -NoNewline -ForegroundColor Magenta
+
+    ### Querying input: waiting for Y,N or ENTER.
+    $isKO = $True
+    While ($isKO)
+    {
+        ## Reading key press
+        $key = $Host.UI.RawUI.ReadKey("IncludeKeyDown,NoEcho")
+        ## Analyzing key pressed
+        ## Pressed ENTER
+        if ($key.VirtualKeyCode -eq 13) {
+            # Is Last Choice or No if no previous choice
+            if ([String]::IsNullOrEmpty($ForestPAM)) {
+                $ForestBIN = "No"
+                $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                Write-Host $StringCleanSet -NoNewline
+                $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                Write-Host $ForestPAM -ForegroundColor Green
+                $isKO = $false
+            }
+            Else {
+                if ($ForestPAM -eq 'No') { $color = 'Red' } Else { $color = 'Green' }
+                $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                Write-Host $ForestPAM -ForegroundColor $color
+            }
+            $isKO = $false
+        }
+        ## Pressed Y or y
+        Elseif ($key.VirtualKeyCode -eq 89) {
+            # Is Yes
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+            Write-Host $StringCleanSet -NoNewline
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+            Write-Host "Yes" -ForegroundColor Green
+            $ForestPAM = "Yes"
+            $isKO = $false
+        }
+        ## Pressed N or N
+        elseif ($key.VirtualKeyCode -eq 78) {
+            # Is No
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+            Write-Host $StringCleanSet -NoNewline
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+            Write-Host "No" -ForegroundColor Red
+            $ForestPAM = "No"
+            $isKO = $false
+        }
+        ## Pressed any other key
+        Else {
+            # Do it again!
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+            Write-Host $StringCleanSet -NoNewline
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+            Write-Host (Get-Random $LurchMood) -ForegroundColor DarkGray -NoNewline
+            $isKO = $true
+        }
+    }
+
+    ## Writing result to XML
+    $PreviousChoices.Configuration.Forest.PAM = $ForestPAM
 
     # End logging
     Write-toEventLog $ExitLevel $DbgLog | Out-Null
