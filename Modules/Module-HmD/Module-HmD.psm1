@@ -585,7 +585,11 @@ Function Get-HmDDomain {
             Write-Host "Child" -NoNewline -ForegroundColor Magenta
         } 
         else {
-            Write-Host $DomainTYP -NoNewline -ForegroundColor Magenta
+            if ($NewForest -eq 'No' -and $DomainTYP -eq 'Root') {
+                # Enforce domain type as this is not a new forest
+                $DomainTYP = "Child"
+                Write-Host $DomainTYP -NoNewline -ForegroundColor Magenta
+            }
         }
         ### Querying input: waiting for Y,N or ENTER.
         $isKO = $True
@@ -607,7 +611,7 @@ Function Get-HmDDomain {
                 }
                 Else {
                     $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
-                    Write-Host $DomainTYP -ForegroundColor $color
+                    Write-Host $DomainTYP -ForegroundColor Green
                 }
                 $isKO = $false
             }
