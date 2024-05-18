@@ -442,7 +442,7 @@ Function Get-HmDForest {
         if ($key.VirtualKeyCode -eq 13) {
             # Is Last Choice or No if no previous choice
             if ([String]::IsNullOrEmpty($ForestPAM)) {
-                $ForestBIN = "No"
+                $ForestPAM = "No"
                 $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
                 Write-Host $StringCleanSet -NoNewline
                 $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
