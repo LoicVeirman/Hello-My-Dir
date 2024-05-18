@@ -730,6 +730,84 @@ Function Get-HmDDomain {
     ## Writing result to XML
     $PreviousChoices.Configuration.Domain.FullName = $DomainDNS
 
+    #################################
+    # QUESTION: DOMAIN NETBIOS NAME #
+    #################################
+        # IF this is a new forest, then we already have this information. We won't bother you with it, uh?
+        if ($NewForest -eq 'Yes') {
+            # Duplicating value
+            $DomainNtB = $ForestNtB
+        }
+        Else {
+            # Enquiring for the new name
+            ## Display question 
+            $toDisplayXml = Select-Xml $ScriptSettings -XPath "//Text[@ID='012']" | Select-Object -ExpandProperty Node
+            $toDisplayArr = @($toDisplayXml.Line1)
+            $toDisplayArr += $toDisplayXml.Line2
+            Write-UserChoice $toDisplayArr
+        
+            ## Input time
+            ## Get current cursor position and create the Blanco String
+            $StringCleanSet = " "
+            $MaxStringLength = ($LurchMood | Measure-Object -Property Length -Maximum).Maximum
+            for ($i=2 ; $i -le $MaxStringLength ; $i++) { 
+                $StringCleanSet += " " 
+            }
+    
+            ## Getting cursor position for relocation
+            $CursorPosition = $Host.UI.RawUI.CursorPosition
+    
+            ## Writing default previous choice (will be used if RETURN is pressed)
+            if([String]::IsNullOrEmpty($DomainNtB)) {
+                # If no data, then we use the first part from the dns name.
+                $DomainNtB = ($DomainDNS -split "\.")[0]
+            }
+            Write-Host $DomainNtB -NoNewline -ForegroundColor Magenta
+    
+            ## Regex validating that the new name is valid
+            $Regex = '^.[a-zA-Z0-9-][a-zA-Z0-9-]{1,14}$'
+    
+            ### Querying input: waiting for Y,N or ENTER.
+            $isKO = $True
+            While ($isKO)
+            {
+                # relocate cursor
+                $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+    
+                # Getting user $input
+                [string]$answer = read-host
+    
+                # if $answer is null, then we use the default choice
+                if ([String]::IsNullOrEmpty($answer)) {
+                    [string]$answer = $DomainNtB
+                }
+    
+                # if answer is not null, we ensure that the regex for domain is matched
+                if (-not([String]::IsNullOrEmpty($answer))) {
+                    switch ($answer -match $Regex) {
+                        $true {
+                            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                            Write-Host $StringCleanSet -NoNewline
+                            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                            Write-Host $answer -ForegroundColor Green
+                            $DomainNtB = $answer
+                            $isKO = $false
+                        }
+                        $False {
+                            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                            Write-Host $StringCleanSet -NoNewline
+                            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                            Write-Host (Get-Random $LurchMood) -ForegroundColor DarkGray -NoNewline
+                            $isKO = $true
+                        }
+                    }
+                }
+            }
+        }
+    
+        ## Writing result to XML
+        $PreviousChoices.Configuration.Domain.NetBIOS = $DomainNtB
+
     # End logging
     Write-toEventLog $ExitLevel $DbgLog | Out-Null
 
