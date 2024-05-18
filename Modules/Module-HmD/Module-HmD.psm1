@@ -680,10 +680,11 @@ Function Get-HmDDomain {
         Write-Host $DomainDNS -NoNewline -ForegroundColor Magenta
 
         ## Regex validating that the new name is valid
-        Siwtch ($DomainTYP) {
+        Switch ($DomainTYP) {
             'Isolated' { $Regex = '^(?!.*?_.*?)(?!(?:[\w]+?\.)?\-[\w\.\-]*?)(?![\w]+?\-\.(?:[\w\.\-]+?))(?=[\w])(?=[\w\.\-]*?\.+[\w\.\-]*?)(?![\w\.\-]{254})(?!(?:\.?[\w\-\.]*?[\w\-]{64,}\.)+?)[\w\.\-]+?(?<![\w\-\.]*?\.[\d]+?)(?<=[\w\-]{2,})(?<![\w\-]{25})$' }
             'Child' { $Regex = ".*\.$ForestDNS$" }
         }
+
         ### Querying input: waiting for Y,N or ENTER.
         $isKO = $True
         While ($isKO)
