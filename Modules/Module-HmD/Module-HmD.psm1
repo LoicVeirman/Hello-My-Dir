@@ -540,6 +540,7 @@ Function Get-HmDDomain {
     $ForestDNS = $PreviousChoices.Configuration.Forest.Fullname
     $ForestNtB = $PreviousChoices.Configuration.Forest.NetBIOS
     $ForestFFL = $PreviousChoices.Configuration.Forest.FunctionalLevel
+    $DomainTYP = $PreviousChoices.Configuration.Domain.Type
     $DomainDNS = $PreviousChoices.Configuration.Domain.Fullname
     $DomainNtB = $PreviousChoices.Configuration.Domain.NetBIOS
     $DomainDFL = $PreviousChoices.Configuration.Domain.FunctionalLevel
@@ -548,6 +549,102 @@ Function Get-HmDDomain {
 
     # Loading Script Settings
     $ScriptSettings = Get-XmlContent .\Configuration\ScriptSettings.xml
+
+    #########################
+    # QUESTION: DOMAIN TYPE #
+    #########################
+    # If this a new forest, then we already know the domain type. Why ask, then?
+    if ($NewForest -eq 'Yes') {
+        # Duplicating value
+        $DomainTYP = 'Root'
+    }
+    Else {
+        # Enquiring for the new domain type
+        ## Calling Lurch from Adam's family...
+        $LurchMood = @(($ScriptSettings.Settings.Lurch.BadKeyPress).Split(';'))
+
+        ## Display question 
+        $toDisplayXml = Select-Xml $ScriptSettings -XPath "//Text[@ID='010']" | Select-Object -ExpandProperty Node
+        $toDisplayArr = @($toDisplayXml.Line1)
+        $toDisplayArr += $toDisplayXml.Line2
+        Write-UserChoice $toDisplayArr
+
+        ## Input time
+        ## Get current cursor position and create the Blanco String
+        $StringCleanSet = " "
+        $MaxStringLength = ($LurchMood | Measure-Object -Property Length -Maximum).Maximum
+        for ($i=2 ; $i -le $MaxStringLength ; $i++) { 
+            $StringCleanSet += " " 
+        }
+
+        ## Getting cursor position for relocation
+        $CursorPosition = $Host.UI.RawUI.CursorPosition
+
+        ## Writing default previous choice (will be used if RETURN is pressed)
+        if ([string]::IsNullOrEmpty($DomainTYP)) {
+            Write-Host "Child" -NoNewline -ForegroundColor Magenta
+        } 
+        else {
+            Write-Host $DomainTYP -NoNewline -ForegroundColor Magenta
+        }
+        ### Querying input: waiting for Y,N or ENTER.
+        $isKO = $True
+        While ($isKO)
+        {
+            ## Reading key press
+            $key = $Host.UI.RawUI.ReadKey("IncludeKeyDown,NoEcho")
+            ## Analyzing key pressed
+            ## Pressed ENTER
+            if ($key.VirtualKeyCode -eq 13) {
+                # Is Last Choice or No if no previous choice
+                if ([String]::IsNullOrEmpty($DomainTYP)) {
+                    $DomainTYP = "Child"
+                    $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                    Write-Host $StringCleanSet -NoNewline
+                    $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                    Write-Host $DomainTYP -ForegroundColor Green
+                    $isKO = $false
+                }
+                Else {
+                    $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                    Write-Host $DomainTYP -ForegroundColor $color
+                }
+                $isKO = $false
+            }
+            ## Pressed C or c
+            Elseif ($key.VirtualKeyCode -eq 67) {
+                # Is Child
+                $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                Write-Host $StringCleanSet -NoNewline
+                $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                Write-Host "Child" -ForegroundColor Green
+                $DomainTYP = "Child"
+                $isKO = $false
+            }
+            ## Pressed I or i
+            elseif ($key.VirtualKeyCode -eq 73) {
+                # Is Isolated
+                $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                Write-Host $StringCleanSet -NoNewline
+                $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                Write-Host "Isolated" -ForegroundColor Red
+                $DomainTYP = "Isolated"
+                $isKO = $false
+            }
+            ## Pressed any other key
+            Else {
+                # Do it again!
+                $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                Write-Host $StringCleanSet -NoNewline
+                $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                Write-Host (Get-Random $LurchMood) -ForegroundColor DarkGray -NoNewline
+                $isKO = $true
+            }
+        }
+    }
+
+    ## Writing result to XML
+    $PreviousChoices.Configuration.Domain.Type = $DomainTYP
 
     #########################
     # QUESTION: DOMAIN FQDN #
@@ -563,7 +660,7 @@ Function Get-HmDDomain {
         $LurchMood = @(($ScriptSettings.Settings.Lurch.BadInputFormat).Split(';'))
 
         ## Display question 
-        $toDisplayXml = Select-Xml $ScriptSettings -XPath "//Text[@ID='010']" | Select-Object -ExpandProperty Node
+        $toDisplayXml = Select-Xml $ScriptSettings -XPath "//Text[@ID='011']" | Select-Object -ExpandProperty Node
         $toDisplayArr = @($toDisplayXml.Line1)
         $toDisplayArr += $toDisplayXml.Line2
         Write-UserChoice $toDisplayArr
@@ -582,27 +679,11 @@ Function Get-HmDDomain {
         ## Writing default previous choice (will be used if RETURN is pressed)
         Write-Host $DomainDNS -NoNewline -ForegroundColor Magenta
 
-        <# 
-            Analyzing answer.
-            Proof and explanation: https://regex101.com/r/FLA9Bv/40
-            There're two approaches to choose from when validating domains.
-            1. By-the-books FQDN matching (theoretical definition, rarely encountered in practice):
-            > max 253 character long (as per RFC-1035/3.1, RFC-2181/11)
-            > max 63 character long per label (as per RFC-1035/3.1, RFC-2181/11)@
-            > any characters are allowed (as per RFC-2181/11)
-            > TLDs cannot be all-numeric (as per RFC-3696/2)
-            > FQDNs can be written in a complete form, which includes the root zone (the trailing dot)
-            
-            2. Practical / conservative FQDN matching (practical definition, expected and supported in practice):
-            > by-the-books matching with the following exceptions/additions
-            > valid characters: [a-zA-Z0-9.-]
-            > labels cannot start or end with hyphens (as per RFC-952 and RFC-1123/2.1)
-            > TLD min length is 2 character, max length is 24 character as per currently existing records
-            > don't match trailing dot
-            The regex below contains both by-the-books and practical rules. 
-        #>
-        $Regex = '^(?!.*?_.*?)(?!(?:[\w]+?\.)?\-[\w\.\-]*?)(?![\w]+?\-\.(?:[\w\.\-]+?))(?=[\w])(?=[\w\.\-]*?\.+[\w\.\-]*?)(?![\w\.\-]{254})(?!(?:\.?[\w\-\.]*?[\w\-]{64,}\.)+?)[\w\.\-]+?(?<![\w\-\.]*?\.[\d]+?)(?<=[\w\-]{2,})(?<![\w\-]{25})$'
-
+        ## Regex validating that the new name is valid
+        Siwtch ($DomainTYP) {
+            'Isolated' { $Regex = '^(?!.*?_.*?)(?!(?:[\w]+?\.)?\-[\w\.\-]*?)(?![\w]+?\-\.(?:[\w\.\-]+?))(?=[\w])(?=[\w\.\-]*?\.+[\w\.\-]*?)(?![\w\.\-]{254})(?!(?:\.?[\w\-\.]*?[\w\-]{64,}\.)+?)[\w\.\-]+?(?<![\w\-\.]*?\.[\d]+?)(?<=[\w\-]{2,})(?<![\w\-]{25})$' }
+            'Child' { $Regex = ".*\.$ForestDNS$" }
+        }
         ### Querying input: waiting for Y,N or ENTER.
         $isKO = $True
         While ($isKO)
