@@ -631,7 +631,7 @@ Function Get-HmDDomain {
                 $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
                 Write-Host $StringCleanSet -NoNewline
                 $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
-                Write-Host "Isolated" -ForegroundColor Red
+                Write-Host "Isolated" -ForegroundColor Green
                 $DomainTYP = "Isolated"
                 $isKO = $false
             }
