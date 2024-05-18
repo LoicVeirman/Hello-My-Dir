@@ -727,6 +727,13 @@ Function Get-HmDDomain {
                     }
                 }
             }
+            Else {
+                $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                Write-Host $StringCleanSet -NoNewline
+                $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                Write-Host "Don't try to fool me..." -ForegroundColor DarkGray -NoNewline
+                $isKO = $true
+            }
         }
     }
 
@@ -804,6 +811,13 @@ Function Get-HmDDomain {
                             $isKO = $true
                         }
                     }
+                }
+                Else {
+                    $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                    Write-Host $StringCleanSet -NoNewline
+                    $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                    Write-Host "Don't try to fool me..." -ForegroundColor DarkGray -NoNewline
+                    $isKO = $true
                 }
             }
         }
