@@ -545,7 +545,7 @@ Function Get-HmDDomain {
     $DomainNtB = $PreviousChoices.Configuration.Domain.NetBIOS
     $DomainDFL = $PreviousChoices.Configuration.Domain.FunctionalLevel
 
-    $DbgLog += @('Previous choices:',"> Domain Fullname: $domainDNS","> Domain NetBIOS name: $DomainNtB","> Domain Functional Level: $DomainDFL",' ')    
+    $DbgLog += @('Previous choices:',"> Domain Type: $domainTYP","> Domain Fullname: $domainDNS","> Domain NetBIOS name: $DomainNtB","> Domain Functional Level: $DomainDFL",' ')    
 
     # Loading Script Settings
     $ScriptSettings = Get-XmlContent .\Configuration\ScriptSettings.xml
