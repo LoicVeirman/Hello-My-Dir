@@ -446,7 +446,7 @@ Function Get-HmDForest {
                 $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
                 Write-Host $StringCleanSet -NoNewline
                 $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
-                Write-Host $ForestPAM -ForegroundColor Green
+                Write-Host $ForestPAM -ForegroundColor Red
                 $isKO = $false
             }
             Else {
