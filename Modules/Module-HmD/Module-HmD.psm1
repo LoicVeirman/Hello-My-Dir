@@ -708,7 +708,7 @@ Function Get-HmDDomain {
             }
 
             # if answer is not null, we ensure that the regex for domain is matched
-            if (-not([String]::IsNullOrEmpty($answer))) {
+            if (-not([String]::IsNullOrEmpty($answer)) -and ($answer -ne $ForestDNS)) {
                 switch ($answer -match $Regex) {
                     $true {
                         $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
@@ -786,7 +786,7 @@ Function Get-HmDDomain {
                 }
     
                 # if answer is not null, we ensure that the regex for domain is matched
-                if (-not([String]::IsNullOrEmpty($answer))) {
+                if (-not([String]::IsNullOrEmpty($answer)) -and ($answer -ne $ForestNtB)) {
                     switch ($answer -match $Regex) {
                         $true {
                             $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
