@@ -563,6 +563,8 @@ Function Get-HmDDomain {
     $DomainDNS = $PreviousChoices.Configuration.Domain.Fullname
     $DomainNtB = $PreviousChoices.Configuration.Domain.NetBIOS
     $DomainDFL = $PreviousChoices.Configuration.Domain.FunctionalLevel
+    $DomainSYS = $PreviousChoices.Configuration.Domain.FunctionalLevel
+    $DomainNTD = $PreviousChoices.Configuration.Domain.
 
     $DbgLog += @('Previous choices:',"> Domain Type: $domainTYP","> Domain Fullname: $domainDNS","> Domain NetBIOS name: $DomainNtB","> Domain Functional Level: $DomainDFL",' ')    
 
@@ -941,6 +943,158 @@ Function Get-HmDDomain {
 
     # Write to XML
     $PreviousChoices.Configuration.Domain.FunctionalLevel = $DomainDFL
+
+    #########################
+    # QUESTION: SYSVOL PATH #
+    #########################
+    # Enquiring for the new name
+    ## Calling Lurch from Adam's family...
+    $LurchMood = @(($ScriptSettings.Settings.Lurch.BadInputFormat).Split(';'))
+
+    ## Getting default value, or previous one
+    if ([String]::IsNullOrEmpty($DomainSYS)) {
+        $DomainSYS = "$($Env:WinDir)\SYSVOL"
+    }
+
+    ## Display question 
+    $toDisplayXml = Select-Xml $ScriptSettings -XPath "//Text[@ID='014']" | Select-Object -ExpandProperty Node
+    $toDisplayArr = @($toDisplayXml.Line1)
+    $toDisplayArr += $toDisplayXml.Line2
+    Write-UserChoice $toDisplayArr
+
+    ## Input time
+    ## Get current cursor position and create the Blanco String
+    $StringCleanSet = " "
+    $MaxStringLength = ($LurchMood | Measure-Object -Property Length -Maximum).Maximum
+    for ($i=2 ; $i -le $MaxStringLength ; $i++) { 
+        $StringCleanSet += " " 
+    }
+
+    ## Getting cursor position for relocation
+    $CursorPosition = $Host.UI.RawUI.CursorPosition
+
+    ## Writing default previous choice (will be used if RETURN is pressed)
+    Write-Host $DomainSYS -NoNewline -ForegroundColor Magenta
+
+    ## Regex validating that the new name is valid
+    $Regex = '^[a-zA-Z][:][\\][\w\\\-]*[\w]$'
+
+    ### Querying input: waiting for Y,N or ENTER.
+    $isKO = $True
+    While ($isKO)
+    {
+        # relocate cursor
+        $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+
+        # Getting user $input
+        [string]$answer = read-host
+
+        # if $answer is null, then we use the default choice
+        if ([String]::IsNullOrEmpty($answer)) {
+            [string]$answer = $DomainSYS
+        }
+
+        # if answer is not null, we ensure that the regex for domain is matched
+        if (-not([String]::IsNullOrEmpty($answer))) {
+            switch ($answer -match $Regex) {
+                $true {
+                    $DomainSYS = [string]$answer
+                    $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                    Write-Host $StringCleanSet -NoNewline
+                    $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                    Write-Host $DomainSYS -ForegroundColor Green
+                    $isKO = $false
+                }
+                $False {
+                    $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                    Write-Host $StringCleanSet -NoNewline
+                    $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                    Write-Host (Get-Random $LurchMood) -ForegroundColor DarkGray -NoNewline
+                    $isKO = $true
+                }
+            }
+        }
+    }    
+
+    # Write to XML
+    $PreviousChoices.Configuration.Domain.sysvolPath = $DomainSYS
+    $DbgLog += @("Domain SYSVOL: $domainSYS")
+
+    #######################
+    # QUESTION: NTDS PATH #
+    #######################
+    # Enquiring for the new name
+    ## Calling Lurch from Adam's family...
+    $LurchMood = @(($ScriptSettings.Settings.Lurch.BadInputFormat).Split(';'))
+
+    ## Getting default value, or previous one
+    if ([String]::IsNullOrEmpty($DomainSYS)) {
+        $DomainNTD = "$($Env:WinDir)\NTDS"
+    }
+
+    ## Display question 
+    $toDisplayXml = Select-Xml $ScriptSettings -XPath "//Text[@ID='015']" | Select-Object -ExpandProperty Node
+    $toDisplayArr = @($toDisplayXml.Line1)
+    $toDisplayArr += $toDisplayXml.Line2
+    Write-UserChoice $toDisplayArr
+
+    ## Input time
+    ## Get current cursor position and create the Blanco String
+    $StringCleanSet = " "
+    $MaxStringLength = ($LurchMood | Measure-Object -Property Length -Maximum).Maximum
+    for ($i=2 ; $i -le $MaxStringLength ; $i++) { 
+        $StringCleanSet += " " 
+    }
+
+    ## Getting cursor position for relocation
+    $CursorPosition = $Host.UI.RawUI.CursorPosition
+
+    ## Writing default previous choice (will be used if RETURN is pressed)
+    Write-Host $DomainSYS -NoNewline -ForegroundColor Magenta
+
+    ## Regex validating that the new name is valid
+    $Regex = '^[a-zA-Z][:][\\][\w\\\-]*[\w]$'
+
+    ### Querying input: waiting for Y,N or ENTER.
+    $isKO = $True
+    While ($isKO)
+    {
+        # relocate cursor
+        $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+
+        # Getting user $input
+        [string]$answer = read-host
+
+        # if $answer is null, then we use the default choice
+        if ([String]::IsNullOrEmpty($answer)) {
+            [string]$answer = $DomainNTD
+        }
+
+        # if answer is not null, we ensure that the regex for domain is matched
+        if (-not([String]::IsNullOrEmpty($answer))) {
+            switch ($answer -match $Regex) {
+                $true {
+                    $DomainNTD = $answer
+                    $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                    Write-Host $StringCleanSet -NoNewline
+                    $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                    Write-Host $DomainNTD -ForegroundColor Green
+                    $isKO = $false
+                }
+                $False {
+                    $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                    Write-Host $StringCleanSet -NoNewline
+                    $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                    Write-Host (Get-Random $LurchMood) -ForegroundColor DarkGray -NoNewline
+                    $isKO = $true
+                }
+            }
+        }
+    }    
+
+    # Write to XML
+    $PreviousChoices.Configuration.Domain.NtdsPath = $DomainNTD
+    $DbgLog += @("Domain NTDS: $domainNTD")
 
     # End logging
     Write-toEventLog $ExitLevel $DbgLog | Out-Null
