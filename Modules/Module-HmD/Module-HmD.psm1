@@ -304,6 +304,10 @@ Function Get-HmDForest {
     ### Writing default previous choice (will be used if RETURN is pressed)
     Write-Host $(($ScriptSettings.Settings.FunctionalLevel.Definition | Where-Object { $_.ID -eq $ForestFFL }).Desc) -NoNewline -ForegroundColor Magenta
 
+    ### Check if FFL has a value. If not, we will use the maximum level value (which is always seven, yet.)
+    if ([String]::IsNullOrEmpty($ForestFFL)) {
+        $ForestFFL = (($ScriptSettings.FunctionalLevel.OS | Where-Object { $OSCaption -match $_.Caption }).Regex)[-3]
+    }
     ### Querying input: waiting for Y,N or ENTER.
     $isKO = $True
     While ($isKO)
@@ -317,6 +321,9 @@ Function Get-HmDForest {
         # if answer is part of the accepted value, we echo the desc and move next. Else... Lurch?
         if ($key.character -match $IdRegexFL) {
             $ForestFFL = [String]"$($key.character)"
+            if ($ForestFFL -eq "0") { 
+                $ForestFFL = "10"
+            }
             $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
             Write-Host $StringCleanSet -NoNewline
             $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
@@ -338,6 +345,9 @@ Function Get-HmDForest {
             $isKO = $true
         }
     }
+
+    # Write to XML
+    $PreviousChoices.Configuration.Forest.FunctionalLevel = $ForestFFL
 
     ############################
     # QUESTION: AD RECYCLE BIN #
@@ -743,87 +753,179 @@ Function Get-HmDDomain {
     #################################
     # QUESTION: DOMAIN NETBIOS NAME #
     #################################
-        # IF this is a new forest, then we already have this information. We won't bother you with it, uh?
-        if ($NewForest -eq 'Yes') {
-            # Duplicating value
-            $DomainNtB = $ForestNtB
+    # IF this is a new forest, then we already have this information. We won't bother you with it, uh?
+    if ($NewForest -eq 'Yes') {
+        # Duplicating value
+        $DomainNtB = $ForestNtB
+    }
+    Else {
+        # Enquiring for the new name
+        ## Display question 
+        $toDisplayXml = Select-Xml $ScriptSettings -XPath "//Text[@ID='012']" | Select-Object -ExpandProperty Node
+        $toDisplayArr = @($toDisplayXml.Line1)
+        $toDisplayArr += $toDisplayXml.Line2
+        Write-UserChoice $toDisplayArr
+    
+        ## Input time
+        ## Get current cursor position and create the Blanco String
+        $StringCleanSet = " "
+        $MaxStringLength = ($LurchMood | Measure-Object -Property Length -Maximum).Maximum
+        for ($i=2 ; $i -le $MaxStringLength ; $i++) { 
+            $StringCleanSet += " " 
         }
-        Else {
-            # Enquiring for the new name
-            ## Display question 
-            $toDisplayXml = Select-Xml $ScriptSettings -XPath "//Text[@ID='012']" | Select-Object -ExpandProperty Node
-            $toDisplayArr = @($toDisplayXml.Line1)
-            $toDisplayArr += $toDisplayXml.Line2
-            Write-UserChoice $toDisplayArr
-        
-            ## Input time
-            ## Get current cursor position and create the Blanco String
-            $StringCleanSet = " "
-            $MaxStringLength = ($LurchMood | Measure-Object -Property Length -Maximum).Maximum
-            for ($i=2 ; $i -le $MaxStringLength ; $i++) { 
-                $StringCleanSet += " " 
+
+        ## Getting cursor position for relocation
+        $CursorPosition = $Host.UI.RawUI.CursorPosition
+
+        ## Writing default previous choice (will be used if RETURN is pressed)
+        if([String]::IsNullOrEmpty($DomainNtB)) {
+            # If no data, then we use the first part from the dns name.
+            $DomainNtB = ($DomainDNS -split "\.")[0]
+        }
+        Write-Host $DomainNtB -NoNewline -ForegroundColor Magenta
+
+        ## Regex validating that the new name is valid
+        $Regex = '^.[a-zA-Z0-9-][a-zA-Z0-9-]{1,14}$'
+
+        ### Querying input: waiting for Y,N or ENTER.
+        $isKO = $True
+        While ($isKO)
+        {
+            # relocate cursor
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+
+            # Getting user $input
+            [string]$answer = read-host
+
+            # if $answer is null, then we use the default choice
+            if ([String]::IsNullOrEmpty($answer)) {
+                [string]$answer = $DomainNtB
             }
-    
-            ## Getting cursor position for relocation
-            $CursorPosition = $Host.UI.RawUI.CursorPosition
-    
-            ## Writing default previous choice (will be used if RETURN is pressed)
-            if([String]::IsNullOrEmpty($DomainNtB)) {
-                # If no data, then we use the first part from the dns name.
-                $DomainNtB = ($DomainDNS -split "\.")[0]
-            }
-            Write-Host $DomainNtB -NoNewline -ForegroundColor Magenta
-    
-            ## Regex validating that the new name is valid
-            $Regex = '^.[a-zA-Z0-9-][a-zA-Z0-9-]{1,14}$'
-    
-            ### Querying input: waiting for Y,N or ENTER.
-            $isKO = $True
-            While ($isKO)
-            {
-                # relocate cursor
-                $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
-    
-                # Getting user $input
-                [string]$answer = read-host
-    
-                # if $answer is null, then we use the default choice
-                if ([String]::IsNullOrEmpty($answer)) {
-                    [string]$answer = $DomainNtB
-                }
-    
-                # if answer is not null, we ensure that the regex for domain is matched
-                if (-not([String]::IsNullOrEmpty($answer)) -and ($answer -ne $ForestNtB)) {
-                    switch ($answer -match $Regex) {
-                        $true {
-                            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
-                            Write-Host $StringCleanSet -NoNewline
-                            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
-                            Write-Host $answer -ForegroundColor Green
-                            $DomainNtB = $answer
-                            $isKO = $false
-                        }
-                        $False {
-                            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
-                            Write-Host $StringCleanSet -NoNewline
-                            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
-                            Write-Host (Get-Random $LurchMood) -ForegroundColor DarkGray -NoNewline
-                            $isKO = $true
-                        }
+
+            # if answer is not null, we ensure that the regex for domain is matched
+            if (-not([String]::IsNullOrEmpty($answer)) -and ($answer -ne $ForestNtB)) {
+                switch ($answer -match $Regex) {
+                    $true {
+                        $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                        Write-Host $StringCleanSet -NoNewline
+                        $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                        Write-Host $answer -ForegroundColor Green
+                        $DomainNtB = $answer
+                        $isKO = $false
+                    }
+                    $False {
+                        $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                        Write-Host $StringCleanSet -NoNewline
+                        $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                        Write-Host (Get-Random $LurchMood) -ForegroundColor DarkGray -NoNewline
+                        $isKO = $true
                     }
                 }
-                Else {
-                    $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
-                    Write-Host $StringCleanSet -NoNewline
-                    $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
-                    Write-Host "Don't try to fool me..." -ForegroundColor DarkGray -NoNewline
-                    $isKO = $true
-                }
+            }
+            Else {
+                $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                Write-Host $StringCleanSet -NoNewline
+                $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                Write-Host "Don't try to fool me..." -ForegroundColor DarkGray -NoNewline
+                $isKO = $true
             }
         }
+    }
     
-        ## Writing result to XML
-        $PreviousChoices.Configuration.Domain.NetBIOS = $DomainNtB
+    ## Writing result to XML
+    $PreviousChoices.Configuration.Domain.NetBIOS = $DomainNtB
+
+    #####################################
+    # QUESTION: DOMAIN FUNCTIONAL LEVEL #
+    #####################################
+    # Enquiring for the new name
+    ## Calling Lurch from Adam's family...
+    $LurchMood = @(($ScriptSettings.Settings.Lurch.BadKeyPress).Split(';'))
+
+    # Alert User on avail' choices
+    $toDisplayXml = Select-Xml $ScriptSettings -XPath "//Text[@ID='004']" | Select-Object -ExpandProperty Node
+    $toDisplayArr = @($toDisplayXml.Line1)
+    Write-Host
+    Write-InformationalText $toDisplayArr
+    Write-Host
+
+    ### Display options on screen
+    for ($id = 7 ; $id -ge 1 ; $id--) {
+        if ($id -match $IdRegexFL -and $id -ge $ForestFFL) {
+            Write-Host " [" -ForegroundColor White -NoNewline
+            Write-Host $id -ForegroundColor Cyan -NoNewline
+            Write-Host "] " -ForegroundColor White -NoNewline
+            Write-Host $(($ScriptSettings.Settings.FunctionalLevel.Definition | Where-Object { $_.ID -eq $id }).Desc) -ForegroundColor Yellow
+        }
+    }
+    ## Display question 
+    $toDisplayXml = Select-Xml $ScriptSettings -XPath "//Text[@ID='013']" | Select-Object -ExpandProperty Node
+    $toDisplayArr = @($toDisplayXml.Line1)
+    $toDisplayArr += $toDisplayXml.Line2
+    Write-Host
+    Write-UserChoice $toDisplayArr
+    
+    ## Input time
+    ## Get current cursor position and create the Blanco String
+    $StringCleanSet = " "
+    $MaxStringLength = ($LurchMood | Measure-Object -Property Length -Maximum).Maximum
+    for ($i=2 ; $i -le $MaxStringLength ; $i++) { 
+        $StringCleanSet += " " 
+    }
+
+    ## Getting cursor position for relocation
+    $CursorPosition = $Host.UI.RawUI.CursorPosition
+
+    ## Writing default previous choice (will be used if RETURN is pressed)
+    if ([string]::IsNullOrEmpty($DomainDFL)) {
+        $DomainDFL = $ForestFFL
+    }
+
+    ### Writing default previous choice (will be used if RETURN is pressed)
+    Write-Host $(($ScriptSettings.Settings.FunctionalLevel.Definition | Where-Object { $_.ID -eq $DomainDFL }).Desc) -NoNewline -ForegroundColor Magenta
+
+    ### Querying input: waiting for Y,N or ENTER.
+    $isKO = $True
+    While ($isKO)
+    {
+        # relocate cursor
+        $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+
+        # Getting user $input
+        $key = $Host.UI.RawUI.ReadKey("IncludeKeyDown,NoEcho")
+
+        # if answer is part of the accepted value, we echo the desc and move next. Else... Lurch?
+        if ($key.character -match $IdRegexFL) {
+            $ForestFFL = [String]"$($key.character)"
+            if ($DomainDFL -eq "0") { 
+                $DomainDFL = "10"
+            }
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+            Write-Host $StringCleanSet -NoNewline
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+            Write-Host $(($ScriptSettings.Settings.FunctionalLevel.Definition | Where-Object { $_.Id -eq $DomainDFL}).Desc) -ForegroundColor Green
+            $isKO = $false
+        }
+        elseif ($key.VirtualKeyCode -eq 13) {
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+            Write-Host $StringCleanSet -NoNewline
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+            Write-Host $(($ScriptSettings.Settings.FunctionalLevel.Definition | Where-Object { $_.Id -eq $DomainDFL}).Desc) -ForegroundColor Green
+            $isKO = $false
+        }
+        Else {
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+            Write-Host $StringCleanSet -NoNewline
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+            Write-Host (Get-Random $LurchMood) -ForegroundColor DarkGray -NoNewline
+            $isKO = $true
+        }
+    }
+
+    # Write to XML
+    $PreviousChoices.Configuration.Forest.FunctionalLevel = $ForestFFL
+
+
 
     # End logging
     Write-toEventLog $ExitLevel $DbgLog | Out-Null
