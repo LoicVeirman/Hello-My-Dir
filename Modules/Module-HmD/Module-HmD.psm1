@@ -88,7 +88,7 @@ Function Get-HmDForest {
     $callStack = Get-PSCallStack
     $CalledBy = ($CallStack[1].Command -split '\.')[0]
     $ExitLevel = 'INFO'
-    $DbgLog = @('START: Get-HmDForest',' ','Called by: $CalledBy',' ')
+    $DbgLog = @('START: Get-HmDForest',' ',"Called by: $($CalledBy)",' ')
 
     # Getting previous data
     $ForestDNS = $PreviousChoices.Configuration.Forest.Fullname
@@ -553,7 +553,7 @@ Function Get-HmDDomain {
     $callStack = Get-PSCallStack
     $CalledBy = ($CallStack[1].Command -split '\.')[0]
     $ExitLevel = 'INFO'
-    $DbgLog = @('START: Get-HmDDomain',' ','Called by: $CalledBy',' ')
+    $DbgLog = @('START: Get-HmDDomain',' ',"Called by: $($CalledBy)",' ')
 
     # Getting previous data
     $ForestDNS = $PreviousChoices.Configuration.Forest.Fullname
@@ -853,7 +853,7 @@ Function Get-HmDDomain {
 
     # Regex computing
     $IdRegexFL = ($ScriptSettings.Settings.FunctionalLevel.OS | Where-Object { $OSCaption -match $_.Caption }).Regex
-    
+
     # Alert User on avail' choices
     $toDisplayXml = Select-Xml $ScriptSettings -XPath "//Text[@ID='004']" | Select-Object -ExpandProperty Node
     $toDisplayArr = @($toDisplayXml.Line1)
@@ -911,7 +911,7 @@ Function Get-HmDDomain {
         # if answer is part of the accepted value, we echo the desc and move next. Else... Lurch?
         if ($key.character -match $IdRegexFL) {
             $DomainDFL = [String]"$($key.character)"
-            $DbgLog += @("Key '$($key.character)' Pressed. DomainDFL will be $DomainDFL'")
+            $DbgLog += @("Key '$($key.character)' Pressed. DomainDFL will be $($DomainDFL)")
             if ($DomainDFL -eq "0") { 
                 $DomainDFL = "10"
                 $DbgLog += @('Domain DFL rewriten from 0 to 10')
