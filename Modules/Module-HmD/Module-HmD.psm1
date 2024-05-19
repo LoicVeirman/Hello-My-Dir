@@ -896,7 +896,7 @@ Function Get-HmDDomain {
 
         # if answer is part of the accepted value, we echo the desc and move next. Else... Lurch?
         if ($key.character -match $IdRegexFL) {
-            $ForestFFL = [String]"$($key.character)"
+            $DomainDFL = [String]"$($key.character)"
             if ($DomainDFL -eq "0") { 
                 $DomainDFL = "10"
             }
