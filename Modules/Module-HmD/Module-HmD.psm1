@@ -1028,7 +1028,7 @@ Function Get-HmDDomain {
     $LurchMood = @(($ScriptSettings.Settings.Lurch.BadInputFormat).Split(';'))
 
     ## Getting default value, or previous one
-    if ([String]::IsNullOrEmpty($DomainSYS)) {
+    if ([String]::IsNullOrEmpty($DomainNTD)) {
         $DomainNTD = "$($Env:WinDir)\NTDS"
     }
 
@@ -1050,7 +1050,7 @@ Function Get-HmDDomain {
     $CursorPosition = $Host.UI.RawUI.CursorPosition
 
     ## Writing default previous choice (will be used if RETURN is pressed)
-    Write-Host $DomainSYS -NoNewline -ForegroundColor Magenta
+    Write-Host $DomainNTD -NoNewline -ForegroundColor Magenta
 
     ## Regex validating that the new name is valid
     $Regex = '^[a-zA-Z][:][\\][\w\\\-]*[\w]$'
