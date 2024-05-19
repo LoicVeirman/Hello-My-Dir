@@ -851,6 +851,9 @@ Function Get-HmDDomain {
     ## Calling Lurch from Adam's family...
     $LurchMood = @(($ScriptSettings.Settings.Lurch.BadKeyPress).Split(';'))
 
+    # Regex computing
+    $IdRegexFL = ($ScriptSettings.Settings.FunctionalLevel.OS | Where-Object { $OSCaption -match $_.Caption }).Regex
+    
     # Alert User on avail' choices
     $toDisplayXml = Select-Xml $ScriptSettings -XPath "//Text[@ID='004']" | Select-Object -ExpandProperty Node
     $toDisplayArr = @($toDisplayXml.Line1)
