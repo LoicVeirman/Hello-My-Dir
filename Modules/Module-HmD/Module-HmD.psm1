@@ -275,6 +275,8 @@ Function Get-HmDForest {
     $OSCaption = (gwmi Win32_OperatingSystem).Caption
     $IdRegexFL = ($ScriptSettings.Settings.FunctionalLevel.OS | Where-Object { $OSCaption -match $_.Caption }).Regex
     
+    $DbgLog += @("OSCaption: $OSCaption","Regex: $IdRegexFL"," ")
+
     ## Now query user
     $toDisplayXml = Select-Xml $ScriptSettings -XPath "//Text[@ID='004']" | Select-Object -ExpandProperty Node
     $toDisplayArr = @($toDisplayXml.Line1)
@@ -301,13 +303,15 @@ Function Get-HmDForest {
     ### Getting cursor position for relocation
     $CursorPosition = $Host.UI.RawUI.CursorPosition
    
-    ### Writing default previous choice (will be used if RETURN is pressed)
-    Write-Host $(($ScriptSettings.Settings.FunctionalLevel.Definition | Where-Object { $_.ID -eq $ForestFFL }).Desc) -NoNewline -ForegroundColor Magenta
-
     ### Check if FFL has a value. If not, we will use the maximum level value (which is always seven, yet.)
     if ([String]::IsNullOrEmpty($ForestFFL)) {
         $ForestFFL = (($ScriptSettings.FunctionalLevel.OS | Where-Object { $OSCaption -match $_.Caption }).Regex)[-3]
+        $DbgLog += @("FFL is empty, forcing to $ForestFFL"," ")
     }
+
+    ### Writing default previous choice (will be used if RETURN is pressed)
+    Write-Host $(($ScriptSettings.Settings.FunctionalLevel.Definition | Where-Object { $_.ID -eq $ForestFFL }).Desc) -NoNewline -ForegroundColor Magenta
+
     ### Querying input: waiting for Y,N or ENTER.
     $isKO = $True
     While ($isKO)
