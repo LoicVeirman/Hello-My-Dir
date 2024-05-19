@@ -301,8 +301,12 @@ Function Get-HmDForest {
 
     ### Check if FFL has a value. If not, we will use the maximum level value (which is always seven, yet.)
     if ([String]::IsNullOrEmpty($ForestFFL)) {
-        $TmpVar = (($ScriptSettings.Settings.FunctionalLevel.OS | Where-Object { $OSCaption -match $_.Caption }).Regex)[-3]
-        if ($TmpVar -eq "0") { $ForestFFL = "10" } Else { $ForestFFL = $TempVar }
+        if ($OSCaption -match "2025") { 
+            $ForestFFL = "10" 
+        } 
+        Else { 
+            $ForestFFL = "7"
+        }
         $DbgLog += @("FFL is empty, forcing to $ForestFFL"," ")
     }
     
