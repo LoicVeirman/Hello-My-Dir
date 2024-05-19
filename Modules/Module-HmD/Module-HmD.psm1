@@ -923,9 +923,7 @@ Function Get-HmDDomain {
     }
 
     # Write to XML
-    $PreviousChoices.Configuration.Forest.FunctionalLevel = $ForestFFL
-
-
+    $PreviousChoices.Configuration.Domain.FunctionalLevel = $DomainDFL
 
     # End logging
     Write-toEventLog $ExitLevel $DbgLog | Out-Null
