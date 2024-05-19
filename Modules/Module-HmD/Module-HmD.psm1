@@ -275,7 +275,7 @@ Function Get-HmDForest {
     $OSCaption = (gwmi Win32_OperatingSystem).Caption
     $IdRegexFL = ($ScriptSettings.Settings.FunctionalLevel.OS | Where-Object { $OSCaption -match $_.Caption }).Regex
     
-    $DbgLog += @("OSCaption: $OSCaption","Regex: $IdRegexFL"," ")
+    $DbgLog += @("OSCaption is $OSCaption, the Regex will be $IdRegexFL"," ")
 
     ## Now query user
     $toDisplayXml = Select-Xml $ScriptSettings -XPath "//Text[@ID='004']" | Select-Object -ExpandProperty Node
@@ -305,7 +305,8 @@ Function Get-HmDForest {
    
     ### Check if FFL has a value. If not, we will use the maximum level value (which is always seven, yet.)
     if ([String]::IsNullOrEmpty($ForestFFL)) {
-        $ForestFFL = (($ScriptSettings.FunctionalLevel.OS | Where-Object { $OSCaption -match $_.Caption }).Regex)[-3]
+        $TmpVar = (($ScriptSettings.Settings.FunctionalLevel.OS | Where-Object { $OSCaption -match $_.Caption }).Regex)[-3]
+        if ($TmpVar -eq "0") { $ForestFFL = "10" } Else { $ForestFFL = $TempVar }
         $DbgLog += @("FFL is empty, forcing to $ForestFFL"," ")
     }
 
