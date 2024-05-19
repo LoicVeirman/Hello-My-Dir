@@ -888,7 +888,7 @@ Function Get-HmDDomain {
     ## Writing default previous choice (will be used if RETURN is pressed)
     if ([string]::IsNullOrEmpty($DomainDFL)) {
         $DomainDFL = $ForestFFL
-        $DbgLog += @("Domain DFL is empty, forced to $DominDFL")
+        $DbgLog += @("Domain DFL is empty, forced to $DomainDFL")
     }
 
     ### Writing default previous choice (will be used if RETURN is pressed)
