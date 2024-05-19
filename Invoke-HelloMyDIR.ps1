@@ -231,12 +231,12 @@ if ($Prepare) {
             # Available for installation
             "Available" {
                 # Update xml
-                $RunSetup.Configuration.WindowsFeatures.$Binary.Name = "Yes"
+                $RunSetup.Configuration.WindowsFeatures.$($Binary.Name) = "Yes"
             }
             # Any other status may end in error...
             Default {
                 # Update xml
-                $RunSetup.Configuration.WindowsFeatures.$Binary.Name = "No"  
+                $RunSetup.Configuration.WindowsFeatures.$($Binary.Name) = "No"  
             }
         }
     }
