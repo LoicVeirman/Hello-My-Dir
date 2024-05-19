@@ -259,9 +259,9 @@ Function Get-HmDForest {
     ## Writing result to XML
     $PreviousChoices.Configuration.Forest.NetBIOS = $answer
 
-    #################
-    # QUESTION: FFL #
-    #################
+    #####################################
+    # QUESTION: FOREST FUNCTIONAL LEVEL #
+    #####################################
     ### Calling Lurch from Adam's family...
     $LurchMood = @(($ScriptSettings.Settings.Lurch.BadKeyPress).Split(';'))
 
@@ -298,18 +298,18 @@ Function Get-HmDForest {
     $toDisplayArr = @($toDisplayXml.Line1)
     Write-Host
     Write-UserChoice $toDisplayArr
-    
-    ### Input time
-    ### Getting cursor position for relocation
-    $CursorPosition = $Host.UI.RawUI.CursorPosition
-   
+
     ### Check if FFL has a value. If not, we will use the maximum level value (which is always seven, yet.)
     if ([String]::IsNullOrEmpty($ForestFFL)) {
         $TmpVar = (($ScriptSettings.Settings.FunctionalLevel.OS | Where-Object { $OSCaption -match $_.Caption }).Regex)[-3]
         if ($TmpVar -eq "0") { $ForestFFL = "10" } Else { $ForestFFL = $TempVar }
         $DbgLog += @("FFL is empty, forcing to $ForestFFL"," ")
     }
-
+    
+    ### Input time
+    ### Getting cursor position for relocation
+    $CursorPosition = $Host.UI.RawUI.CursorPosition
+   
     ### Writing default previous choice (will be used if RETURN is pressed)
     Write-Host $(($ScriptSettings.Settings.FunctionalLevel.Definition | Where-Object { $_.ID -eq $ForestFFL }).Desc) -NoNewline -ForegroundColor Magenta
 
