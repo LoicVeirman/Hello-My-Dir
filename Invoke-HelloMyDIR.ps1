@@ -125,7 +125,7 @@ if ($Prepare) {
     Write-Host
 
     # Inquiring for setup data: Forest
-    $DbgLog = @("SETUP DATA COLLECT: FOREST"," ")
+    $DbgLog = @("SETUP DATA COLLECT:"," ")
 
     ## Is it a new forest?
     ### Calling Lurch from Adam's family...
@@ -225,7 +225,7 @@ if ($Prepare) {
 
     # Saving RunSetup.xml
     $RunSetup.save((Resolve-Path .\Configuration\RunSetup.xml).Path)
-    $DbgLog += @('File RunSetup.xml updated and saved.',' ')
+    $DbgLog += @(' ','File RunSetup.xml updated and saved.',' ')
     Write-toEventLog INFO $DbgLog | Out-Null
 }
 # USE CASE 2: SETUP AD
