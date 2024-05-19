@@ -888,6 +888,7 @@ Function Get-HmDDomain {
     ## Writing default previous choice (will be used if RETURN is pressed)
     if ([string]::IsNullOrEmpty($DomainDFL)) {
         $DomainDFL = $ForestFFL
+        $DbgLog += @("Domain DFL is empty, forced to $DominDFL")
     }
 
     ### Writing default previous choice (will be used if RETURN is pressed)
@@ -901,12 +902,13 @@ Function Get-HmDDomain {
         $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
 
         # Getting user $input
+        $key = $null
         $key = $Host.UI.RawUI.ReadKey("IncludeKeyDown,NoEcho")
 
         # if answer is part of the accepted value, we echo the desc and move next. Else... Lurch?
         if ($key.character -match $IdRegexFL) {
             $DomainDFL = [String]"$($key.character)"
-            $DbgLog += @("Key '$($key.character)' Pressed. DomainDFL is $DomainDFL'")
+            $DbgLog += @("Key '$($key.character)' Pressed. DomainDFL will be $DomainDFL'")
             if ($DomainDFL -eq "0") { 
                 $DomainDFL = "10"
                 $DbgLog += @('Domain DFL rewriten from 0 to 10')
