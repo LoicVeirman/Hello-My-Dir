@@ -563,8 +563,8 @@ Function Get-HmDDomain {
     $DomainDNS = $PreviousChoices.Configuration.Domain.Fullname
     $DomainNtB = $PreviousChoices.Configuration.Domain.NetBIOS
     $DomainDFL = $PreviousChoices.Configuration.Domain.FunctionalLevel
-    $DomainSYS = $PreviousChoices.Configuration.Domain.FunctionalLevel
-    $DomainNTD = $PreviousChoices.Configuration.Domain.
+    $DomainSYS = $PreviousChoices.Configuration.Domain.SysvolPath
+    $DomainNTD = $PreviousChoices.Configuration.Domain.NtdsPath
 
     $DbgLog += @('Previous choices:',"> Domain Type: $domainTYP","> Domain Fullname: $domainDNS","> Domain NetBIOS name: $DomainNtB","> Domain Functional Level: $DomainDFL",' ')    
 
