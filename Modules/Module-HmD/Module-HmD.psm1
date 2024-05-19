@@ -44,11 +44,11 @@ Function New-HmDRunSetupXml {
     # - End: Domain
     # - Start: WindowsFeatures
     $myXml.WriteStartElement('WindowsFeatures')
-    $myXml.WriteElementString('InstallADDS','')
-    $myXml.WriteElementString('InstallRsatAD','')
-    $myXml.WriteElementString('InstallRsatDNS','')
-    $myXml.WriteElementString('InstallRsatDFS','')
-    $myXml.WriteElementString('InstallGPMC','')
+    $myXml.WriteElementString('AD-Domain-Services','')
+    $myXml.WriteElementString('RSAT-AD-Tools','')
+    $myXml.WriteElementString('RSAT-DNS-Server','')
+    $myXml.WriteElementString('RSAT-DFS-Mgmt-Con','')
+    $myXml.WriteElementString('GPMC','')
     $myXml.WriteEndElement()
     # - end: WindowsFeatures
     # - End: Configuration
