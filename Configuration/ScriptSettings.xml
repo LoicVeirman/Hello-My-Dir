@@ -36,6 +36,13 @@
         <Definition Id="7" Desc="Windows 2016" />
         <Definition Id="10" Desc="Windows 2025" />
     </FunctionalLevel>
+    <WindowsFeatures>
+        <Role Name="AD-Domain-Services" />
+        <Role Name="RSAT-AD-Tools" />
+        <Role Name="RSAT-DNS-Server" />
+        <Role Name="RSAT-DFS-Mgmt-Con" />
+        <Role Name="GPMC" />
+    </WindowsFeatures>
 </Settings>
 <!--
     =============

@@ -30,8 +30,8 @@ Function New-HmDRunSetupXml {
     $myXml.WriteElementString('FunctionalLevel','')
     $myXml.WriteElementString('RecycleBin','')
     $myXml.WriteElementString('PAM','')
-    # - End: Forest
     $myXml.WriteEndElement()
+    # - End: Forest
     # - Start: Domain
     $myXml.WriteStartElement('Domain')
     $myXml.WriteElementString('Type','')
@@ -40,8 +40,17 @@ Function New-HmDRunSetupXml {
     $myXml.WriteElementString('FunctionalLevel','')
     $myXml.WriteElementString('SysvolPath','')
     $myXml.WriteElementString('NtdsPath','')
-    # - End: Domain
     $myXml.WriteEndElement()
+    # - End: Domain
+    # - Start: WindowsFeatures
+    $myXml.WriteStartElement('WindowsFeatures')
+    $myXml.WriteElementString('InstallADDS','')
+    $myXml.WriteElementString('InstallRsatAD','')
+    $myXml.WriteElementString('InstallRsatDNS','')
+    $myXml.WriteElementString('InstallRsatDFS','')
+    $myXml.WriteElementString('InstallGPMC','')
+    $myXml.WriteEndElement()
+    # - end: WindowsFeatures
     # - End: Configuration
     $myXml.WriteEndElement()
 
