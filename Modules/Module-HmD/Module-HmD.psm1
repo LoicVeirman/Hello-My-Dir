@@ -923,7 +923,7 @@ Function Get-HmDDomain {
             $isKO = $false
         }
         elseif ($key.VirtualKeyCode -eq 13) {
-            $DbgLog += @('Enter Pressed. DomainDFL is $DomainDFL')
+            $DbgLog += @("Enter Pressed. DomainDFL is $DomainDFL")
             $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
             Write-Host $StringCleanSet -NoNewline
             $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
