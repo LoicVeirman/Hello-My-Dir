@@ -400,7 +400,7 @@ Function Write-WarningText {
         # Displaying result per block
         foreach ($myBlock in $myBlocks) {
             # Getting color based on first char of the string
-            Switch ($myBlock.Substring(0,1)) {
+            Switch ($myBlock[0]) {
                 # Color A
                 '{' { 
                     $textColor = $ColorA 
@@ -430,8 +430,9 @@ Function Write-WarningText {
     # Dealing with a confirmation requierement
     if ($TextData.confirm -eq "Yes") {
         # Prompting user to press a key before continuing. Esc or Q will be considered as a quit.
-        Write-Host "`n Press a key to continue. ESC or Q to leave. `n" -ForegroundColor Red -BackgroundColor White
-        
+        Write-Host
+        Write-Host " Press a key to continue. ESC or Q to leave. " -ForegroundColor Red -BackgroundColor White
+        Write-Host
         $Key = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
 
         if ($Key.VirtualKeyCode -eq 27 -or $Key.VirtualKeyCode -eq 81) {
