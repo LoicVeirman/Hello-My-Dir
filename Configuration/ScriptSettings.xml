@@ -19,6 +19,7 @@
     </Message>
     <Warning>
         <RebootAction ColorScheme="Warning" Confirm="Yes">
+            <Line />
             <Line>`[/!\ WARNING /!\`</Line>
             <Line />
             <Line> Once the script will have run the ADDS installation, a `{reboot` will be performed.</Line>
