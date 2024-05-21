@@ -266,7 +266,7 @@ Else {
     $arrayColrTxt = @('yellow','Green','Red')
 
     # Loading user desiderata
-    $RunSetup.xml = Get-XmlContent .\Configuration\RunSetup.xml
+    $RunSetup = Get-XmlContent .\Configuration\RunSetup.xml
 
     # Dealing with binaries to install
     $reqBinaries = @('AD-Domain-Services','RSAT-AD-Tools','RSAT-DNS-Server','RSAT-DFS-Mgmt-Con','GPMC')
