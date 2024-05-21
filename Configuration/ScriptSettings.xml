@@ -20,11 +20,10 @@
     <Warning>
         <RebootAction ColorScheme="Warning" Confirm="Yes">
             <Line />
+            <Line>==================</Line>
             <Line>`[/!\ WARNING /!\`</Line>
-            <Line />
-            <Line> Once the script will have run the ADDS installation, a `{reboot` will be performed.</Line>
-            <Line />
-            <Line> To harden the directory, you will have to `|rerun this script`.</Line>
+            <Line>==================</Line>
+            <Line>Once the script will have run the ADDS installation, a `{reboot` will be performed. To harden the directory, you will have to `|rerun this script`.</Line>
         </RebootAction>
     </Warning>
     <ColorScheme>
