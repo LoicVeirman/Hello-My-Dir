@@ -58,6 +58,34 @@ if (-not(Test-Path .\Configuration\RunSetup.xml)) {
 Write-toEventLog -EventType INFO -EventMsg $DbgLog | Out-Null
 $DbgLog = $null
 
+# Load Script Settings XML
+$ScriptSettings = Get-XmlContent .\Configuration\ScriptSettings.xml
+
+# Say Hello: Write Header
+Clear-Host
+$ScriptTitle = @(' ',"$([Char]0x2554)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2557)" `
+                    ,"$([Char]0x2551) Hello My DIR! $([Char]0x2551)" `
+                    ,"$([Char]0x2551) version 1.0.0 $([Char]0x2551)" `
+                    ,"$([Char]0x2551) Lic. GNU GPL3 $([Char]0x2551)" `
+                    ,"$([Char]0x255A)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x255D)" `
+                    ,' ')
+Write-TitleText -Text $ScriptTitle
+
+# Say Hello: Display welcome text
+$toDisplayXml = Select-Xml $ScriptSettings -XPath "//Text[@ID='000']" | Select-Object -ExpandProperty Node
+$toDisplayArr = @($toDisplayXml.Line1)
+if ($toDisplayXml.Line2) {
+    $toDisplayArr += @($toDisplayXml.Line2)
+}
+if ($toDisplayXml.Line3) {
+    $toDisplayArr += @($toDisplayXml.Line3)
+}
+if ($toDisplayXml.Line4) {
+    $toDisplayArr += @($toDisplayXml.Line4)
+}
+Write-InformationalText -Text $toDisplayArr
+Write-Host
+
 # USE CASE 1: PREPARE XML SETUP FILE
 if ($Prepare) {
 
@@ -95,34 +123,6 @@ if ($Prepare) {
         Write-Error "The script match an unrecoverable error, please review logs for further details."
         Exit 2
     }
-
-    # Load Script Settings XML
-    $ScriptSettings = Get-XmlContent .\Configuration\ScriptSettings.xml
-
-    # Say Hello: Write Header
-    Clear-Host
-    $ScriptTitle = @(' ',"$([Char]0x2554)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2557)" `
-                        ,"$([Char]0x2551) Hello My DIR! $([Char]0x2551)" `
-                        ,"$([Char]0x2551) version 1.0.0 $([Char]0x2551)" `
-                        ,"$([Char]0x2551) Lic. GNU GPL3 $([Char]0x2551)" `
-                        ,"$([Char]0x255A)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x255D)" `
-                        ,' ')
-    Write-TitleText -Text $ScriptTitle
-    
-    # Say Hello: Display welcome text
-    $toDisplayXml = Select-Xml $ScriptSettings -XPath "//Text[@ID='000']" | Select-Object -ExpandProperty Node
-    $toDisplayArr = @($toDisplayXml.Line1)
-    if ($toDisplayXml.Line2) {
-        $toDisplayArr += @($toDisplayXml.Line2)
-    }
-    if ($toDisplayXml.Line3) {
-        $toDisplayArr += @($toDisplayXml.Line3)
-    }
-    if ($toDisplayXml.Line4) {
-        $toDisplayArr += @($toDisplayXml.Line4)
-    }
-    Write-InformationalText -Text $toDisplayArr
-    Write-Host
 
     # Inquiring for setup data: Forest
     $DbgLog = @("SETUP DATA COLLECT:"," ")
