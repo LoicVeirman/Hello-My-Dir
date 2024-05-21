@@ -17,6 +17,16 @@
         <Text ID='014' Line1="Where do you want to set the SYSVOL folder (press Enter yo use the default one)?" Line2="[C:\Windows\SYSVOL] " Line3="" Line4="" />
         <Text ID='015' Line1="Where do you want to set the NTDS folder (press Enter yo use the default one)?" Line2="[C:\Windows\NTDS] " Line3="" Line4="" />
     </Message>
+    <Warning>
+        <RebootAction ColorScheme="Warning" Confirm="Yes">
+            <Line>`[WARNING`</Line>
+            <Line>Once the script will have run the `{ADDS`installation, a `{reboot` will be performed.</Line>
+            <Line>To harden the directory, you will have to `{rerun this script`.</Line>
+        </RebootAction>
+    </Warning>
+    <ColorScheme>
+        <Warning A='Magenta' B='yellow' C='Red' default='white' />
+    </ColorScheme>
     <Lurch>
         <BadKeyPress>No;Nop;Han Han...;Try Again;No way;Are you kidding me?;Grmpf...;Not a chance;I don't think so;That's negative...;Sorry, but... No;I'll pass;Forget it;Not happening;I have better things to do;I have to feed my pet rock;I already have a subscription to the 'no' magazine;I don't have energy for that right now;I'm not really into that sort of thing;Maybe some other time?</BadKeyPress>
         <BadInputFormat>Let’s consider a different angle on this;I’ve encountered some contrasting insights;Might there be another side to this story?;This calls for a deeper dive into the facts;Perhaps there’s more to it than meets the eye;Are we in a parallel universe where wrong is right?;Can’t say I agree with your logic there;Don’t be fooled by your neurons</BadInputFormat>
