@@ -446,5 +446,4 @@ Function Write-WarningText {
 
     # Return result
     return $result
-
 }
