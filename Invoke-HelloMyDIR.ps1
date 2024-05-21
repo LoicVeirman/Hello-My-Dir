@@ -262,8 +262,8 @@ Else {
     }
 
     # Create result text array
-    $arrayRsltTxt = @('RUNNING','SUCCESS',' ERROR ')
-    $arrayColrTxt = @('yellow','Green','Red')
+    $arrayRsltTxt = @('RUNNING','SUCCESS',' ERROR ','SKIPPED')
+    $arrayColrTxt = @('yellow','Green','Red','cyan')
 
     # Loading user desiderata
     $RunSetup = Get-XmlContent .\Configuration\RunSetup.xml
@@ -292,6 +292,10 @@ Else {
                 Write-Host $arrayRsltTxt[2] -ForegroundColor $arrayColrTxt[2]                     
                 $prerequesiteKO = $True
             }
+        }
+        Else {
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
+            Write-Host $arrayRsltTxt[3] -ForegroundColor $arrayColrTxt[3]
         }
     }
     $RunSetup.Save((Resolve-Path .\Configuration\RunSetup.xml).Path)
