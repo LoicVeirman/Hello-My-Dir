@@ -294,7 +294,7 @@ Else {
             }
         }
     }
-    $RunSetup.Save()
+    $RunSetup.Save((Resolve-Path .\Configuration\RunSetup.xml).Path)
     $ProgressPreference = "Continue"
 
     ## Forest Root domain SafeMode Admin Pwd
