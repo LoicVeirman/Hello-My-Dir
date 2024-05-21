@@ -343,3 +343,96 @@ Function Write-UserChoice {
     # Echo Choice
     Write-host " $($Text[1])" @cAttributes -NoNewline
 }
+
+Function Write-WarningText {
+    <#
+        .SYNOPSIS
+        Will write a custom warning text on script.
+
+        .DESCRIPTION
+        Rad the ScriptSettings.xml file to display and colorize a text based on a specific typo
+        > `[mon text`: display "mon text" in a first specific color (color is set in the <ColorScheme> section).
+        > `{mon text`: display "mon text" in a second specific color (color is set in the <ColorScheme> section).
+        > `|mon text`: display "mon text" in a third specific color (color is set in the <ColorScheme> section).
+
+        When no code is set, the script use the Default color form the scheme.
+
+        Return True if the user choose to leave the script.
+
+        .PARAMETER Id
+        The Section to look after in the xml file.
+    #>
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory,Position=0)]
+        [ValidateSet('Warning')]
+        [String]
+        $Id
+    )
+
+    # No Logging.
+    # Loading Script Settings
+    $ScriptSettings = Get-XmlContent .\configuration\ScriptSettings.xml
+
+    # Loading Text data
+    $TextData = $ScriptSettings.Settings.Warning.$Id
+
+    # Setting-Up Color Scheme
+    $ColorScheme = $TextData.ColorScheme
+    $ColorData = $ScriptSettings.settings..ColorScheme.$ColorScheme
+    $ColorA = $ColorData."["
+    $ColorB = $ColorData."{"
+    $ColorC = $ColorData."|"
+    $ColorDefault = $ColorData.Default
+
+    # Setting-Up Text to Display
+    $displayLines = @()
+    foreach ($line in $TextData.Line) {
+        # Adapt text to screen
+        $displayLines += Format-ScreenText $line
+    }
+
+    # Display Text on screen
+    foreach ($displayLine in $displayLines) {
+        # Wrapping up line in sequence for color formating
+        $myBlocks = $displayLine -split '`'
+
+        # Displaying result per block
+        foreach ($myBlock in $myBlocks) {
+            # Getting color based on first char of the string
+            Switch ($myBlock.Substring(0,1)) {
+                # Color A
+                '{' { $textColor = $ColorA }
+                # Color B
+                '[' { $textColor = $ColorB }
+                # Color C
+                '|' { $textColor = $ColorC }
+                # Color default
+                Default { $textColor = $ColorDefault }
+            }
+            Write-Host $myBlock -ForegroundColor $textColor -NoNewline
+        }
+        # Last block? Next line.
+        Write-Host 
+    }
+
+    # Dealing with a confirmation requierement
+    if ($TextData.confirm -eq "Yes") {
+        # Prompting user to press a key before continuing. Esc or Q will be considered as a quit.
+        Write-Host "`n Press a key to continue. ESC or Q to leave. `n" -ForegroundColor Red -BackgroundColor White
+        
+        $Key = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+
+        if ($Key.VirtualKeyCode -eq 27 -or $Key.VirtualKeyCode -eq 81) {
+            # Leaving order sent back.
+            $result = $true
+        } 
+        Else {
+            $result = $false
+        }
+    }
+
+    # Return result
+    return $result
+
+}
