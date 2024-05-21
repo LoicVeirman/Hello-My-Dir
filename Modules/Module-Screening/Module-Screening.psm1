@@ -431,7 +431,7 @@ Function Write-WarningText {
     if ($TextData.confirm -eq "Yes") {
         # Prompting user to press a key before continuing. Esc or Q will be considered as a quit.
         Write-Host
-        Write-Host " Press a key to continue. ESC or Q to leave. " -ForegroundColor Red -BackgroundColor White
+        Write-Host " Press a key to continue. ESC or Q to leave. " -ForegroundColor white -BackgroundColor red
         Write-Host
         $Key = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
 
