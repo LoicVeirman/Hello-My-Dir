@@ -402,13 +402,24 @@ Function Write-WarningText {
             # Getting color based on first char of the string
             Switch ($myBlock.Substring(0,1)) {
                 # Color A
-                '{' { $textColor = $ColorA }
+                '{' { 
+                    $textColor = $ColorA 
+                    $myBlock = $myBlock.Substring(1,$myBlock.length - 1)
+                }
                 # Color B
-                '[' { $textColor = $ColorB }
+                '[' { 
+                    $textColor = $ColorB 
+                    $myBlock = $myBlock.Substring(1,$myBlock.length - 1)
+                }
                 # Color C
-                '|' { $textColor = $ColorC }
+                '|' { 
+                    $textColor = $ColorC 
+                    $myBlock = $myBlock.Substring(1,$myBlock.length - 1)
+                }
                 # Color default
-                Default { $textColor = $ColorDefault }
+                Default { 
+                    $textColor = $ColorDefault 
+                }
             }
             Write-Host $myBlock -ForegroundColor $textColor -NoNewline
         }
