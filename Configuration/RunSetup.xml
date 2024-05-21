@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type='text/xsl' href='style.xsl'?>
+<Configuration>
+  <Forest>
+    <Installation>Yes</Installation>
+    <FullName>hello.my.dir</FullName>
+    <NetBIOS>hello</NetBIOS>
+    <FunctionalLevel>7</FunctionalLevel>
+    <RecycleBin>Yes</RecycleBin>
+    <PAM>No</PAM>
+  </Forest>
+  <Domain>
+    <Type>Root</Type>
+    <FullName>hello.my.dir</FullName>
+    <NetBIOS>hello</NetBIOS>
+    <FunctionalLevel></FunctionalLevel>
+    <SysvolPath>C:\Windows\SYSVOL</SysvolPath>
+    <NtdsPath>C:\Windows\NTDS</NtdsPath>
+  </Domain>
+  <WindowsFeatures>
+    <AD-Domain-Services>Yes</AD-Domain-Services>
+    <RSAT-AD-Tools>Yes</RSAT-AD-Tools>
+    <RSAT-DNS-Server>Yes</RSAT-DNS-Server>
+    <RSAT-DFS-Mgmt-Con>Yes</RSAT-DFS-Mgmt-Con>
+    <GPMC>Yes</GPMC>
+  </WindowsFeatures>
+</Configuration>
