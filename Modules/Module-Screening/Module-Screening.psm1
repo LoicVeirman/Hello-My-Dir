@@ -379,7 +379,7 @@ Function Write-WarningText {
 
     # Setting-Up Color Scheme
     $ColorScheme = $TextData.ColorScheme
-    $ColorData = $ScriptSettings.settings..ColorScheme.$ColorScheme
+    $ColorData = $ScriptSettings.settings.ColorScheme.$ColorScheme
     $ColorA = $ColorData.A
     $ColorB = $ColorData.B
     $ColorC = $ColorData.C
