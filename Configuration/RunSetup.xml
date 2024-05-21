@@ -13,7 +13,7 @@
     <Type>Root</Type>
     <FullName>hello.my.dir</FullName>
     <NetBIOS>hello</NetBIOS>
-    <FunctionalLevel></FunctionalLevel>
+    <FunctionalLevel>7</FunctionalLevel>
     <SysvolPath>C:\Windows\SYSVOL</SysvolPath>
     <NtdsPath>C:\Windows\NTDS</NtdsPath>
   </Domain>
