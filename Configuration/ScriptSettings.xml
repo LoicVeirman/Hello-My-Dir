@@ -20,12 +20,12 @@
     <Warning>
         <RebootAction ColorScheme="Warning" Confirm="Yes">
             <Line>`[WARNING`</Line>
-            <Line>Once the script will have run the `{ADDS`installation, a `{reboot` will be performed.</Line>
+            <Line>Once the script will have run the `{ADDS` installation, a `{reboot` will be performed.</Line>
             <Line>To harden the directory, you will have to `|rerun this script`.</Line>
         </RebootAction>
     </Warning>
     <ColorScheme>
-        <Warning A='Magenta' B='yellow' C='Red' default='white' />
+        <Warning A='Cyan' B='Red' C='Green' default='white' />
     </ColorScheme>
     <Lurch>
         <BadKeyPress>No;Nop;Han Han...;Try Again;No way;Are you kidding me?;Grmpf...;Not a chance;I don't think so;That's negative...;Sorry, but... No;I'll pass;Forget it;Not happening;I have better things to do;I have to feed my pet rock;I already have a subscription to the 'no' magazine;I don't have energy for that right now;I'm not really into that sort of thing;Maybe some other time?</BadKeyPress>
