@@ -19,7 +19,6 @@
     </Message>
     <Warning>
         <RebootAction ColorScheme="Warning" Confirm="Yes">
-            <Line />
             <Line>`{===============`</Line>
             <Line>`[/!\ WARNING /!\`</Line>
             <Line>`{===============`</Line>
