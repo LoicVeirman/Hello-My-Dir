@@ -310,7 +310,7 @@ Else {
     }
     # Use Case A: The domain is to be installed...
     Else {
-        $DbgLog += 'USE CASE: A - The domain is to be installed'
+        $DbgLog += @('USE CASE: A - The domain is to be installed')
         
         # Display data
         $CursorPosition = $Host.UI.RawUI.CursorPosition
@@ -330,13 +330,13 @@ Else {
                 $HashArguments = @{
                     CreateDNSDelegation           = $true
                     DatabasePath                  = $RunSetup.Configuration.Domain.NtdsPath
-                    DomainMode                    = $RunSetup.Configuration.Domain.DomainDFL
+                    DomainMode                    = $RunSetup.Configuration.Domain.FunctionalLevel
                     DomainName                    = $RunSetup.Configuration.Forest.FullName
-                    ForestMode                    = $RunSetup.Configuration.Forest.$ForestFFL
+                    ForestMode                    = $RunSetup.Configuration.Forest.FunctionalLevel
                     LogPath                       = "C:\Logs"
                     SysvolPath                    = $RunSetup.Configuration.Domain.SysvolPath
                     SafeModeAdministratorPassword = ConvertTo-SecureString -AsPlainText $randomSMpwd -Force
-                    DomainNetbiosName             = $RunSetup.Configuration.Domain.NetBIOS
+                    DomainNetbiosName             = ($RunSetup.Configuration.Domain.NetBIOS).ToUpper()
                     NoRebootOnCompletion          = $true
                 }
                 Try {
