@@ -348,14 +348,15 @@ Else {
                     $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
                     Write-Host $arrayRsltTxt[1] -ForegroundColor $arrayColrTxt[1] -NoNewline
                     Write-Host
-                    Write-Host "IMPORTANT! " -ForegroundColor Magenta -NoNewline
-                    Write-Host "Please write-down the DSRM password randomly generated:" -ForegroundColor White -BackgroundColor Magenta 
+                    Write-Host "IMPORTANT!" -ForegroundColor Black -BackgroundColor Magenta -NoNewline
+                    Write-Host " Please write-down the DSRM password randomly generated:" -ForegroundColor  Magenta -NoNewline
                     Write-Host "`t$randomSMpwd" -ForegroundColor Yellow
                     Write-Host 
                     Write-Host "Press any key to let the server reboot once you're ready..." -ForegroundColor Yellow -NoNewline
                     $noEcho = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+                    Write-Host
                     $ProgressPreference = "Continue"
-                    Restart-Computer -Force | out-null
+                    #Restart-Computer -Force | out-null
                     Exit 0
                 }
                 Catch {
