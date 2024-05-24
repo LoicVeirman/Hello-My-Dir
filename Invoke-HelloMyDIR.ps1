@@ -326,10 +326,21 @@ Else {
         # Start installation...
         Switch ($RunSetup.Configuration.Forest.Installation) {
             "Yes" {
+                $randomSMpwd = New-RandomComplexPasword -Length 24 -AsClearText
+                $HashArguments = @{
+                    CreateDNSDelegation           = $true
+                    DatabasePath                  = $RunSetup.Configuration.Domain.NtdsPath
+                    DomainMode                    = $RunSetup.Configuration.Domain.DomainDFL
+                    DomainName                    = $RunSetup.Configuration.Forest.FullName
+                    ForestMode                    = $RunSetup.Configuration.Forest.$ForestFFL
+                    LogPath                       = "$($env:windir)\Logs"
+                    SysvolPath                    = $RunSetup.Configuration.Domain.SysvolPath
+                    SafeModeAdministratorPassword = ConvertTo-SecureString -AsPlainText $randomSMpwd -Force
+                    DomainNetbiosName             = $RunSetup.Configuration.Domain.NetBIOS
+                    NoRebootOnCompletion          = $true
+                }
                 Try {
-                    Install-ADDSForest -DomainName $RunSetup.Configuration.Forest.FullName -SafeModeAdministratorPassword $randomSMpwd -DatabasePath $RunSetup.Configuration.Domain.NtdsPath `
-                                       -DomainMode $RunSetup.Configuration.Domain.DomainDFL -DomainNetbiosName $RunSetup.Configuration.Domain.NetBIOS -ForestMode $RunSetup.Configuration.Forest.$ForestFFL `
-                                       -InstallDNS -SysvolPath $RunSetup.Configuration.Domain.SysvolPath -NoRebootOnCompletion -Force -ErrorAction Stop | Out-Null
+                    Install-ADDSForest $HashArguments | Out-Null
                     
                     $DbgLog += "Installation completed. The server will now reboot."
                     Write-toEventLog INFO $DbgLog
@@ -337,7 +348,11 @@ Else {
                     $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
                     Write-Host $arrayRsltTxt[1] -ForegroundColor $arrayColrTxt[1] -NoNewline
                     Write-Host
-                    Write-Host "The server will now reboot..." -ForegroundColor Yellow
+                    Write-Host "IMPORTANT! " -ForegroundColor Magenta -NoNewline
+                    Write-Host "Please write-down the DSRM password randomly generated:" -ForegroundColor White -BackgroundColor Magenta 
+                    Write-Host "`t$randomSMpwd" -ForegroundColor Yellow
+                    Write-Host 
+                    Write-Host "Press any key to let the server reboot once you're ready..." -ForegroundColor Yellow
                     $ProgressPreference = "Continue"
                     Restart-Computer -Force | out-null
                     Exit 0
