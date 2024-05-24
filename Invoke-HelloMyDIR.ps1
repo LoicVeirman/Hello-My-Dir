@@ -341,6 +341,10 @@ Else {
                     Confirm                       = $false
                     Force                         = $true
                     SkipPreChecks                 = $true
+                    ErrorAction                   = "Stop"
+                    WarningAction                 = "SilentlyContinue"
+                    informationAction             = "SilentlyContinue"
+                    progressAction                = "SilentlyContinue"
                 }
                 Try {
                     Install-ADDSForest @HashArguments | Out-Null
