@@ -340,7 +340,7 @@ Else {
                     NoRebootOnCompletion          = $true
                 }
                 Try {
-                    Install-ADDSForest $HashArguments | Out-Null
+                    Install-ADDSForest @HashArguments | Out-Null
                     
                     $DbgLog += "Installation completed. The server will now reboot."
                     Write-toEventLog INFO $DbgLog
