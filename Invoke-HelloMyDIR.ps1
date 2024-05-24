@@ -338,6 +338,7 @@ Else {
                     SafeModeAdministratorPassword = ConvertTo-SecureString -AsPlainText $randomSMpwd -Force
                     DomainNetbiosName             = ($RunSetup.Configuration.Domain.NetBIOS).ToUpper()
                     NoRebootOnCompletion          = $true
+                    Confirm                       = $false
                 }
                 Try {
                     Install-ADDSForest @HashArguments | Out-Null
