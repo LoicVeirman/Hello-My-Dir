@@ -333,7 +333,7 @@ Else {
                     DomainMode                    = $RunSetup.Configuration.Domain.DomainDFL
                     DomainName                    = $RunSetup.Configuration.Forest.FullName
                     ForestMode                    = $RunSetup.Configuration.Forest.$ForestFFL
-                    LogPath                       = "$($env:windir)\Logs"
+                    LogPath                       = "C:\Logs"
                     SysvolPath                    = $RunSetup.Configuration.Domain.SysvolPath
                     SafeModeAdministratorPassword = ConvertTo-SecureString -AsPlainText $randomSMpwd -Force
                     DomainNetbiosName             = $RunSetup.Configuration.Domain.NetBIOS
@@ -352,7 +352,8 @@ Else {
                     Write-Host "Please write-down the DSRM password randomly generated:" -ForegroundColor White -BackgroundColor Magenta 
                     Write-Host "`t$randomSMpwd" -ForegroundColor Yellow
                     Write-Host 
-                    Write-Host "Press any key to let the server reboot once you're ready..." -ForegroundColor Yellow
+                    Write-Host "Press any key to let the server reboot once you're ready..." -ForegroundColor Yellow -NoNewline
+                    $noEcho = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
                     $ProgressPreference = "Continue"
                     Restart-Computer -Force | out-null
                     Exit 0
