@@ -328,7 +328,7 @@ Else {
             "Yes" {
                 $randomSMpwd = New-RandomComplexPasword -Length 24 -AsClearText
                 $HashArguments = @{
-                    CreateDNSDelegation           = $true
+                    CreateDNSDelegation           = $false
                     DatabasePath                  = $RunSetup.Configuration.Domain.NtdsPath
                     DomainMode                    = $RunSetup.Configuration.Domain.FunctionalLevel
                     DomainName                    = $RunSetup.Configuration.Forest.FullName
@@ -339,6 +339,8 @@ Else {
                     DomainNetbiosName             = ($RunSetup.Configuration.Domain.NetBIOS).ToUpper()
                     NoRebootOnCompletion          = $true
                     Confirm                       = $false
+                    Force                         = $true
+                    SkipPreChecks                 = $true
                 }
                 Try {
                     Install-ADDSForest @HashArguments | Out-Null
