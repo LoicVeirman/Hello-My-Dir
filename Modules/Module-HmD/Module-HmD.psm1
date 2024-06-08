@@ -920,7 +920,7 @@ Function Get-HmDDomain {
         $key = $Host.UI.RawUI.ReadKey("IncludeKeyDown,NoEcho")
 
         # if answer is part of the accepted value, we echo the desc and move next. Else... Lurch?
-        if ($key.character -match $IdRegexFL) {
+        if ($key.character -match $IdRegexFL -and $key.Character -ne 13) {
             $DomainDFL = [String]"$($key.character)"
             $DbgLog += @("Key '$($key.character)' Pressed. DomainDFL will be $($DomainDFL)")
             if ($DomainDFL -eq "0") { 
