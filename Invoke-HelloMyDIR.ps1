@@ -374,7 +374,7 @@ Else {
                 }
                 Catch {
                     $DbgLog += "Installation Failed!"
-                    Write-toEventLog Error @HashArguments
+                    Write-toEventLog Error $HashArguments
                     Write-toEventLog Error $DbgLog
                     $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
                     Write-Host $arrayRsltTxt[2] -ForegroundColor $arrayColrTxt[2] -NoNewline
