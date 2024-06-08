@@ -374,7 +374,26 @@ Else {
                 }
                 Catch {
                     $DbgLog += "Installation Failed!"
-                    Write-toEventLog Error $HashArguments
+                    $HashArgumentsDebug = @("Install-ADDSForest failed with the following arguments:",
+                                            "CreateDNSDelegation = $false",
+                                            "DatabasePath = $($RunSetup.Configuration.Domain.NtdsPath)",
+                                            "DomainMode = $($RunSetup.Configuration.Domain.FunctionalLevel)",
+                                            "DomainName = $($RunSetup.Configuration.Forest.FullName)",
+                                            "ForestMode = $($RunSetup.Configuration.Forest.FunctionalLevel)",
+                                            "LogPath = ""C:\Logs""",
+                                            "SysvolPath = $($RunSetup.Configuration.Domain.SysvolPath)",
+                                            "SafeModeAdministratorPassword = ConvertTo-SecureString -AsPlainText $randomSMpwd -Force",
+                                            "DomainNetbiosName = $(($RunSetup.Configuration.Domain.NetBIOS).ToUpper())",
+                                            "NoRebootOnCompletion = $true",
+                                            "Confirm = $false",
+                                            "Force = $true",
+                                            "SkipPreChecks = $true",
+                                            "ErrorAction = ""Stop""",
+                                            "WarningAction = ""SilentlyContinue""",
+                                            "informationAction = ""SilentlyContinue""",
+                                            "progressAction = ""SilentlyContinue""",
+                    )
+                    Write-toEventLog Warning $HashArgumentsDebug
                     Write-toEventLog Error $DbgLog
                     $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
                     Write-Host $arrayRsltTxt[2] -ForegroundColor $arrayColrTxt[2] -NoNewline
