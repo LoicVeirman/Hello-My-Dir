@@ -391,7 +391,7 @@ Else {
                                             "ErrorAction = ""Stop""",
                                             "WarningAction = ""SilentlyContinue""",
                                             "informationAction = ""SilentlyContinue""",
-                                            "progressAction = ""SilentlyContinue""",
+                                            "progressAction = ""SilentlyContinue"""
                     )
                     Write-toEventLog Warning $HashArgumentsDebug
                     Write-toEventLog Error $DbgLog
