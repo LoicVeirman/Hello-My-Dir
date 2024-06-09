@@ -358,14 +358,14 @@ Else {
                     Write-toEventLog INFO $DbgLog
 
                     $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
-                    Write-Host $arrayRsltTxt[1] -ForegroundColor $arrayColrTxt[1] -NoNewline
+                    Write-Host $arrayRsltTxt[1] -ForegroundColor $arrayColrTxt[1] 
                     Write-Host
                     Write-Host "IMPORTANT!" -ForegroundColor Black -BackgroundColor Red -NoNewline
                     Write-Host " Please write-down the DSRM password randomly generated: " -ForegroundColor Yellow -NoNewline
                     Write-Host "$randomSMpwd" -ForegroundColor White -BackgroundColor Green
                     Write-Host 
                     Write-Host "Press any key to let the server reboot once you're ready..." -ForegroundColor Yellow -NoNewline
-                    $noEcho = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+                    $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown") | Out-Null
                     Write-Host
                     $ProgressPreference = "Continue"
                     Restart-Computer -Force | out-null
