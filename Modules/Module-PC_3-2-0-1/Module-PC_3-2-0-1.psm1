@@ -93,7 +93,7 @@ Function Resolve-S-DC-SubnetMissing {
             $LogData += @(" ","Checking for IP Plan: $IPplan")
         }
         Catch {
-            $LogData += @("Checking for IP Plan: $IPplan - FATAL ERROR"," ",'Error message from stack:',$Error[0].ToString())
+            $LogData += @("Checking for IP Plan: $IPplan - FATAL ERROR",' ','Error message from stack:',$Error[0].ToString())
             $FlagRes += "Error"
         }
         
@@ -116,7 +116,8 @@ Function Resolve-S-DC-SubnetMissing {
                 $LogData += "Subnet $IPplan has been added to '$DfltSite'"
             }
             Catch {
-                $LogData += @("Subnet $IPplan could not be added to '$DfltSite'!"," ",'Error from stack:',$Error[0].ToString())
+                $LogData += @("Subnet $IPplan could not be added to '$DfltSite'!",' ')
+                $LogData += @('Error from stack:',$Error[0].ToString())
                 $FlagRes = "Error"
             }
         }
