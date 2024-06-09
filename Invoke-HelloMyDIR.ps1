@@ -355,7 +355,7 @@ Else {
 
         # Result Array for final display
         $Results = New-Object -TypeName psobject -Property @{Success=$isSuccess ; Warning=$isWarning ; Error=$isFailure}
-        $Results | Format-Table -AutoSize
+        $Results | Select-Object Success,Warning,Error | Format-Table -AutoSize
     }
     #endregion
 
