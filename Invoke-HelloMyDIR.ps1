@@ -373,7 +373,7 @@ Else {
                     Exit 0
                 }
                 Catch {
-                    $DbgLog += "Installation Failed!"
+                    $DbgLog += @("Installation Failed!",($Error[0]).ToString())
                     $HashArgumentsDebug = @("Install-ADDSForest failed with the following arguments:",
                                             "CreateDNSDelegation = $false",
                                             "DatabasePath = $($RunSetup.Configuration.Domain.NtdsPath)",
@@ -393,8 +393,8 @@ Else {
                                             "informationAction = ""SilentlyContinue""",
                                             "progressAction = ""SilentlyContinue"""
                     )
-                    Write-toEventLog Warning $HashArgumentsDebug
                     Write-toEventLog Error $DbgLog
+                    Write-toEventLog Warning $HashArgumentsDebug
                     $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
                     Write-Host $arrayRsltTxt[2] -ForegroundColor $arrayColrTxt[2] -NoNewline
                 }
