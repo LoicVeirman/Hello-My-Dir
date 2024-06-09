@@ -89,7 +89,7 @@ Function Resolve-S-DC-SubnetMissing {
     # Get IP PLAN ADDRESSES and add them to the default AD Site
     foreach ($DCIP in $DCIPs) {
         Try {
-            $IPplan = "$(([IPAddress] (([IPAddress] "$($DCIP.IPAddress)").Address -band ([IPAddress] (ConvertTo-IPv4MaskString $DCIP.PrefixLength)).Address)).IPAddressToString)\$($DCIP.PrefixLength)"
+            $IPplan = "$(([IPAddress] (([IPAddress] "$($DCIP.IPAddress)").Address -band ([IPAddress] (ConvertTo-IPv4MaskString $DCIP.PrefixLength)).Address)).IPAddressToString)/$($DCIP.PrefixLength)"
             $LogData += @(" ","Checking for IP Plan: $IPplan")
         }
         Catch {
@@ -116,8 +116,7 @@ Function Resolve-S-DC-SubnetMissing {
                 $LogData += "Subnet $IPplan has been added to '$DfltSite'"
             }
             Catch {
-                $LogData += @("Subnet $IPplan could not be added to '$DfltSite'!",' ')
-                $LogData += @('Error from stack:',$Error[1].ToString())
+                $LogData += @("Subnet $IPplan could not be added to '$DfltSite'!")
                 $FlagRes = "Error"
             }
         }
