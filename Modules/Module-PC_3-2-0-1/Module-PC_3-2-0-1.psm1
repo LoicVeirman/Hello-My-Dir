@@ -117,7 +117,7 @@ Function Resolve-S-DC-SubnetMissing {
             }
             Catch {
                 $LogData += @("Subnet $IPplan could not be added to '$DfltSite'!",' ')
-                $LogData += @('Error from stack:',$Error[0].ToString())
+                $LogData += @('Error from stack:',$Error[1].ToString())
                 $FlagRes = "Error"
             }
         }
