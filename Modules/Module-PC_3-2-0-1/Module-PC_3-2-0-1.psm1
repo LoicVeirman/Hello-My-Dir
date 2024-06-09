@@ -30,7 +30,7 @@ Function Resolve-S-ADRegistration {
         $FlagRes = 'Info'
     }
     Catch {
-        $LogData += @('! FAILED !','','Error message from stack:',$Error[0].ToString())
+        $LogData += @('! FAILED !',' ','Error message from stack:',$Error[0].ToString())
         $FlagRes = 'Error'
     }
 
@@ -39,10 +39,10 @@ Function Resolve-S-ADRegistration {
         $newValue = (Get-ADObject (Get-ADDomain).distinguishedName -Properties ms-DS-MachineAccountQuota).'ms-DS-MachineAccountQuota'
 
         if ($newValue -eq 0) {
-            $LogData += @('','Value checked on AD: the value is as expected.')
+            $LogData += @(' ','Value checked on AD: the value is as expected.')
         } 
         Else {
-            $LogData += @('','Value checked on AD: the value is incorect!')
+            $LogData += @(' ','Value checked on AD: the value is incorect!')
             $FlagRes = 'Warning'
         }
     }
