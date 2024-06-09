@@ -53,5 +53,75 @@ Function Resolve-S-ADRegistration {
 }
 
 Function Resolve-S-DC-SubnetMissing {
+    <#
+        .SYNOPSIS
+        Resolve the S-DC-SubnetMissing alert from PingCastle.
 
+        .DESCRIPTION
+        Ensure that the minimum set of subnet(s) has been configured in the domain.
+
+        .NOTES
+        Version 01.00.00 (2024/06.09 - Creation)
+    #>
+    Param()
+
+    #region INTERNAL FUNCTIONS
+    function ConvertTo-IPv4MaskString {
+        param(
+          [Parameter(Mandatory = $true)]
+          [ValidateRange(0, 32)]
+          [Int] $MaskBits
+        )
+        $mask = ([Math]::Pow(2, $MaskBits) - 1) * [Math]::Pow(2, (32 - $MaskBits))
+        $bytes = [BitConverter]::GetBytes([UInt32] $mask)
+        (($bytes.Count - 1)..0 | ForEach-Object { [String] $bytes[$_] }) -join "."
+      }
+    #endregion
+    # Init debug 
+    Test-EventLog | Out-Null
+    $LogData = @('Fixing missing DC subnet in AD Sites:')
+    $FlagRes = "Info"
+
+    # Get the DC IP address and subnet
+    $DCIPs = Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.IPAddress -ne '127.0.0.1' }
+    
+    #region ADD SUBNET
+    # Get IP PLAN ADDRESSES and add them to the default AD Site
+    foreach ($DCIP in $DCIPs) {
+        Try {
+            $IPplan = "$(([IPAddress] (([IPAddress] "$($DCIP.IPAddress)").Address -band ([IPAddress] (ConvertTo-IPv4MaskString $DCIP.PrefixLength)).Address)).IPAddressToString)\$($DCIP.PrefixLength)"
+            $LogData += "Checking for IP Plan: $IPplan"
+        }
+        Catch {
+            $LogData += "Checking for IP Plan: $IPplan - FATAL ERROR"
+            $FlagRes += "Error"
+        }
+        
+        # Check if the subnet already exists
+        Try {
+            $findSubnet = Get-AdReplicationSubnet $IPplan -ErrorAction Stop
+        }
+        Catch {
+            $findSubnet = $null
+        }
+
+        if ($findSubnet) {
+            $LogData += "Subnet $IPplan already exists (no action)"
+        }
+        Else {
+            $LogData += "Subnet $IPplan is missing."
+            Try {
+                New-AdReplicationSubnet -Site (Get-AdReplicationSite).Name -Name $IPplan -ErrorAction | Out-Null
+                $LogData += "Subnet $IPplan has been added to '$((Get-AdReplicationSite).Name)'"
+            }
+            Catch {
+                $LogData += "Subnet $IPplan could not be added to '$((Get-AdReplicationSite).Name)'!"
+                $FlagRes = "Error"
+            }
+        }
+    }
+    #endregion
+    # Sending log and leaving with proper exit code
+    Write-ToEventLog $FlagRes $LogData
+    Return $FlagRes
 }
