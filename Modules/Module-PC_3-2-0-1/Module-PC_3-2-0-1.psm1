@@ -110,12 +110,13 @@ Function Resolve-S-DC-SubnetMissing {
         }
         Else {
             $LogData += "Subnet $IPplan is missing."
+            $DfltSite = (Get-AdReplicationSite).Name
             Try {
                 New-AdReplicationSubnet -Site (Get-AdReplicationSite).Name -Name $IPplan -ErrorAction Stop | Out-Null
-                $LogData += "Subnet $IPplan has been added to '$((Get-AdReplicationSite).Name)'"
+                $LogData += "Subnet $IPplan has been added to '$DfltSite'"
             }
             Catch {
-                $LogData += @("Subnet $IPplan could not be added to '$((Get-AdReplicationSite).Name)'!"," ",'Error from stack:',$Error[0].ToString())
+                $LogData += @("Subnet $IPplan could not be added to '$DfltSite'!"," ",'Error from stack:',$Error[0].ToString())
                 $FlagRes = "Error"
             }
         }
