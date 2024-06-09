@@ -35,7 +35,7 @@ Function Resolve-S-ADRegistration {
     }
 
     # Checking the new value - final check
-    if ($FlagRes -eq 'Information') {
+    if ($FlagRes -eq 'Info') {
         $newValue = (Get-ADObject (Get-ADDomain).distinguishedName -Properties ms-DS-MachineAccountQuota).'ms-DS-MachineAccountQuota'
 
         if ($newValue -eq 0) {
@@ -50,4 +50,8 @@ Function Resolve-S-ADRegistration {
     # Sending log and leaving with proper exit code
     Write-ToEventLog $FlagRes $LogData
     Return $FlagRes
+}
+
+Function Resolve-S-DC-SubnetMissing {
+
 }
