@@ -350,8 +350,8 @@ Else {
                     ErrorAction                   = "Stop"
                     WarningAction                 = "SilentlyContinue"
                     informationAction             = "SilentlyContinue"
-                    progressAction                = "SilentlyContinue"
                 }
+#                progressAction                = "SilentlyContinue"
                 Try {
                     Install-ADDSForest @HashArguments | Out-Null
                     
