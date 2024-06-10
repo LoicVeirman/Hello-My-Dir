@@ -224,27 +224,32 @@ Function Resolve-S-PwdNeverExpires {
         #endregion
         #region Create new PSO
         Try {
-            new-adFineGrainedPasswordPolicy -ComplexityEnabled 1 `
-                                            -Description ((($PSO.Name).Replace('PSO-','PSO for ')).Replace('-',' ')) `
-                                            -DisplayName $PSO.Name `
-                                            -LockOutDuration "0.0:30:0.0" `
-                                            -LockoutObservationWindow "0.0:30:0.0" `
-                                            -LockoutThreshold 5 `
-                                            -MaxPasswordAge $PSO.MaxPwdAge `
-                                            -MinPasswordAge "1.0:0:0.0" `
-                                            -MinPasswordLength $PSO.PwdLength `
-                                            -Name $PSO.Name `
-                                            -PasswordHistoryCount 60 `
-                                            -Precedence $PSO.Precedence `
-                                            -ProtectedFromAccidentalDeletion 1 `
-                                            -ReversibleEncryptionEnabled 0 `
-                                            -OtherAttributes @{'msDS-PSOAppliesTo'=(Get-AdGroup $PSO.Name).distinguishedName} `
-                                            -ErrorAction Stop | Out-Null
+            if ((Get-ADObject -LDAPFilter "(&(name=$PSO.Name)(ObjectClass=msDS-PasswordSettings))")) {
+                $LogData += "$($PSO.Name): PSO already exists."
+            }
+            Else {
+                new-adFineGrainedPasswordPolicy -ComplexityEnabled 1 `
+                                                -Description ((($PSO.Name).Replace('PSO-','PSO for ')).Replace('-',' ')) `
+                                                -DisplayName $PSO.Name `
+                                                -LockOutDuration "0.0:30:0.0" `
+                                                -LockoutObservationWindow "0.0:30:0.0" `
+                                                -LockoutThreshold 5 `
+                                                -MaxPasswordAge $PSO.MaxPwdAge `
+                                                -MinPasswordAge "1.0:0:0.0" `
+                                                -MinPasswordLength $PSO.PwdLength `
+                                                -Name $PSO.Name `
+                                                -PasswordHistoryCount 60 `
+                                                -Precedence $PSO.Precedence `
+                                                -ProtectedFromAccidentalDeletion 1 `
+                                                -ReversibleEncryptionEnabled 0 `
+                                                -OtherAttributes @{'msDS-PSOAppliesTo'=(Get-AdGroup $PSO.Name).distinguishedName} `
+                                                -ErrorAction Stop | Out-Null
 
-            $LogData += "PSO $($PSO.Name) successfully created."
+                $LogData += "$($PSO.Name): PSO successfully created."
+            }
         }
         Catch {
-            $LogData += "PSO $($PSO.Name) could not be created!"
+            $LogData += "$($PSO.Name): PSO could not be created!"
             $FlagRes = "Error"
         }
         #endregion
