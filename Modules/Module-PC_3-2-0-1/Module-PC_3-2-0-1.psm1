@@ -210,6 +210,15 @@ Function Resolve-S-PwdNeverExpires {
                     $LogData += "$($PSO.Name): failed to add $MbrSam to the PSO group! Error: $($Error[0].ToString())"
                     $FlagRes = "Error"
                 }
+                Try {
+                    if ((Get-ADObject -Filter "SamAccountName -eq '$MbrSam'").ObjectClass -eq 'User') {
+                        Set-AdUser $MbrSam -PasswordNeverExpires 0 | Out-Null
+                        $LogData += "User $MbrSam has been set with PasswordNeverExpires to $False"
+                    }
+                }
+                Catch {
+                    $LogData += "Failed to set password expiration to $mbrSam! Error: $($Error[0].ToString())"
+                }
             }
         }
         #endregion
