@@ -178,6 +178,7 @@ Function Resolve-S-PwdNeverExpires {
     # Looping on PSO list
     foreach ($PSO in $psoXml.Settings.PwdStrategyObjects.PSO) {
         #region Create AD Group
+        $LogData += " "
         $GrpExists = Get-ADGroup -LDAPFilter "(SAMAccountName=$($PSO.Name))"
         if ($GrpExists) {
             $LogData += "$($PSO.Name): Group already exists."
