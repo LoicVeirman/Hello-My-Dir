@@ -11,7 +11,8 @@
     > S-PwdNeverExpires         Function Resolve-S-PwdNeverExpires
     > P-Delegated               Function Resolve-P-Delegated
     > P-RecycleBin              Function Resolve-P-RecycleBin
-    > P-SchemaAdmin             function Resolve-P-SchemaAdmin
+    > P-SchemaAdmin             Function Resolve-P-SchemaAdmin
+    > P-UnprotectedOU           Function Resolve-P-UnprotectedOU   
 #>
 #region S-ADRegistration
 Function Resolve-S-ADRegistration {
@@ -393,6 +394,45 @@ Function Resolve-P-SchemaAdmin {
         $FlagRes = "Error"
     }
 
+    # Sending log and leaving with proper exit code
+    Write-ToEventLog $FlagRes $LogData
+    Return $FlagRes
+}
+#endregion
+#region P-UnprotectedOU
+Function Resolve-P-UnprotectedOU {
+    <#
+        .SYNOPSIS
+        Resolve the alert P-UnprotectedOU from PingCastle.
+
+        .DESCRIPTION
+        Ensure that Organizational Units (OUs) and Containers in Active Directory are protected to prevent accidental deletion, which could lead to data loss and disruptions in the network infrastructure.
+
+        .NOTES
+        Version 01.00.00 (2024/06/10 - Creation)
+    #>
+    Param()
+
+    # Prepare logging
+    Test-EventLog | Out-Null
+    $LogData = @('Securing Organizational Units against accidental deletion:')
+    $FlagRes = "Info"
+
+    # Find OU without the option "protected against accidental deletion"
+    $UnprotectedOU = Get-ADOrganizationalUnit -filter {name -like "*"} -Properties ProtectedFromAccidentalDeletion
+
+    # Looping around...
+    foreach ($OU in $UnprotectedOU) {
+        $LogData += " "
+        Try {
+            Set-ADOrganizationalUnit -ProtectedFromAccidentalDeletion $true -Identity $OU.DistinguishedName -ErrorAction Stop | Out-Null
+            $LogData += "$($OU.DistinguishedName): successfully protected against accidental deletion."
+        }
+        Catch {
+            $LogData += "$($OU.DistinguishedName): failed to protect against accidental deletion!"
+        }
+    }
+    
     # Sending log and leaving with proper exit code
     Write-ToEventLog $FlagRes $LogData
     Return $FlagRes
