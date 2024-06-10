@@ -2,7 +2,7 @@
     THIS MODULE CONTAINS FUNCTIONS RELATED TO PINGCASTLE V3.2.0.1
 
     Initial Score: 65/100 (Stale: 31, Priv Accounts: 40, Trust: 00, Anomalies:65)
-    Release Score: ??/100 (Stale: 00, Priv Accounts: 20, Trust: 00, Anomalies:65)
+    Release Score: ??/100 (Stale: 00, Priv Accounts: 00, Trust: 00, Anomalies:65)
 
     Fix list:
     > S-OldNtlm                 GPO Default Domain Security Policy
@@ -12,7 +12,9 @@
     > P-Delegated               Function Resolve-P-Delegated
     > P-RecycleBin              Function Resolve-P-RecycleBin
     > P-SchemaAdmin             Function Resolve-P-SchemaAdmin
-    > P-UnprotectedOU           Function Resolve-P-UnprotectedOU   
+    > P-UnprotectedOU           Function Resolve-P-UnprotectedOU
+    > A-LAPS-Not-Installed      GPO Default Domain Security Policy
+    > A-MinPwdLen               Function Resolve-A-MinPwdLen
 #>
 #region S-ADRegistration
 Function Resolve-S-ADRegistration {
@@ -433,6 +435,62 @@ Function Resolve-P-UnprotectedOU {
         Catch {
             $LogData += "$($OU.DistinguishedName): failed to protect against accidental deletion!"
         }
+    }
+
+    # Sending log and leaving with proper exit code
+    Write-ToEventLog $FlagRes $LogData
+    Return $FlagRes
+}
+#endregion
+#region A-MinPwdLen
+Function Resolve-A-MinPwdLen {
+    <#
+        .SYNOPSIS
+        Resolve the alert A-MinPwdLen from PingCastle.
+
+        .DESCRIPTION
+        Verify if the password policy of the domain enforces users to have at least 8 characters in their password
+
+        .NOTES
+        Version 01.00.00 (2024/06/10 - Creation)
+    #>
+    Param()
+
+    # Prepare logging
+    Test-EventLog | Out-Null
+    $LogData = @('Modifying default password strategy to x char (based on domainSettings.xml):')
+    $FlagRes = "Info"
+
+    # Load XML
+    $DomainSettings = Get-XmlContent .\configuration\DomainSettings.xml
+
+    # Get default value (if less than 8, then forced to 8)
+    if ([int]$DomainSettings.Settings.DefaultPwdStrategy.PwdLength -ge 8) {
+        $newLen = [int]$DomainSettings.Settings.DefaultPwdStrategy.PwdLength
+    } 
+    Else {
+        $newLen = 8
+    }
+    $LogData += "New Default Domain Policy password length value: $newLen"
+
+    # Update the policy
+    Try {
+        if ((gwmi Win32_OperatingSystem).Caption -match "2022") {
+            Set-ADDefaultDomainPasswordPolicy -ComplexityEnabled 1 -Confirm:$false -Identity (Get-ADDomain).DistinguishedName `
+                                              -LockOutDuration 0.0:15:0.0 -LockoutObservationWindow 0.0:5:0.0 -LockoutThreshold 5 `
+                                              -MaxPasswordAge 365.0:0:0.0 -MinPasswordAge 1.0:0:0.0 -MinPasswordLength $newLen `
+                                              -PasswordHistoryCount 24 -ReversibleEncryptionEnabled 0 
+            
+            $LogData += @("Complexity: Enabled", "Lockout duration: 15 min.", "Lockout observation: 5 min.", "Lockout threshold: 5", "Max pwd age: 365 days", "Min pwd age: 1 day", "Password Min Length: $newLen", "Password History: 24", "Reversible encryption: False")
+        }
+        Else {
+            $LogData += "Sorry, this function does not handle OS release beneath Windows Server 2022."
+            $FlagRes = "Warning"
+        }
+    }
+    Catch {
+        $LogData += "Failed to update the default password strategy for your domain!"
+        $FlagRes = "Error"
     }
 
     # Sending log and leaving with proper exit code

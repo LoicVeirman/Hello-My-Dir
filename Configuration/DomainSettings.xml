@@ -18,4 +18,5 @@
             <Member>SID-500</Member>
         </PSO>
     </PwdStrategyObjects>
+    <DefaultPwdStrategy PwdLength='8' />
 </Settings>
