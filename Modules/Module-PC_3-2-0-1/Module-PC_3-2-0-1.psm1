@@ -10,6 +10,7 @@
     > S-DC-SubnetMissing        Function Resolve-S-DC-SubnetMissing
     > S-PwdNeverExpires         Function Resolve-S-PwdNeverExpires
     > P-Delegated               Function Resolve-P-Delegated
+    > P-RecycleBin              Function Resolve-P-RecycleBin
 #>
 #region S-ADRegistration
 Function Resolve-S-ADRegistration {
