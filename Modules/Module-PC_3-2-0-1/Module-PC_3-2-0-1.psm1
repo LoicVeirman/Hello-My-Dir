@@ -238,7 +238,7 @@ Function Resolve-S-PwdNeverExpires {
                                             -Precedence $PSO.Precedence `
                                             -ProtectedFromAccidentalDeletion 1 `
                                             -ReversibleEncryptionEnabled 0 `
-                                            -OtherAttributes @{'msDS-PSOAppliesTo'=(Get-AdGroup $PSO.Name).distinguishedName}
+                                            -OtherAttributes @{'msDS-PSOAppliesTo'=(Get-AdGroup $PSO.Name).distinguishedName} `
                                             -ErrorAction Stop | Out-Null
 
             $LogData += "PSO $($PSO.Name) successfully created."
