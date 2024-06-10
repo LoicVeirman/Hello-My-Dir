@@ -527,7 +527,7 @@ Function Resolve-A-PreWin2000AuthenticatedUsers {
     Try {
         $members = Get-ADGroupMember "S-1-5-32-554"
         if ($members) {
-            remove-adGroupMember "S-1-5-32-554" -Members $members
+            remove-adGroupMember (Get-AdGroup "S-1-5-32-554").SamAccountName -Members $members
             $LogData += "Group S-1-5-32-554 flushed."
         } 
         Else {
