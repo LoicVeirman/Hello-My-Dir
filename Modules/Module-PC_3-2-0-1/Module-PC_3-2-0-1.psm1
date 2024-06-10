@@ -11,6 +11,7 @@
     > S-PwdNeverExpires         Function Resolve-S-PwdNeverExpires
     > P-Delegated               Function Resolve-P-Delegated
     > P-RecycleBin              Function Resolve-P-RecycleBin
+    > P-SchemaAdmin             function Resolve-P-SchemaAdmin
 #>
 #region S-ADRegistration
 Function Resolve-S-ADRegistration {
@@ -355,6 +356,41 @@ Function Resolve-P-RecycleBin {
             $LogData += "This is a $($RunSetup.Configuration.Domain.Type) domain: no Recycle Bin activation needed (forest level)."
             $FlagRes = "Warning"
         }
+    }
+
+    # Sending log and leaving with proper exit code
+    Write-ToEventLog $FlagRes $LogData
+    Return $FlagRes
+}
+#endregion
+#region P-SchemaAdmin
+Function Resolve-P-SchemaAdmin {
+    <#
+        .SYNOPSIS
+        Resolve the alert P-SchemaAdmin from PingCastle.
+
+        .DESCRIPTION
+        Ensure that no account can make unexpected modifications to the schema.
+
+        .NOTES
+        Version 01.00.00 (2024/06/10 - Creation)
+    #>
+    Param()
+
+    # Prepare logging
+    Test-EventLog | Out-Null
+    $LogData = @('Dropping any account from the Schema Admins group')
+    $FlagRes = "Info"
+
+    # Remove all members
+    Try {
+        $Members = Get-AdGroupMember "$((Get-AdDomain).DomainSID)-518"
+        remove-adGroupMember -Identity "$((Get-AdDomain).DomainSID)-518" -Members $Members -ErrorAction Stop | Out-Null
+        $LogData += "Successfully removed all members from Schema Admins group."
+    }
+    Catch {
+        $LogData += "Failed to remove all members from Schema Admins group!"
+        $FlagRes = "Error"
     }
 
     # Sending log and leaving with proper exit code
