@@ -317,7 +317,7 @@ Else {
 
         #Region PingCastle Script Fixes
         # Fix list
-        $PCFixList = @('S-ADRegistration','S-DC-SubnetMissing','S-PwdNeverExpires')
+        $PCFixList = @('S-ADRegistration','S-DC-SubnetMissing','S-PwdNeverExpires','P-Delegated')
         # Fix loop
         foreach ($Resolution in $PCFixList) {
             # Get cursor position
