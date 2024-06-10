@@ -299,3 +299,65 @@ Function Resolve-P-Delegated {
     Return $FlagRes
 }
 #endregion
+#region P-RecycleBin
+Function Resolve-P-RecycleBin {
+    <#
+        .SYNOPSIS
+        Resolve the alert P-RecycleBin from PingCastle.
+
+        .DESCRIPTION
+        Ensure that the Recycle Bin feature is enabled.
+
+        .NOTES
+        Version 01.00.00 (2024/06/10 - Creation)
+    #>
+    Param()
+
+    # Prepare logging
+    Test-EventLog | Out-Null
+    $LogData = @('Enabling AD RecycleBin (if needed)')
+    $FlagRes = "Info"
+
+    # Load XML data
+    $RunSetup = Get-XmlContent .\Configuration\RunSetup.xml
+
+    # Check if Recycle Bin was to enable
+    $installRB = $RunSetup.Configuration.Forest.RecycleBin
+
+    # If tasked to be installed in the forest, then doing precheck and enabling.
+    if ($installRB -eq 'Yes') {
+        # Am I in a child domain? If so, I don't care about RB.
+        if ($RunSetup.Configuration.Domain.Type -eq 'Root') {
+            # We also need to ensure that the forest level is at least 2008 R2
+            if ([int]$RunSetup.Configuration.Forest.FunctionalLevel -ge 4) {
+                # So far, so good... Let's enable it.
+                Try {
+                    if ((Get-ADOptionalFeature -Filter 'name -like "Recycle Bin Feature"').EnabledScopes) {
+                        $LogData += "The AD REcycle Bin is already enabled."
+                    }
+                    Else {
+                        Enable-ADOptionalFeature 'Recycle Bin Feature' -Scope ForestOrConfigurationSet -Target (Get-ADForest).Name -WarningAction SilentlyContinue -Confirm:$false | Out-Null
+                        $LogData += "The AD Recycle Bin is now enabled."
+                    }
+                }
+                Catch {
+                    $LogData += "Failed to enable the AD Recycle Bin!"
+                    $FlagRes = "Error"
+                }
+            } 
+            Else {
+                $LogData += "The Forest Functional Level is lower than 4 (2008R2): no Recycle Bin activation could be performed."
+                $FlagRes = "Warning"    
+            }
+        }
+        Else {
+            $LogData += "This is a $($RunSetup.Configuration.Domain.Type) domain: no Recycle Bin activation needed (forest level)."
+            $FlagRes = "Warning"
+        }
+    }
+
+    # Sending log and leaving with proper exit code
+    Write-ToEventLog $FlagRes $LogData
+    Return $FlagRes
+}
+#endregion
