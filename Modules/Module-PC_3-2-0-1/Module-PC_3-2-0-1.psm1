@@ -227,11 +227,11 @@ Function Resolve-S-PwdNeverExpires {
             new-adFineGrainedPasswordPolicy -ComplexityEnabled 1 `
                                             -Description ((($PSO.Name).Replace('PSO-','PSO for ')).Replace('-',' ')) `
                                             -DisplayName $PSO.Name `
-                                            -LockOutDuration 0.0:30:0:0.0 `
-                                            -LockoutObservationWindow 0.0:30:0:0.0 `
+                                            -LockOutDuration "0.0:30:0.0" `
+                                            -LockoutObservationWindow "0.0:30:0:0.0" `
                                             -LockoutThreshold 5 `
                                             -MaxPasswordAge $PSO.MaxPwdAge `
-                                            -MinPasswordAge 1.0:0:0.0 `
+                                            -MinPasswordAge "1.0:0:0.0" `
                                             -MinPasswordLength $PSO.PwdLength `
                                             -Name $PSO.Name `
                                             -PasswordHistoryCount 60 `
