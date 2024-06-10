@@ -2,13 +2,14 @@
     THIS MODULE CONTAINS FUNCTIONS RELATED TO PINGCASTLE V3.2.0.1
 
     Initial Score: 65/100 (Stale: 31, Priv Accounts: 40, Trust: 00, Anomalies:65)
-    Release Score: ??/100 (Stale: 00, Priv Accounts: 40, Trust: 00, Anomalies:65)
+    Release Score: ??/100 (Stale: 00, Priv Accounts: 20, Trust: 00, Anomalies:65)
 
     Fix list:
     > S-OldNtlm                 GPO Default Domain Security Policy
     > S-ADRegistration          Function Resolve-S-ADRegistration 
     > S-DC-SubnetMissing        Function Resolve-S-DC-SubnetMissing
     > S-PwdNeverExpires         Function Resolve-S-PwdNeverExpires
+    > P-Delegated               Function Resolve-P-Delegated
 #>
 #region S-ADRegistration
 Function Resolve-S-ADRegistration {
@@ -254,6 +255,44 @@ Function Resolve-S-PwdNeverExpires {
             $FlagRes = "Error"
         }
         #endregion
+    }
+    # Sending log and leaving with proper exit code
+    Write-ToEventLog $FlagRes $LogData
+    Return $FlagRes
+}
+#endregion
+#region P-Delegated
+Function Resolve-P-Delegated {
+    <#
+        .SYNOPSIS
+        Reolve the P-Delegated alert from PingCastle.
+
+        .DESCRIPTION
+         Ensure that all Administrator Accounts have the configuration flag "this account is sensitive and cannot be delegated" (or are members of the built-in group "Protected Users" when your domain functional level is at least Windows Server 2012 R2).
+
+        .NOTES
+        Version 01.00.00 (2024/06/10 - Creation)
+    #>
+    Param()
+
+    # Prepare logging
+    Test-EventLog | Out-Null
+    $LogData = @('Setting "Account is sensible and cannot be delegated" to empowered users:')
+    $FlagRes = "Info"
+
+    # Getting all empowered users, except KRBTGT
+    $Users = Get-ADObject -LDAPFilter "(&(AdminCount=1)(ObjectClass=User)(!(Name=krbtgt)))"
+
+    # Looping
+    foreach ($User in $Users) {
+        Try {
+            Set-AdUser $User.Name -AccountNotDelegated 1 -ErrorAction Stop | Out-Null
+            $LogData += "$($User.Name): successfully set AccountNotDelegated to 1"
+        }
+        Catch {
+            $LogData += "$($User.Name): failed tp set AccountNotDelegated to 1!"
+            $FlagRes = "Error"
+        }
     }
     # Sending log and leaving with proper exit code
     Write-ToEventLog $FlagRes $LogData
