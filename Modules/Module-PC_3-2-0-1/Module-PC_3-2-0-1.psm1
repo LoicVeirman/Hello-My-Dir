@@ -228,7 +228,7 @@ Function Resolve-S-PwdNeverExpires {
                                             -Description ((($PSO.Name).Replace('PSO-','PSO for ')).Replace('-',' ')) `
                                             -DisplayName $PSO.Name `
                                             -LockOutDuration "0.0:30:0.0" `
-                                            -LockoutObservationWindow "0.0:30:0:0.0" `
+                                            -LockoutObservationWindow "0.0:30:0.0" `
                                             -LockoutThreshold 5 `
                                             -MaxPasswordAge $PSO.MaxPwdAge `
                                             -MinPasswordAge "1.0:0:0.0" `
