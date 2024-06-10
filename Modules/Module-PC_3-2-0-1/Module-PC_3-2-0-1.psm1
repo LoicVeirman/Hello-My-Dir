@@ -525,14 +525,8 @@ Function Resolve-A-PreWin2000AuthenticatedUsers {
 
     # Flubbing the group
     Try {
-        $members = Get-ADGroupMember "S-1-5-32-554"
-        if ($members) {
-            remove-adGroupMember -Identity "S-1-5-32-554" -Members $members
-            $LogData += "Group S-1-5-32-554 flushed."
-        } 
-        Else {
-            $LogData += "Group S-1-5-32-554 is empty"
-        }
+        Set-adGroup -Identity "S-1-5-32-554" -Clear member
+        $LogData += "Group S-1-5-32-554 flushed."
     }
     Catch {
         $LogData += "Group S-1-5-32-554 could not be flushed!"
