@@ -11,7 +11,7 @@
         <PSO Name="PSO-Users-ChangeEvery3months" MaxPwdAge="90.0:0:0.0" PwdLength="10" Precedence="50" />
         <PSO Name="PSO-ServiceAccounts-ExtendedLife" MaxPwdAge="1095.0:0:0.0" PwdLength="18" Precedence="35" />
         <PSO Name="PSO-ServiceAccounts-Standard" MaxPwdAge="365.0:0:0.0" PwdLength="16" Precedence="30" />
-        <PSO Name="PSO-AdminAccounts-SystemPriveleged" MaxPwdAge="180.0:0:0.0" PwdLength="14" Precedence="20" />
+        <PSO Name="PSO-AdminAccounts-SystemPrivileged" MaxPwdAge="180.0:0:0.0" PwdLength="14" Precedence="20" />
         <PSO Name="PSO-AdminAccounts-ADdelegatedRight" MaxPwdAge="180.0:0:0.0" PwdLength="16" Precedence="15" />
         <PSO Name="PSO-ServiceAccounts-ADdelegatedRight" MaxPwdAge="365.0:0:0.0" PwdLength="24" Precedence="15" />
         <PSO Name="PSO-AdminAccounts-ADhighPrivileges" MaxPwdAge="180.0:0:0.0" PwdLength="20" Precedence="10" >
