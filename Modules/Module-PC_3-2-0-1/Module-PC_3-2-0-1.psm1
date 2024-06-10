@@ -236,7 +236,7 @@ Function Resolve-S-PwdNeverExpires {
                                             -Name $PSO.Name `
                                             -PasswordHistoryCount 60 `
                                             -Precedence $PSO.Precedence `
-                                            -ProtectFromAccidentalDeletion 1 `
+                                            -ProtectedFromAccidentalDeletion 1 `
                                             -ReversibleEncryptionEnabled 0 `
                                             -OtherAttributes @{'msDS-PSOAppliesTo'=(Get-AdGroup $PSO.Name).distinguishedName}
                                             -ErrorAction Stop | Out-Null
