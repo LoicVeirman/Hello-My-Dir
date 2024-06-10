@@ -213,18 +213,18 @@ Function Resolve-S-PwdNeverExpires {
                 Try {
                     if ((Get-ADObject -Filter "SamAccountName -eq '$MbrSam'").ObjectClass -eq 'User') {
                         Set-AdUser $MbrSam -PasswordNeverExpires 0 | Out-Null
-                        $LogData += "User $MbrSam has been set with PasswordNeverExpires to $False"
+                        $LogData += "$($PSO.Name): User $MbrSam has been set with PasswordNeverExpires to $False"
                     }
                 }
                 Catch {
-                    $LogData += "Failed to set password expiration to $mbrSam!"
+                    $LogData += "$($PSO.Name): Failed to set password expiration to $mbrSam!"
                 }
             }
         }
         #endregion
         #region Create new PSO
         Try {
-            if ((Get-ADObject -LDAPFilter "(&(name=$PSO.Name)(ObjectClass=msDS-PasswordSettings))")) {
+            if ((Get-ADObject -LDAPFilter "(&(name=$($PSO.Name))(ObjectClass=msDS-PasswordSettings))")) {
                 $LogData += "$($PSO.Name): PSO already exists."
             }
             Else {
