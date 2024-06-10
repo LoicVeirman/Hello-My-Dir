@@ -386,8 +386,10 @@ Function Resolve-P-SchemaAdmin {
     # Remove all members
     Try {
         $Members = Get-AdGroupMember "$((Get-AdDomain).DomainSID)-518"
-        remove-adGroupMember -Identity "$((Get-AdDomain).DomainSID)-518" -Members $Members -ErrorAction Stop -Confirm:$false | Out-Null
-        $LogData += "Successfully removed all members from Schema Admins group."
+        if ($null -ne $Members) {
+            remove-adGroupMember -Identity "$((Get-AdDomain).DomainSID)-518" -Members $Members -ErrorAction Stop -Confirm:$false | Out-Null
+            $LogData += "Successfully removed all members from Schema Admins group."
+        }
     }
     Catch {
         $LogData += "Failed to remove all members from Schema Admins group!"
@@ -432,7 +434,7 @@ Function Resolve-P-UnprotectedOU {
             $LogData += "$($OU.DistinguishedName): failed to protect against accidental deletion!"
         }
     }
-    
+
     # Sending log and leaving with proper exit code
     Write-ToEventLog $FlagRes $LogData
     Return $FlagRes
