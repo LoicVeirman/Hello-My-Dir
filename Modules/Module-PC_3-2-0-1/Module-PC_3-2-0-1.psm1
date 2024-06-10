@@ -188,7 +188,7 @@ Function Resolve-S-PwdNeverExpires {
                 $LogData += "$($PSO.Name): Group created successfully."
             }
             Catch {
-                $LogData += "$($PSO.Name): Group could not be created! Error: $($Error[0].ToString())"
+                $LogData += "$($PSO.Name): Group could not be created!"
                 $FlagRes = "Error"
             }
         }
@@ -207,7 +207,7 @@ Function Resolve-S-PwdNeverExpires {
                     $LogData += "$($PSO.Name): successfully added $MbrSam to the PSO group."
                 }
                 Catch {
-                    $LogData += "$($PSO.Name): failed to add $MbrSam to the PSO group! Error: $($Error[0].ToString())"
+                    $LogData += "$($PSO.Name): failed to add $MbrSam to the PSO group!"
                     $FlagRes = "Error"
                 }
                 Try {
@@ -217,7 +217,7 @@ Function Resolve-S-PwdNeverExpires {
                     }
                 }
                 Catch {
-                    $LogData += "Failed to set password expiration to $mbrSam! Error: $($Error[0].ToString())"
+                    $LogData += "Failed to set password expiration to $mbrSam!"
                 }
             }
         }
@@ -244,7 +244,7 @@ Function Resolve-S-PwdNeverExpires {
             $LogData += "PSO $($PSO.Name) successfully created."
         }
         Catch {
-            $LogData += "PSO $($PSO.Name) could not be created! Error: $($Error[0].ToString())"
+            $LogData += "PSO $($PSO.Name) could not be created!"
             $FlagRes = "Error"
         }
         #endregion
