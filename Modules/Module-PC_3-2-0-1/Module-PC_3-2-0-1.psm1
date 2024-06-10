@@ -5,16 +5,22 @@
     Release Score: ??/100 (Stale: 00, Priv Accounts: 00, Trust: 00, Anomalies:65)
 
     Fix list:
-    > S-OldNtlm                 GPO Default Domain Security Policy
-    > S-ADRegistration          Function Resolve-S-ADRegistration 
-    > S-DC-SubnetMissing        Function Resolve-S-DC-SubnetMissing
-    > S-PwdNeverExpires         Function Resolve-S-PwdNeverExpires
-    > P-Delegated               Function Resolve-P-Delegated
-    > P-RecycleBin              Function Resolve-P-RecycleBin
-    > P-SchemaAdmin             Function Resolve-P-SchemaAdmin
-    > P-UnprotectedOU           Function Resolve-P-UnprotectedOU
-    > A-LAPS-Not-Installed      GPO Default Domain Security Policy
-    > A-MinPwdLen               Function Resolve-A-MinPwdLen
+    > S-OldNtlm                         GPO Default Domain Security Policy
+    > S-ADRegistration                  Function Resolve-S-ADRegistration 
+    > S-DC-SubnetMissing                Function Resolve-S-DC-SubnetMissing
+    > S-PwdNeverExpires                 Function Resolve-S-PwdNeverExpires
+    > P-Delegated                       Function Resolve-P-Delegated
+    > P-RecycleBin                      Function Resolve-P-RecycleBin
+    > P-SchemaAdmin                     Function Resolve-P-SchemaAdmin
+    > P-UnprotectedOU                   Function Resolve-P-UnprotectedOU
+    > A-LAPS-Not-Installed              GPO Default Domain Security Policy
+    > A-MinPwdLen                       Function Resolve-A-MinPwdLen
+    > A-DC-Spooler                      GPO Default Domain Controller Security Policy
+    > A-AuditDC                         GPO Default Domain Controller Security Policy
+    > A-DC-Coerce                       GPO Default Domain Controller Security Policy
+    > A-HardenedPaths                   GPO Default Domain Controller Security Policy
+    > A-NoServicePolicy                 Function Resolve-S-PwdNeverExpires (add the requiered PSO)
+    > A-PreWin2000AuthenticatedUsers    Function REsolve-A-PreWin2000AuthenticatedUsers
 #>
 #region S-ADRegistration
 Function Resolve-S-ADRegistration {
@@ -490,6 +496,46 @@ Function Resolve-A-MinPwdLen {
     }
     Catch {
         $LogData += "Failed to update the default password strategy for your domain!"
+        $FlagRes = "Error"
+    }
+
+    # Sending log and leaving with proper exit code
+    Write-ToEventLog $FlagRes $LogData
+    Return $FlagRes
+}
+#endregion
+#region A-PreWin2000AuthenticatedUsers
+Function Resolve-A-PreWin2000AuthenticatedUsers {
+    <#
+        .SYNOPSIS
+        Resolve the alert A-PreWin2000AuthenticatedUsers from PingCastle.
+
+        .DESCRIPTION
+        Ensure that the "Pre-Windows 2000 Compatible Access" group does not contains "Authenticated Users".
+
+        .NOTES
+        Version 01.00.00 (2024/06/10 - Creation)
+    #>
+    Param()
+
+    # Prepare logging
+    Test-EventLog | Out-Null
+    $LogData = @("Dropping content from 'Pre-Windows 2000 Compatible Access':")
+    $FlagRes = "Info"
+
+    # Flubbing the group
+    Try {
+        $members = Get-ADGroupMember "S-1-5-32-554"
+        if ($members) {
+            remove-adGroupMember "S-1-5-32-554" -Members Get-ADGroupMember "S-1-5-32-554"
+            $LogData += "Group S-1-5-32-554 flushed."
+        } 
+        Else {
+            $LogData += "Group S-1-5-32-554 is empty"
+        }
+    }
+    Catch {
+        $LogData += "Group S-1-5-32-554 could not be flushed!"
         $FlagRes = "Error"
     }
 
