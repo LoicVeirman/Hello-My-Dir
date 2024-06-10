@@ -385,7 +385,7 @@ Function Resolve-P-SchemaAdmin {
     # Remove all members
     Try {
         $Members = Get-AdGroupMember "$((Get-AdDomain).DomainSID)-518"
-        remove-adGroupMember -Identity "$((Get-AdDomain).DomainSID)-518" -Members $Members -ErrorAction Stop | Out-Null
+        remove-adGroupMember -Identity "$((Get-AdDomain).DomainSID)-518" -Members $Members -ErrorAction Stop -Confirm:$false | Out-Null
         $LogData += "Successfully removed all members from Schema Admins group."
     }
     Catch {
