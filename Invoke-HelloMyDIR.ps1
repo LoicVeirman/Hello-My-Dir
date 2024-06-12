@@ -367,8 +367,13 @@ Else {
                     $isWarning++
                 }
                 Else {
+                    $gpPath = (Get-AdDomain).DistinguishedName
+                    if ($GPO.Linkage -eq "DC") {
+                        $gpPath = "OU=Domain Controllers,$gpPath"
+                    }
                     [void](New-Gpo -Name $gpName -Comment $gpDesc -ErrorAction Stop)
                     [void](Import-GPO -BackupId $GPO.BackupId -TargetName $gpo.Name -Path .\Imports\$($GPO.Name) -ErrorAction Stop)
+                    [void](Set-GPLink -Name $gpo.Name -Target $gpPath -LinkEnabled $gpLink.Enabled -Enforced $gpLink.enforced -ErrorAction SilentlyContinue)
                     Write-ToEventLog -EventType INFO -EventMsg "GPO $($GPO.Name): imported successfully."
                     $isSuccess++
                 }
