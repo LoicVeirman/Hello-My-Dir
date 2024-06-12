@@ -9,7 +9,10 @@ Machine Name,Policy Target,Subcategory,Subcategory GUID,Inclusion Setting,Exclus
 ,System,Audit Other Account Management Events,{0cce923a-69ae-11d9-bed3-505054503030},Success,,1
 ,System,Audit Security Group Management,{0cce9237-69ae-11d9-bed3-505054503030},Success,,1
 ,System,Audit User Account Management,{0cce9235-69ae-11d9-bed3-505054503030},Success,,1
+,System,Audit DPAPI Activity,{0cce922d-69ae-11d9-bed3-505054503030},Success,,1
+,System,Audit PNP Activity,{0cce9248-69ae-11d9-bed3-505054503030},Success,,1
 ,System,Audit Process Creation,{0cce922b-69ae-11d9-bed3-505054503030},Success,,1
+,System,Audit Process Termination,{0cce922c-69ae-11d9-bed3-505054503030},Success,,1
 ,System,Audit RPC Events,{0cce922e-69ae-11d9-bed3-505054503030},Success,,1
 ,System,Audit Token Right Adjusted,{0cce924a-69ae-11d9-bed3-505054503030},Success,,1
 ,System,Audit Detailed Directory Service Replication,{0cce923e-69ae-11d9-bed3-505054503030},Success and Failure,,3

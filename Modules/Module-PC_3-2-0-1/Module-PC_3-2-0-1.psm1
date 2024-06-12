@@ -2,7 +2,10 @@
     THIS MODULE CONTAINS FUNCTIONS RELATED TO PINGCASTLE V3.2.0.1
 
     Initial Score: 65/100 (Stale: 31, Priv Accounts: 40, Trust: 00, Anomalies:65)
-    Release Score: 05/100 (Stale: 00, Priv Accounts: 00, Trust: 00, Anomalies:05)
+    Release Score: 05/100 (Stale: 00, Priv Accounts: 00, Trust: 00, Anomalies:05) - Will be 0 if you install a second DC
+    Release ANSSI: Level 3
+    Release MITRE: ATT&CK - 3 techniques matching for Credential access (DSheuristics, Auth.Users on DNS, Kerberos Armoring)
+
 
     Fix list:
     > S-OldNtlm                         GPO Default Domain Security Policy

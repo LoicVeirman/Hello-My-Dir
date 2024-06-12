@@ -350,7 +350,36 @@ Else {
         #endregion
 
         #Region Import GPO
+        $DomainSettings = Get-XmlContent .\Configuration\DomainSettings.xml
 
+        foreach ($GPO in $DomainSettings.Settings.GroupPolicies.Gpo) {
+            # Get cursor position
+            $CursorPosition = $Host.UI.RawUI.CursorPosition
+            # Display action
+            Write-Host "[       ] Adding Security GPO: $($GPO.Name)"
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
+            Write-Host $arrayRsltTxt[0] -ForegroundColor $arrayColrTxt[0] -NoNewline
+
+            Try {
+                $gpChek = Get-GPO -Name $GPO.Name -ErrorAction SilentlyContinue
+                if ($gpChek) {
+                    Write-ToEventLog -EventType WARNING -EventMsg "GPO $($GPO.Name): already imported."
+                    $isWarning++
+                }
+                Else {
+                    [void](New-Gpo -Name $gpName -Comment $gpDesc -ErrorAction Stop)
+                    [void](Import-GPO -BackupId $GPO.BackupId -TargetName $gpo.Name -Path .\Imports\$($GPO.Name) -ErrorAction Stop)
+                    Write-ToEventLog -EventType INFO -EventMsg "GPO $($GPO.Name): imported successfully."
+                    $isSuccess++
+                }
+            }
+            Catch {
+                Write-ToEventLog -EventType Error -EventMsg "GPO $($GPO.Name): import failed! Error: $($_.ToString())"
+                $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
+                Write-Host $arrayRsltTxt[2] -ForegroundColor $arrayColrTxt[2]
+                $isFailure++                
+            }
+        }
         #endregion
 
         # Result Array for final display
