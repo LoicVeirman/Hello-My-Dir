@@ -572,7 +572,7 @@ Function Resolve-A-LAPS-NOT-Installed {
     if (($OSCaption -match '2019' -or '2022') -and ($DomainDFL -match '2016')) {
         $LogData += @("The prerequesite to Windows LAPS are fullfilled."," ")
         Try {
-            [void](Update-LapsADSchema -ErrorAction Stop)
+            [void](Update-LapsADSchema -Confirm:$false -ErrorAction Stop)
             $LogData += @("AD Schema extended with Windows LAPS.","Beware: the extension does not implies automatique activation.","Please ensure the GPO Default Domain Security is propperly setup.",' ')
         }
         Catch {
