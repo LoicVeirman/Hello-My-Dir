@@ -2,7 +2,7 @@
     THIS MODULE CONTAINS FUNCTIONS RELATED TO PINGCASTLE V3.2.0.1
 
     Initial Score: 65/100 (Stale: 31, Priv Accounts: 40, Trust: 00, Anomalies:65)
-    Release Score: ??/100 (Stale: 00, Priv Accounts: 00, Trust: 00, Anomalies:65)
+    Release Score: 05/100 (Stale: 00, Priv Accounts: 00, Trust: 00, Anomalies:05)
 
     Fix list:
     > S-OldNtlm                         GPO Default Domain Security Policy
@@ -13,7 +13,7 @@
     > P-RecycleBin                      Function Resolve-P-RecycleBin
     > P-SchemaAdmin                     Function Resolve-P-SchemaAdmin
     > P-UnprotectedOU                   Function Resolve-P-UnprotectedOU
-    > A-LAPS-Not-Installed              GPO Default Domain Security Policy
+    > A-LAPS-Not-Installed              Function Resolve-A-LAPS-NOT-Installed & GPO Default Domain Security Policy
     > A-MinPwdLen                       Function Resolve-A-MinPwdLen
     > A-DC-Spooler                      GPO Default Domain Controller Security Policy
     > A-AuditDC                         GPO Default Domain Controller Security Policy
@@ -536,5 +536,25 @@ Function Resolve-A-PreWin2000AuthenticatedUsers {
     # Sending log and leaving with proper exit code
     Write-ToEventLog $FlagRes $LogData
     Return $FlagRes
+}
+#endregion
+#region A-LAPS-NOT-Installed
+Function Resolve-A-LAPS-NOT-Installed {
+    <#
+        .SYNOPSIS
+        This function resolve the alert A-LAPS-NOT-Installed from PingCastle.
+
+        .DESCRIPTION
+        Ensure that LAPS is in place for the whole domain. If the DFL and/or OS.Caption does not meet minimum requierement for Windows LAPS, 
+        the script will the deploy the MS LAPS binaries (legacy mode).
+
+        .EXTERNALHELP
+        https://learn.microsoft.com/fr-fr/windows-server/identity/laps/laps-scenarios-windows-server-active-directory
+
+        .NOTES
+        Version 01.00.00 (2024/06/12 - Creation)
+    #>
+    Param()
+
 }
 #endregion
