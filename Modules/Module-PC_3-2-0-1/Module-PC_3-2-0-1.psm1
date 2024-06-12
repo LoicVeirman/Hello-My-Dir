@@ -556,5 +556,62 @@ Function Resolve-A-LAPS-NOT-Installed {
     #>
     Param()
 
+    # Logs
+    Test-EventLog | Out-Null
+    $LogData = @('Enable LAPS on your domain:', ' ')
+    $FlagRes = "Info"
+
+    # Get DC OS Caption and DFL.
+    $OSCaption = (gwmi Win32_OperatingSystem).Caption
+    $DomainDFL = (Get-AdDomain).DomainMode
+    $OSArchitr = (gwmi Win32_OperatingSystem).$OSArchitecture
+
+    $LogData += @("OS Caption: $($OSCaption)","Domain Functional Level: $($DomainDFL)","OS Architecture: $($OSArchitr)",' ')
+
+    # Updating Schema, if possible
+    if (($OSCaption -match '2019' -or '2022') -and ($DomainDFL -match '2016')) {
+        $LogData += @("The prerequesite to Windows LAPS are fullfilled."," ")
+        Try {
+            [void](Update-LapsADSchema -ErrorAction Stop)
+            $LogData += @("AD Schema extended with Windows LAPS.","Beware: the extension does not implies automatique activation.","Please ensure the GPO Default Domain Security is propperly setup.",' ')
+        }
+        Catch {
+            $FlagRes = "Error"
+            $LogData += @("Failed to extend the schema!","Error: $($_.ToString())",' ')
+        }
+    }
+    Else {
+        $LogData += @("The prerequesite to Windows LAPS are not fullfilled (OS not 2019+ and/or DFL not 2016)"," ")
+        Try {
+            if ($OSArchitr -match '64') {
+                [void](Start-Process -FilePath "$env:systemroot\system32\msiexec.exe" -WorkingDirectory ".\IMPORTS\MS LAPS" -ArgumentList '/i laps.x64.msi ADDLOCAL=Management.UI,Management.PS,Management.ADMX /quiet /norestart' -NoNewWindow -Wait -ErrorAction Stop)
+            }
+            Else {
+                [void](Start-Process -FilePath "$env:systemroot\system32\msiexec.exe" -WorkingDirectory ".\IMPORTS\MS LAPS" -ArgumentList '/i laps.x86.msi ADDLOCAL=Management.UI,Management.PS,Management.ADMX /quiet /norestart' -NoNewWindow -Wait -ErrorAction Stop)
+            }
+            $LogData += @("MS LAPS installed.",' ')
+        }
+        Catch {
+            $LogData += @("Failed to install MS LAPS binaries!","Error: $($_.ToString())"," ")
+            $FlagRes = "Error"
+        }
+        if ($FlagRes -eq 'Info') {
+            # Extending Schema
+            Try {
+                [void](Import-Module AdmPwd.PS -ErrorAction Stop -WarningAction Stop)
+                [void](Update-AdmPwdADSchema -ErrorAction Stop)
+                $LogData += @("Schema updated for MS LAPS successfully.",' ')
+            }
+            Catch {
+                $LogData += @("Failed to update the Schema for MS LAPS!","Error: $($_.ToString())",' ')
+                $FlagRes = "Error"
+            }
+        }
+    }
+
+    $LogData += 'Please note that this script do not enable any permission - you still have to setup LAPS to match your needs.'
+    # Sending log and leaving with proper exit code
+    Write-ToEventLog $FlagRes $LogData
+    Return $FlagRes
 }
 #endregion
