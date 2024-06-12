@@ -564,7 +564,7 @@ Function Resolve-A-LAPS-NOT-Installed {
     # Get DC OS Caption and DFL.
     $OSCaption = (gwmi Win32_OperatingSystem).Caption
     $DomainDFL = (Get-AdDomain).DomainMode
-    $OSArchitr = (gwmi Win32_OperatingSystem).$OSArchitecture
+    $OSArchitr = (gwmi Win32_OperatingSystem).OSArchitecture
 
     $LogData += @("OS Caption: $($OSCaption)","Domain Functional Level: $($DomainDFL)","OS Architecture: $($OSArchitr)",' ')
 
@@ -573,7 +573,7 @@ Function Resolve-A-LAPS-NOT-Installed {
         $LogData += @("The prerequesite to Windows LAPS are fullfilled."," ")
         Try {
             [void](Update-LapsADSchema -Confirm:$false -ErrorAction Stop)
-            $LogData += @("AD Schema extended with Windows LAPS.","Beware: the extension does not implies automatique activation.","Please ensure the GPO Default Domain Security is propperly setup.",' ')
+            $LogData += @("AD Schema extended with Windows LAPS.","Beware: the extension does not implies automatic activation.","Please ensure the GPO Default Domain Security is propperly setup.",' ')
         }
         Catch {
             $FlagRes = "Error"
