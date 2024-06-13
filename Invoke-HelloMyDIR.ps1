@@ -364,6 +364,8 @@ Else {
                 $gpChek = Get-GPO -Name $GPO.Name -ErrorAction SilentlyContinue
                 if ($gpChek) {
                     Write-ToEventLog -EventType WARNING -EventMsg "GPO $($GPO.Name): already imported."
+                    $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
+                    Write-Host $arrayRsltTxt[4] -ForegroundColor $arrayColrTxt[4]
                     $isWarning++
                 }
                 Else {
@@ -375,6 +377,8 @@ Else {
                     [void](Import-GPO -BackupId $GPO.BackupId -TargetName $gpo.Name -Path $PSScriptRoot\Imports\$($GPO.Name) -ErrorAction Stop)
                     [void](New-GPLink -Name $gpo.Name -Target $gpPath -LinkEnabled Yes -ErrorAction Stop)
                     Write-ToEventLog -EventType INFO -EventMsg "GPO $($GPO.Name): imported successfully."
+                    $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
+                    Write-Host $arrayRsltTxt[1] -ForegroundColor $arrayColrTxt[1]
                     $isSuccess++
                 }
             }
