@@ -327,7 +327,7 @@ Else {
             $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
             Write-Host $arrayRsltTxt[0] -ForegroundColor $arrayColrTxt[0] -NoNewline
             # Calling the fix
-            $fixResult = &"resolve-$Resolution"
+            $fixResult = &"resolve-$($Resolution -replace '-','')"
             # Switching display based on returned value
             switch ($fixResult) {
                 "Info" { 

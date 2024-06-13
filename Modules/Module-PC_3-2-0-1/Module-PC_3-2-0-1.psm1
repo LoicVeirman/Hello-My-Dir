@@ -9,24 +9,24 @@
 
     Fix list:
     > S-OldNtlm                         GPO Default Domain Security Policy
-    > S-ADRegistration                  Function Resolve-S-ADRegistration 
-    > S-DC-SubnetMissing                Function Resolve-S-DC-SubnetMissing
-    > S-PwdNeverExpires                 Function Resolve-S-PwdNeverExpires
-    > P-Delegated                       Function Resolve-P-Delegated
-    > P-RecycleBin                      Function Resolve-P-RecycleBin
-    > P-SchemaAdmin                     Function Resolve-P-SchemaAdmin
-    > P-UnprotectedOU                   Function Resolve-P-UnprotectedOU
-    > A-LAPS-Not-Installed              Function Resolve-A-LAPS-NOT-Installed & GPO Default Domain Security Policy
-    > A-MinPwdLen                       Function Resolve-A-MinPwdLen
+    > S-ADRegistration                  Function Resolve-SADRegistration 
+    > S-DC-SubnetMissing                Function Resolve-SDCSubnetMissing
+    > S-PwdNeverExpires                 Function Resolve-SPwdNeverExpires
+    > P-Delegated                       Function Resolve-PDelegated
+    > P-RecycleBin                      Function Resolve-PRecycleBin
+    > P-SchemaAdmin                     Function Resolve-PSchemaAdmin
+    > P-UnprotectedOU                   Function Resolve-PUnprotectedOU
+    > A-LAPS-Not-Installed              Function Resolve-ALAPSNotInstalled & GPO Default Domain Security Policy
+    > A-MinPwdLen                       Function Resolve-AMinPwdLen
     > A-DC-Spooler                      GPO Default Domain Controller Security Policy
     > A-AuditDC                         GPO Default Domain Controller Security Policy
     > A-DC-Coerce                       GPO Default Domain Controller Security Policy
     > A-HardenedPaths                   GPO Default Domain Controller Security Policy
-    > A-NoServicePolicy                 Function Resolve-S-PwdNeverExpires (add the requiered PSO)
-    > A-PreWin2000AuthenticatedUsers    Function REsolve-A-PreWin2000AuthenticatedUsers
+    > A-NoServicePolicy                 Function Resolve-SPwdNeverExpires (add the requiered PSO)
+    > A-PreWin2000AuthenticatedUsers    Function REsolve-APreWin2000AuthenticatedUsers
 #>
 #region S-ADRegistration
-Function Resolve-S-ADRegistration {
+Function Resolve-SADRegistration {
     <#
         .SYNOPSIS
         Resolve the alert S-ADRegistration from PingCastle.
@@ -74,7 +74,7 @@ Function Resolve-S-ADRegistration {
 }
 #endregion
 #region S-DC-SubnetMissing
-Function Resolve-S-DC-SubnetMissing {
+Function Resolve-SDCSubnetMissing {
     <#
         .SYNOPSIS
         Resolve the S-DC-SubnetMissing alert from PingCastle.
@@ -150,7 +150,7 @@ Function Resolve-S-DC-SubnetMissing {
 }
 #endregion
 #region S-PwdNeverExpires
-Function Resolve-S-PwdNeverExpires {
+Function Resolve-SPwdNeverExpires {
     <#
         .SYNOPSIS
         Resolve the S-PwdNeverExpires alert from PingCastle.
@@ -276,7 +276,7 @@ Function Resolve-S-PwdNeverExpires {
 }
 #endregion
 #region P-Delegated
-Function Resolve-P-Delegated {
+Function Resolve-PDelegated {
     <#
         .SYNOPSIS
         Reolve the P-Delegated alert from PingCastle.
@@ -314,7 +314,7 @@ Function Resolve-P-Delegated {
 }
 #endregion
 #region P-RecycleBin
-Function Resolve-P-RecycleBin {
+Function Resolve-PRecycleBin {
     <#
         .SYNOPSIS
         Resolve the alert P-RecycleBin from PingCastle.
@@ -376,7 +376,7 @@ Function Resolve-P-RecycleBin {
 }
 #endregion
 #region P-SchemaAdmin
-Function Resolve-P-SchemaAdmin {
+Function Resolve-PSchemaAdmin {
     <#
         .SYNOPSIS
         Resolve the alert P-SchemaAdmin from PingCastle.
@@ -413,7 +413,7 @@ Function Resolve-P-SchemaAdmin {
 }
 #endregion
 #region P-UnprotectedOU
-Function Resolve-P-UnprotectedOU {
+Function Resolve-PUnprotectedOU {
     <#
         .SYNOPSIS
         Resolve the alert P-UnprotectedOU from PingCastle.
@@ -452,7 +452,7 @@ Function Resolve-P-UnprotectedOU {
 }
 #endregion
 #region A-MinPwdLen
-Function Resolve-A-MinPwdLen {
+Function Resolve-AMinPwdLen {
     <#
         .SYNOPSIS
         Resolve the alert A-MinPwdLen from PingCastle.
@@ -508,7 +508,7 @@ Function Resolve-A-MinPwdLen {
 }
 #endregion
 #region A-PreWin2000AuthenticatedUsers
-Function Resolve-A-PreWin2000AuthenticatedUsers {
+Function Resolve-APreWin2000AuthenticatedUsers {
     <#
         .SYNOPSIS
         Resolve the alert A-PreWin2000AuthenticatedUsers from PingCastle.
@@ -542,7 +542,7 @@ Function Resolve-A-PreWin2000AuthenticatedUsers {
 }
 #endregion
 #region A-LAPS-NOT-Installed
-Function Resolve-A-LAPS-NOT-Installed {
+Function Resolve-ALAPSNotInstalled {
     <#
         .SYNOPSIS
         This function resolve the alert A-LAPS-NOT-Installed from PingCastle.
