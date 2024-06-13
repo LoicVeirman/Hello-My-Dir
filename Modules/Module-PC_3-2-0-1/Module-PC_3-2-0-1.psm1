@@ -300,7 +300,7 @@ Function Resolve-PDelegated {
     # Looping
     foreach ($User in $Users) {
         Try {
-            Set-AdUser $User.Name -AccountNotDelegated 1 -ErrorAction Stop | Out-Null
+            Set-AdUser $User.ObjectGUID -AccountNotDelegated 1 -ErrorAction Stop | Out-Null
             $LogData += "$($User.Name): successfully set AccountNotDelegated to 1"
         }
         Catch {
