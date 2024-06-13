@@ -372,7 +372,7 @@ Else {
                         $gpPath = "OU=Domain Controllers,$gpPath"
                     }
                     [void](New-Gpo -Name $gpo.Name -ErrorAction Stop)
-                    [void](Import-GPO -BackupId $GPO.BackupId -TargetName $gpo.Name -Path .\Imports\$($GPO.Name) -ErrorAction Stop)
+                    [void](Import-GPO -BackupId $GPO.BackupId -TargetName $gpo.Name -Path $PSScriptRoot\Imports\$($GPO.Name) -ErrorAction Stop)
                     [void](Set-GPLink -Name $gpo.Name -Target $gpPath -LinkEnabled $true -ErrorAction Stop)
                     Write-ToEventLog -EventType INFO -EventMsg "GPO $($GPO.Name): imported successfully."
                     $isSuccess++
