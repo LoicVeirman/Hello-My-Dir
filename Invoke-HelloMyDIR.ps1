@@ -255,55 +255,10 @@ if ($Prepare) {
 Else {
     # The script may require to install binairies. In any case, a reboot will be needed and the script run a second time.
     # A warning message is shown to the user with a reminder to run the script once logged in back.
-    
-    $UserDeclined = Write-WarningText -Id RebootAction
-
-    if ($UserDeclined) {
-        Write-toEventLog -EventType Warning -EventMsg @("User has canceled the installation.","END: invoke-HelloMyDir")
-        Remove-Module -Name (Get-ChildItem .\Modules).Name -ErrorAction SilentlyContinue | Out-Null
-        Exit 0
-    }
 
     # Create result text array
     $arrayRsltTxt = @('RUNNING','SUCCESS',' ERROR ','SKIPPED','WARNING')
     $arrayColrTxt = @('Gray','Green','Red','cyan','Yellow')
-
-    # Loading user desiderata
-    $RunSetup = Get-XmlContent .\Configuration\RunSetup.xml
-
-    #region Dealing with binaries to install
-    $reqBinaries = @('AD-Domain-Services','RSAT-AD-Tools','RSAT-DNS-Server','RSAT-DFS-Mgmt-Con','GPMC')
-    $BinariesStatus = $RunSetup.Configuration.WindowsFeatures
-    $prerequesiteKO = $false
-    $ProgressPreference = "SilentlyContinue"
-    foreach ($ReqBinary in $reqBinaries) {
-        $CursorPosition = $Host.UI.RawUI.CursorPosition
-        Write-Host "[       ] binaries installation.....: $ReqBinary"
-        if ($BinariesStatus.$ReqBinary -eq 'Yes') {
-            # installing
-            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
-            Write-Host $arrayRsltTxt[0] -ForegroundColor $arrayColrTxt[0] -NoNewline
-
-            Try {
-                install-windowsFeature -Name $ReqBinary -IncludeAllSubFeature -ErrorAction Stop | Out-Null
-                $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
-                Write-Host $arrayRsltTxt[1] -ForegroundColor $arrayColrTxt[1]
-                $RunSetup.Configuration.WindowsFeatures.$ReqBinary = "No"
-            }
-            Catch {
-                $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
-                Write-Host $arrayRsltTxt[2] -ForegroundColor $arrayColrTxt[2]                     
-                $prerequesiteKO = $True
-            }
-        }
-        Else {
-            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
-            Write-Host $arrayRsltTxt[3] -ForegroundColor $arrayColrTxt[3]
-        }
-    }
-    $RunSetup.Save((Resolve-Path .\Configuration\RunSetup.xml).Path)
-    $ProgressPreference = "Continue"
-    #endregion
 
     # Checking if the domain is to be installed or not
     $isDomain = (gwmi win32_computersystem).partofdomain
@@ -401,6 +356,52 @@ Else {
     Else {
         $DbgLog += @('USE CASE: A - The domain is to be installed')
         
+        $UserDeclined = Write-WarningText -Id RebootAction
+        if ($UserDeclined) {
+            Write-toEventLog -EventType Warning -EventMsg @("User has canceled the installation.","END: invoke-HelloMyDir")
+            Remove-Module -Name (Get-ChildItem .\Modules).Name -ErrorAction SilentlyContinue | Out-Null
+            Exit 0
+        }
+
+        # Loading user desiderata
+        $RunSetup = Get-XmlContent .\Configuration\RunSetup.xml
+
+        #region Dealing with binaries to install
+        $reqBinaries = @('AD-Domain-Services','RSAT-AD-Tools','RSAT-DNS-Server','RSAT-DFS-Mgmt-Con','GPMC')
+        $BinariesStatus = $RunSetup.Configuration.WindowsFeatures
+        $prerequesiteKO = $false
+        
+        $ProgressPreference = "SilentlyContinue"
+
+        foreach ($ReqBinary in $reqBinaries) {
+            $CursorPosition = $Host.UI.RawUI.CursorPosition
+            Write-Host "[       ] binaries installation.....: $ReqBinary"
+            if ($BinariesStatus.$ReqBinary -eq 'Yes') {
+                # installing
+                $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
+                Write-Host $arrayRsltTxt[0] -ForegroundColor $arrayColrTxt[0] -NoNewline
+
+                Try {
+                    install-windowsFeature -Name $ReqBinary -IncludeAllSubFeature -ErrorAction Stop | Out-Null
+                    $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
+                    Write-Host $arrayRsltTxt[1] -ForegroundColor $arrayColrTxt[1]
+                    $RunSetup.Configuration.WindowsFeatures.$ReqBinary = "No"
+                }
+                Catch {
+                    $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
+                    Write-Host $arrayRsltTxt[2] -ForegroundColor $arrayColrTxt[2]                     
+                    $prerequesiteKO = $True
+                }
+            }
+            Else {
+                $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
+                Write-Host $arrayRsltTxt[3] -ForegroundColor $arrayColrTxt[3]
+            }
+        }
+        $RunSetup.Save((Resolve-Path .\Configuration\RunSetup.xml).Path)
+        $ProgressPreference = "Continue"
+        #endregion
+
         # Display data
         $CursorPosition = $Host.UI.RawUI.CursorPosition
         Write-Host "[       ] Installing your new domain $($RunSetup.Configuration.Domain.FullName)"
