@@ -278,7 +278,7 @@ Else {
     $ProgressPreference = "SilentlyContinue"
     foreach ($ReqBinary in $reqBinaries) {
         $CursorPosition = $Host.UI.RawUI.CursorPosition
-        Write-Host "[       ] binaries installation..: $ReqBinary"
+        Write-Host "[       ] binaries installation.....: $ReqBinary"
         if ($BinariesStatus.$ReqBinary -eq 'Yes') {
             # installing
             $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
@@ -323,7 +323,7 @@ Else {
             # Get cursor position
             $CursorPosition = $Host.UI.RawUI.CursorPosition
             # Display action
-            Write-Host "[       ] Fixing PingCastle alert: $Resolution"
+            Write-Host "[       ] Fixing PingCastle alert...: $Resolution"
             $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
             Write-Host $arrayRsltTxt[0] -ForegroundColor $arrayColrTxt[0] -NoNewline
             # Calling the fix
@@ -356,7 +356,7 @@ Else {
             # Get cursor position
             $CursorPosition = $Host.UI.RawUI.CursorPosition
             # Display action
-            Write-Host "[       ] Adding Security GPO....: $($GPO.Name)"
+            Write-Host "[       ] Adding Security GPO.......: $($GPO.Name)"
             $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
             Write-Host $arrayRsltTxt[0] -ForegroundColor $arrayColrTxt[0] -NoNewline
 
