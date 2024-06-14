@@ -295,7 +295,8 @@ Function Resolve-PDelegated {
     $FlagRes = "Info"
 
     # Getting all empowered users, except KRBTGT
-    $Users = Get-ADObject -LDAPFilter "(&(AdminCount=1)(ObjectClass=User)(!(Name=krbtgt)))"
+    $Users = @()
+    $Users += Get-ADObject -LDAPFilter "(&(AdminCount=1)(ObjectClass=User)(!(Name=krbtgt)))"
 
     # Looping
     foreach ($User in $Users) {
