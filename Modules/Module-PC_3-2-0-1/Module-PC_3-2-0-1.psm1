@@ -484,7 +484,7 @@ Function Resolve-AMinPwdLen {
     }
     $LogData += "New Default Domain Policy password length value: $newLen"
 
-    # Update the policy
+    # Update the policy: Windows Server 2022
     Try {
         if ((gwmi Win32_OperatingSystem).Caption -match "2022") {
             Set-ADDefaultDomainPasswordPolicy -ComplexityEnabled 1 -Confirm:$false -Identity (Get-ADDomain).DistinguishedName `
@@ -495,12 +495,32 @@ Function Resolve-AMinPwdLen {
             $LogData += @("Complexity: Enabled", "Lockout duration: 15 min.", "Lockout observation: 5 min.", "Lockout threshold: 5", "Max pwd age: 365 days", "Min pwd age: 1 day", "Password Min Length: $newLen", "Password History: 24", "Reversible encryption: False")
         }
         Else {
-            $LogData += "Sorry, this function does not handle OS release beneath Windows Server 2022."
+            $LogData += "Sorry, this function does not handle OS release beneath Windows Server 2022. Will try to set this up by manipulating secpol..."
+        }
+    }
+    Catch {
+        $LogData += @("Failed to update the default password strategy for your domain!","Error: $($_.ToString())")
+        $FlagRes = "Error"
+    }
+
+    # Update the policy: Windows Server 2019 or younger
+    Try {
+        if ((gwmi Win32_OperatingSystem).Caption -notmatch "2022") {
+            [void](secedit /export /cfg .\secpol.cfg)
+            [void]((Get-Content .\secpol.cfg).replace("MaximumPasswordAge = 42", "MaximumPasswordAge = 365") | Out-File .\secpol.cfg)
+            [void]((Get-Content .\secpol.cfg).replace("MinimumPasswordLength = 7", "MinimumPasswordLength = $NewLen") | Out-File .\secpol.cfg)
+            [void](secedit /configure /db c:\windows\security\local.sdb /cfg .\secpol.cfg /areas SECURITYPOLICY)
+            [void](rm -force .\secpol.cfg -confirm:$false)
+
+            $LogData += @("Complexity: Enabled", "Lockout duration: N/A", "Lockout observation: N/A", "Lockout threshold: 0", "Max pwd age: 365 days", "Min pwd age: 1 day", "Password Min Length: $newLen", "Password History: 24", "Reversible encryption: False")
+        }
+        Else {
+            $LogData += "Failed to identify how to setup the default password strategy!"
             $FlagRes = "Warning"
         }
     }
     Catch {
-        $LogData += "Failed to update the default password strategy for your domain!"
+        $LogData += @("Failed to update the default password strategy for your domain!","Error: $($_.ToString())")
         $FlagRes = "Error"
     }
 
