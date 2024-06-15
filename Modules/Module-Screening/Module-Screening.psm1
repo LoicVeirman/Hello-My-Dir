@@ -365,7 +365,7 @@ Function Write-WarningText {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory,Position=0)]
-        [ValidateSet('RebootAction')]
+        [ValidateSet('RebootAction','FinalAction')]
         [String]
         $Id
     )

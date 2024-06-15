@@ -253,8 +253,7 @@ if ($Prepare) {
 
 #region USE CASE 2: SETUP AD
 Else {
-    # The script may require to install binairies. In any case, a reboot will be needed and the script run a second time.
-    # A warning message is shown to the user with a reminder to run the script once logged in back.
+
 
     # Create result text array
     $arrayRsltTxt = @('RUNNING','SUCCESS',' ERROR ','SKIPPED','WARNING')
@@ -350,6 +349,16 @@ Else {
         # Result Array for final display
         $Results = New-Object -TypeName psobject -Property @{Success=$isSuccess ; Warning=$isWarning ; Error=$isFailure}
         $Results | Select-Object Success,Warning,Error | Format-Table -AutoSize
+
+        # Final action: reboot
+        $UserDeclined = Write-WarningText -Id FinalAction
+        if ($UserDeclined) {
+            Write-toEventLog -EventType Warning -EventMsg @("User has canceled the reboot.",'But I give no care, that is to be done.','...','Wait, he is my master...','Damned. No reboot...',' ',"END: invoke-HelloMyDir")
+            Remove-Module -Name (Get-ChildItem .\Modules).Name -ErrorAction SilentlyContinue | Out-Null
+            Exit 0
+        } Else {
+            Restart-Computer -force | Out-Null
+        }
     }
     #endregion
 
@@ -357,6 +366,8 @@ Else {
     Else {
         $DbgLog += @('USE CASE: A - The domain is to be installed')
         
+        # The script may require to install binairies. In any case, a reboot will be needed and the script run a second time.
+        # A warning message is shown to the user with a reminder to run the script once logged in back.
         $UserDeclined = Write-WarningText -Id RebootAction
         if ($UserDeclined) {
             Write-toEventLog -EventType Warning -EventMsg @("User has canceled the installation.","END: invoke-HelloMyDir")

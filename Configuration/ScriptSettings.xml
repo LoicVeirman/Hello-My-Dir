@@ -25,6 +25,9 @@
             <Line>Once the script will have run the ADDS installation, a `|reboot` will be performed.</Line>
             <Line>To harden the directory, you will have to `|rerun this script`.</Line>
         </RebootAction>
+        <FinalAction ColorScheme="Warning" Confirm="Yes">
+            <Line>The script will now have to perform a `|reboot` to terminate the setup.</Line>
+        </FinalAction>
     </Warning>
     <ColorScheme>
         <Warning A='Cyan' B='Yellow' C='Green' default='white' />
