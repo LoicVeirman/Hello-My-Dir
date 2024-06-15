@@ -150,6 +150,38 @@ Function Resolve-SDCSubnetMissing {
     Return $FlagRes
 }
 #endregion
+#region S-DC-SubnetMissingIPv6
+Function Resolve-SDCSubnetMissingIPv6 {
+    <#
+        .SYNOPSIS
+        Disable IPv6 on the local system.
+
+        .DESCRIPTION
+        Check for any interface setup for IPv6 and disable IPv6 on it.
+
+        .NOTES
+        Version 01.00.00 (2024/06/15 - Creation)
+    #>
+    Param()
+
+    # Init debug 
+    Test-EventLog | Out-Null
+    $LogData = @('Fixing missing DC subnet in AD Sites:',' ')
+    $FlagRes = "Info"
+
+    Try {
+        Get-NetAdapterBinding -ComponentID "ms_tcpip6" | Where-Object { _.Enabled -eq $true } | Disable-NetAdapterBinding -ComponentID "ms_tcpip6"
+        $LogData += "ms_tcpip6 disabled on all interfaces."
+    }
+    Catch {
+        $LogData += @("Failed to disable ms_tcpip6 on all interfaces.","Error: $($_.ToString())")
+        $FlagRes = "Error"
+    }
+    # Sending log and leaving with proper exit code
+    Write-ToEventLog $FlagRes $LogData
+    Return $FlagRes
+}
+#endregion
 #region S-PwdNeverExpires
 Function Resolve-SPwdNeverExpires {
     <#

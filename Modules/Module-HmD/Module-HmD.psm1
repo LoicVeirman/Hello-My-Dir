@@ -523,7 +523,6 @@ Function Get-HmDForest {
     # Return result
     return $PreviousChoices
 }
-
 Function Get-HmDDomain {
     <#
         .SYNOPSIS
@@ -1110,4 +1109,24 @@ Function Get-HmDDomain {
 
     # Return result
     return $PreviousChoices
+}
+Function Resolve-IPv6SubnetMissing {
+    <#
+        .SYNOPSIS
+        Disable IPv6 on the local system.
+
+        .DESCRIPTION
+        Check for any interface setup for IPv6 and disable IPv6 on it.
+
+        .NOTES
+        Version 01.00.00 (2024/06/15 - Creation)
+    #>
+    Param()
+
+    Try {
+        Get-NetAdapterBinding -ComponentID "ms_tcpip6" | Where-Object { _.Enabled -eq $true } | Disable-NetAdapterBinding -ComponentID "ms_tcpip6"
+    }
+    Catch {
+
+    }
 }

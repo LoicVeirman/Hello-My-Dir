@@ -272,8 +272,8 @@ Else {
 
         #Region PingCastle Script Fixes
         # Fix list
-        $PCFixList  = @('P-Delegated','S-ADRegistration','S-DC-SubnetMissing','S-PwdNeverExpires','P-RecycleBin','P-SchemaAdmin')
-        $PCFixList += @('P-UnprotectedOU','A-MinPwdLen','A-PreWin2000AuthenticatedUsers','A-LAPS-NOT-Installed')
+        $PCFixList  = @('P-Delegated','S-ADRegistration','S-DC-SubnetMissing','S-DC-SubnetMissing-IPv6','S-PwdNeverExpires')
+        $PCFixList += @('P-RecycleBin','P-SchemaAdmin','P-UnprotectedOU','A-MinPwdLen','A-PreWin2000AuthenticatedUsers','A-LAPS-NOT-Installed')
         # Fix loop
         foreach ($Resolution in $PCFixList) {
             # Get cursor position
