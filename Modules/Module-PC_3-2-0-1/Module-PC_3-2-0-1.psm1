@@ -328,21 +328,16 @@ Function Resolve-PDelegated {
     $FlagRes = "Info"
 
     # Getting all empowered users, except KRBTGT
-    $Users += Get-ADObject -LDAPFilter "(&(AdminCount=1)(ObjectClass=User))"
-
-    # Looping
-    foreach ($User in $Users) {
-        if ($User.name -ne 'krbtgt') {
-            Try {
-                Set-AdUser $User.ObjectGUID -AccountNotDelegated 1 -ErrorAction Stop | Out-Null
-                $LogData += "$($User.Name): successfully set AccountNotDelegated to 1"
-            }
-            Catch {
-                $LogData += "$($User.Name): failed tp set AccountNotDelegated to 1!"
-                $FlagRes = "Error"
-            }
-        }
+    Try {
+        $myAdmin = "$((Get-AdDomain).DomainSID)-500"
+        Set-AdUser $myAdmin -AccountNotDelegated 1 -ErrorAction Stop | Out-Null
+        $LogData += "$($MyAdmin.Name): successfully set AccountNotDelegated to 1"
     }
+    Catch {
+        $LogData += @("$($MyAdmin.Name): failed tp set AccountNotDelegated to 1!",' ',"Error: $($_.ToString())")
+        $FlagRes = "Error"
+    }
+
     # Sending log and leaving with proper exit code
     Write-ToEventLog $FlagRes $LogData
     Return $FlagRes
