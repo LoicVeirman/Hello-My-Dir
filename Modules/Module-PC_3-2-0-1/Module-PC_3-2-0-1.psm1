@@ -8,7 +8,7 @@
 
 
     Fix list:
-    > S-OldNtlm                         GPO Default Domain Security Policy
+    > S-OldNtlm                         GPO Default Domain Security
     > S-ADRegistration                  Function Resolve-SADRegistration 
     > S-DC-SubnetMissing                Function Resolve-SDCSubnetMissing
     > S-PwdNeverExpires                 Function Resolve-SPwdNeverExpires
@@ -18,12 +18,13 @@
     > P-UnprotectedOU                   Function Resolve-PUnprotectedOU
     > A-LAPS-Not-Installed              Function Resolve-ALAPSNotInstalled & GPO Default Domain Security Policy
     > A-MinPwdLen                       Function Resolve-AMinPwdLen
-    > A-DC-Spooler                      GPO Default Domain Controller Security Policy
-    > A-AuditDC                         GPO Default Domain Controller Security Policy
-    > A-DC-Coerce                       GPO Default Domain Controller Security Policy
-    > A-HardenedPaths                   GPO Default Domain Controller Security Policy
+    > A-DC-Spooler                      GPO Default Domain Controller Security
+    > A-AuditDC                         GPO Default Domain Controller Security
+    > A-DC-Coerce                       GPO Default Domain Controller Security
+    > A-HardenedPaths                   GPO Default Domain Controller Security
     > A-NoServicePolicy                 Function Resolve-SPwdNeverExpires (add the requiered PSO)
     > A-PreWin2000AuthenticatedUsers    Function REsolve-APreWin2000AuthenticatedUsers
+    > S-SMB-v1                          GPO Default Domain Security
 #>
 #region S-ADRegistration
 Function Resolve-SADRegistration {
@@ -573,7 +574,7 @@ Function Resolve-ALAPSNotInstalled {
     $LogData += @("OS Caption: $($OSCaption)","Domain Functional Level: $($DomainDFL)","OS Architecture: $($OSArchitr)",' ')
 
     # Updating Schema, if possible
-    if (($OSCaption -match '2019' -or '2022') -and ($DomainDFL -match '2016')) {
+    if (($OSCaption -match '2019' -or $OSCaption -match '2022') -and ($DomainDFL -match '2016')) {
         $LogData += @("The prerequesite to Windows LAPS are fullfilled."," ")
         Try {
             [void](Update-LapsADSchema -Confirm:$false -ErrorAction Stop)
