@@ -166,11 +166,11 @@ Function Resolve-SDCSubnetMissingIPv6 {
 
     # Init debug 
     Test-EventLog | Out-Null
-    $LogData = @('Fixing missing DC subnet in AD Sites:',' ')
+    $LogData = @('Disabling IPv6:',' ')
     $FlagRes = "Info"
 
     Try {
-        Get-NetAdapterBinding -ComponentID "ms_tcpip6" | Where-Object { _.Enabled -eq $true } | Disable-NetAdapterBinding -ComponentID "ms_tcpip6"
+        Get-NetAdapterBinding -ComponentID "ms_tcpip6" | Where-Object { $_.Enabled -eq $true } | Disable-NetAdapterBinding -ComponentID "ms_tcpip6"
         $LogData += "ms_tcpip6 disabled on all interfaces."
     }
     Catch {
