@@ -103,7 +103,7 @@ Function Resolve-ProtectedUsers {
 
     # Adding administrator to PUG.
     Try {
-        [void](New-AdGroupMember -identity "Protected Users" -Members (Get-AdUser "$((Get-AdDomain).DomainSID)-500") -ErrorAction Stop)
+        [void](Add-AdGroupMember -identity "Protected Users" -Members (Get-AdUser "$((Get-AdDomain).DomainSID)-500") -ErrorAction Stop)
         $LogData += "Account successfully added."
     }
     Catch {
