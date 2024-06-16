@@ -9,6 +9,7 @@
     > Permission changes on AdminSDHolder object                                                    Alert expected: the domain has just been built.
     > gMSA not in use                                                                               Alert expected: there is no need of gMSA at this stage.
     > Built-in domain Administrator account used within the last two weeks                          Alert expected: this is the only account.
+    > Recent privileged account creation activity                                                   Alert expected: the domain has just been built.
     > Changes to privileged group membership in the last 7 days                                     Alert expected: the domain has just been built.
     > Changes to Default Domain Policy or Default Domain Controllers Policy in the last 7 days      Alert expected: the domain has just been built.
 
