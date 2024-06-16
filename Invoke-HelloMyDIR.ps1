@@ -362,7 +362,7 @@ Else {
                     }
                     [void](New-Gpo -Name $gpo.Name -ErrorAction Stop)
                     [void](Import-GPO -BackupId $GPO.BackupId -TargetName $gpo.Name -Path $PSScriptRoot\Imports\$($GPO.Name) -ErrorAction Stop)
-                    [void](New-GPLink -Name $gpo.Name -Target $gpPath -LinkEnabled Yes -ErrorAction Stop)
+                    [void](New-GPLink -Name $gpo.Name -Target $gpPath -LinkEnabled Yes -Order 1 -ErrorAction Stop)
                     Write-ToEventLog -EventType INFO -EventMsg "GPO $($GPO.Name): imported successfully."
                     $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
                     Write-Host $arrayRsltTxt[1] -ForegroundColor $arrayColrTxt[1]
