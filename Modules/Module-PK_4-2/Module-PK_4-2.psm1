@@ -68,12 +68,12 @@ Function Resolve-LDAPSrequired {
             $LogData += @("Certificate $DCName copied to LocalMachine\Root.",' ')
         }
         Else {
-            $LogData += @("Certificate $DCName not found in LocalMachine\My!","Error: $($_.ToString())"
+            $LogData += @("Certificate $DCName not found in LocalMachine\My!","Error: $($_.ToString())")
             $FlagRes = "Error"
         }
     }
     Catch {
-        $LogData += @("Certificate $DCName failed to be copied in LocalMachine\Root!","Error: $($_.ToString())"
+        $LogData += @("Certificate $DCName failed to be copied in LocalMachine\Root!","Error: $($_.ToString())")
         $FlagRes = "Error"
     }
     # Sending log and leaving with proper exit code
@@ -110,7 +110,7 @@ Function Resolve-ProtectedUsers {
         $LogData += @("Failed to add the account to the group!"," ","Error: $($_.ToString())")
         $FlagRes = "Error"
     }
-    
+
     # Sending log and leaving with proper exit code
     Write-ToEventLog $FlagRes $LogData
     Return $FlagRes 
