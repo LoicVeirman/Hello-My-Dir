@@ -1,9 +1,8 @@
 <#
     THIS MODULE CONTAINS FUNCTIONS RELATED TO PURPLE KNIGHT V4.2
 
-    Initial Score: 98/100 (AD DElegation: 100, Account Security:  99, AD Infrastructure Security:  99, Group Policy Security: 100, Kerberos Security:  99, Hybrid: N/A)
-    Release Score: ??/100 (AD DElegation: 100, Account Security: ..., AD Infrastructure Security: ..., Group Policy Security: 100, Kerberos Security: ..., Hybrid: N/A)
-    Release ANSSI: Level 02
+    Initial Score:  98/100 (AD DElegation: 100, Account Security:  99, AD Infrastructure Security:  99, Group Policy Security: 100, Kerberos Security:  99, Hybrid: N/A)
+    Release Score: 100/100 (AD DElegation: 100, Account Security: 100, AD Infrastructure Security: 100, Group Policy Security: 100, Kerberos Security: 100, Hybrid: N/A)
 
     Disabled Test:
     > Permission changes on AdminSDHolder object                                                    Alert expected: the domain has just been built.
