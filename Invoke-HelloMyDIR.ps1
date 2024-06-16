@@ -303,7 +303,39 @@ Else {
             }
         }
         #endregion
-
+        #Region PurpleKnight Script Fixes
+        # Fix list
+        $PKFixList  = @('Protected-Users','LDAPS-required')
+        # Fix loop
+        foreach ($Resolution in $PKFixList) {
+            # Get cursor position
+            $CursorPosition = $Host.UI.RawUI.CursorPosition
+            # Display action
+            Write-Host "[       ] Fixing PurpleKnight alert.: $Resolution"
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
+            Write-Host $arrayRsltTxt[0] -ForegroundColor $arrayColrTxt[0] -NoNewline
+            # Calling the fix
+            $fixResult = &"resolve-$($Resolution -replace '-','')"
+            # Switching display based on returned value
+            switch ($fixResult) {
+                "Info" { 
+                    $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
+                    Write-Host $arrayRsltTxt[1] -ForegroundColor $arrayColrTxt[1]
+                    $isSuccess++
+                }
+                "Warning" {
+                    $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
+                    Write-Host $arrayRsltTxt[4] -ForegroundColor $arrayColrTxt[4]
+                    $isWarning++
+                }
+                "Error" {
+                    $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
+                    Write-Host $arrayRsltTxt[2] -ForegroundColor $arrayColrTxt[2]
+                    $isFailure++
+                }
+            }
+        }
+        #endregion
         #Region Import GPO
         $DomainSettings = Get-XmlContent .\Configuration\DomainSettings.xml
 

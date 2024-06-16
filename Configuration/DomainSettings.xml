@@ -20,7 +20,7 @@
     </PwdStrategyObjects>
     <DefaultPwdStrategy PwdLength='10' />
     <GroupPolicies>
-        <GPO Name="Default Domain Security" BackupID="{10C56E10-02BC-46F2-B93E-917151950C0A}" Linkage="Root" />
-        <GPO Name="Default Domain Controllers Security" BackupID="{36B75152-D45F-4329-9D7A-D8CAFD6E182B}" Linkage="DC" />
+        <GPO Name="Default Domain Security" BackupID="{0B0FC9E4-A7D9-4800-9AF9-272E38C6CCCE}" Linkage="Root" />
+        <GPO Name="Default Domain Controllers Security" BackupID="{9947AFBC-5433-47E0-AFB8-E7CBD1D23887}" Linkage="DC" />
     </GroupPolicies>
 </Settings>
