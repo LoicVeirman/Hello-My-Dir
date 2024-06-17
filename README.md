@@ -14,8 +14,8 @@ The documentation is in place in the folder "Documentation" and explain how you 
 ## Auditing with Ping Castle and Purple Knight
 While diving around the script, we have ensure that both well known AD security auditing tools will give you the maximum score you can expect right after building up your domain. 
 To achieve our goal, we have tested our delivery against the below versions of their respective Community Edition:
-> Ping Castle    3.2.0.1
-> Purple Knight  4.2 
+> - Ping Castle 3.2.0.1
+> - Purple Knight 4.2 
 
 Tests were made upon Windows Servers 2016 to 2022 (english edition), and Functional Level were tested from 2008 up to 2022.
 
