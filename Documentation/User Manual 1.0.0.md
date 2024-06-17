@@ -73,6 +73,12 @@ You can run the configuration setup with the following command:
 ```PS
 .\Invoke-HelloMyDIR.ps1 -Prepare
 ```
+
+### What will be your next step?
+The script is just a starting point. From there, you should add another DC (which will require a certificate for LDAPS) and brough a Tiering Model Policy.
+We strongly invite you considering **hardenAD**, if you do not have a Tiering Model of your own (https://hardenad.net).  
+It will be also needed that you customize the LAPS policy (who can read, who can reset, etc).
+
 ### Troubleshooting
 When running, the script will always provide you with a result on each of its action:  
 1. **SUCCESS**: the task has been executed as expected.  
