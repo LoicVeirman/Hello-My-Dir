@@ -514,7 +514,9 @@ Function Resolve-AMinPwdLen {
 
     # Update the policy: Windows Server 2022
     Try {
+        $FlagIs2k22 = $False
         if ((gwmi Win32_OperatingSystem).Caption -match "2022") {
+            $FlagIs2k22 = $true
             Set-ADDefaultDomainPasswordPolicy -ComplexityEnabled 1 -Confirm:$false -Identity (Get-ADDomain).DistinguishedName `
                                               -LockOutDuration 0.0:15:0.0 -LockoutObservationWindow 0.0:5:0.0 -LockoutThreshold 5 `
                                               -MaxPasswordAge 365.0:0:0.0 -MinPasswordAge 1.0:0:0.0 -MinPasswordLength $newLen `
@@ -533,7 +535,7 @@ Function Resolve-AMinPwdLen {
 
     # Update the policy: Windows Server 2019 or younger
     Try {
-        if ((gwmi Win32_OperatingSystem).Caption -notmatch "2022") {
+        if (-not($FlagIs2k22)) {
             [void](secedit /export /cfg .\secpol.cfg)
             [void]((Get-Content .\secpol.cfg).replace("MaximumPasswordAge = 42", "MaximumPasswordAge = 365") | Out-File .\secpol.cfg)
             [void]((Get-Content .\secpol.cfg).replace("MinimumPasswordLength = 7", "MinimumPasswordLength = $NewLen") | Out-File .\secpol.cfg)
@@ -543,8 +545,10 @@ Function Resolve-AMinPwdLen {
             $LogData += @("Using SECPOL:",' ',"Complexity: Enabled", "Lockout duration: N/A", "Lockout observation: N/A", "Lockout threshold: 0", "Max pwd age: 365 days", "Min pwd age: 1 day", "Password Min Length: $newLen", "Password History: 24", "Reversible encryption: False")
         }
         Else {
-            $LogData += "Failed to identify how to setup the default password strategy!"
-            $FlagRes = "Warning"
+            if (-not($FlagIs2k22)) {
+                $LogData += "Failed to identify how to setup the default password strategy!"
+                $FlagRes = "Warning"
+            }
         }
     }
     Catch {
