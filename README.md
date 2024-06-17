@@ -2,13 +2,32 @@
 
 # Hello My Dir!
 
-This project is specifically made for brand new directories and ease their creation with all security rules in place. It is build upon the Harden AD project and tailored in a way where:
-> - You can create your own OU topology, based on the hAD model
-> - You can automate the administrative accounts creation
-> - You can automate the groups creation used to manage your IT services
-> - You can automate the users creation used by your company 
+This project is specifically made for brand new directories and ease their creation with all security rules in place:
+> - Remove legacy protocols/setup used by Microsoft for compliance purpose
+> - Enforce the use of modern alogrythm for cyphering and authentication
+> - Enforce LDAPS when a client request a connection to your DC 
+> - Enforce the default password stratefy to match with modern expectation
 
-The script will automate the answer file by itself but it will **not** be compliant with the *tasksSequence_HardenAD.xml* file - so do not switch them ;)
+The script will automate the answer file by itself at first run, but can modify it by using the parameter *-Prepare*.
+The documentation is in place in the folder "Documentation" and explain how you can run it.
+
+## Auditing with Ping Castle and Purple Knight
+While diving around the script, we have ensure that both well known AD security auditing tools will give you the maximum score you can expect right after building up your domain. 
+To achieve our goal, we have tested our delivery against the below versions of their respective Community Edition:
+> Ping Castle    3.2.0.1
+> Purple Knight  4.2 
+
+Tests were made upon Windows Servers 2016 to 2022 (english edition), and Functional Level were tested from 2008 up to 2022.
+
+## Does it be enough for securing AD?
+Certainly... Not. Well, securing AD is a journey and depend on whatever you want to do with (or associate to). This is a ood starting point, but it will be up to you to maintain it at the best level.
+The first two things you will have to do is:
+1. Build a second Domain Controller to fullfill redondancy requirement
+2. Assign to the second Domain Controller a self-signed certificate (at least) to enable LDAPS (you can reuse the code from the function *Resolve-LDAPSrequired*). 
+
+then, we strongly recomand you to define a Tier Model Policy, such as the one we have build through the HardenAD project (https://hardenad.net).
+
+Of course, you still can contact us to assist you in elaborating your brand new Active Directory: we'll be glad to help!
 
 ## Why do you create this project, when harden AD may be able to do the trick?
 It's a good question. The short answer will be: *to avoid complexity*. But here's the long story...
@@ -21,5 +40,7 @@ That's when I suddenly realized that this might also be the most effective tool 
 Why not? However, we are not thinking about it yet. Let's first see how this project will unfold...
 
 ## Can we use your project to build AD for our customers?
-you can sell an Active Directory installation service using this project by explicitly mentioning the Harden community as the author of the latter and of the deployed model (security, etc.) and by crediting the authors of this project. 
-By doing so, you will help improve the visibility of the community and strengthen its notoriety, which will benefit even more people for a safer AD environment!
+you can sell an Active Directory installation service using this project by explicitly mentioning the Harden community as the author of the latter and of the deployed model (security, etc.) and by crediting the authors of this project. By doing so, you will help improve the visibility of the community and strengthen its notoriety, which will benefit even more people for a safer AD environment!
+
+## Any last word?
+"Aaaaaargggghhhh..." - the Killing Joke.
