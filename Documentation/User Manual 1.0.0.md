@@ -87,7 +87,7 @@ When running, the script will always provide you with a result on each of its ac
 
 The logging is added to the event-viewer:  
 > Open *EventVwr.msc*  
-> Navigate to *Applications and Services Logs* 
+> Navigate to *Applications and Services Logs*  
 > Open the log named *HelloMyDir*
 
 Each function has its own Source, which in turn contains the output: you can then review the details of the execution. Warning and Error are equal to the output from the script, whereas Information is meant for SUCCESS.
