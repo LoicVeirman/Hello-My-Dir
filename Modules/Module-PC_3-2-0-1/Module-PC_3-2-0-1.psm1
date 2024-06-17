@@ -520,7 +520,7 @@ Function Resolve-AMinPwdLen {
                                               -MaxPasswordAge 365.0:0:0.0 -MinPasswordAge 1.0:0:0.0 -MinPasswordLength $newLen `
                                               -PasswordHistoryCount 24 -ReversibleEncryptionEnabled 0 
             
-            $LogData += @("Complexity: Enabled", "Lockout duration: 15 min.", "Lockout observation: 5 min.", "Lockout threshold: 5", "Max pwd age: 365 days", "Min pwd age: 1 day", "Password Min Length: $newLen", "Password History: 24", "Reversible encryption: False")
+            $LogData += @("Using Set-ADDefaultDomainPasswordPolicy:",' ',"Complexity: Enabled", "Lockout duration: 15 min.", "Lockout observation: 5 min.", "Lockout threshold: 5", "Max pwd age: 365 days", "Min pwd age: 1 day", "Password Min Length: $newLen", "Password History: 24", "Reversible encryption: False")
         }
         Else {
             $LogData += "Sorry, this function does not handle OS release beneath Windows Server 2022. Will try to set this up by manipulating secpol..."
@@ -540,7 +540,7 @@ Function Resolve-AMinPwdLen {
             [void](secedit /configure /db c:\windows\security\local.sdb /cfg .\secpol.cfg /areas SECURITYPOLICY)
             [void](rm -force .\secpol.cfg -confirm:$false)
 
-            $LogData += @("Complexity: Enabled", "Lockout duration: N/A", "Lockout observation: N/A", "Lockout threshold: 0", "Max pwd age: 365 days", "Min pwd age: 1 day", "Password Min Length: $newLen", "Password History: 24", "Reversible encryption: False")
+            $LogData += @("Using SECPOL:",' ',"Complexity: Enabled", "Lockout duration: N/A", "Lockout observation: N/A", "Lockout threshold: 0", "Max pwd age: 365 days", "Min pwd age: 1 day", "Password Min Length: $newLen", "Password History: 24", "Reversible encryption: False")
         }
         Else {
             $LogData += "Failed to identify how to setup the default password strategy!"
