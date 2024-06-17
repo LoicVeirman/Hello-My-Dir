@@ -20,7 +20,8 @@ To achieve our goal, we have tested our delivery against the below versions of t
 Tests were made upon Windows Servers 2016 to 2022 (english edition), and Functional Level were tested from 2008 up to 2022.
 
 ## Does it be enough for securing AD?
-Certainly... Not. Well, securing AD is a journey and depend on whatever you want to do with (or associate to). This is a ood starting point, but it will be up to you to maintain it at the best level.
+Certainly... Not. Well, securing AD is a journey and depend on whatever you want to do with (or associate to). 
+This project is a good starting point however, but it will be up to you to maintain it at the best level.
 The first two things you will have to do is:
 1. Build a second Domain Controller to fullfill redondancy requirement
 2. Assign to the second Domain Controller a self-signed certificate (at least) to enable LDAPS (you can reuse the code from the function *Resolve-LDAPSrequired*). 
