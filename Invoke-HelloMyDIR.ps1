@@ -8,24 +8,51 @@
     .DESCRIPTION
     This is the main script to execute the project "Hello my Dir!". This project is intended to ease in building a secure active directory from scratch and maintain it afteward.
 
+    .PARAMETER Prepare
+    Instruct the script to create or edit the setup configuration file (RunSetup.xml).
+
+    .PARAMETER AddDC
+    Instruct the script to add a new DC to your domain.
+
+    .PARAMETER NewDCname
+    Specify your new DC name, if you need to rename it before promoting.
+
     .EXAMPLE
-    .\HelloMyDir.ps1 -Prepare
+    .\Invoke-HelloMyDir.ps1 -Prepare
     Will only query for setup data (generate the RunSetup.xml file). 
 
     .EXAMPLE
-    .\HelloMyDir.ps1
+    .\Invoke-HelloMyDir.ps1
     Will run the script for installation purpose (or failed if not RunSetup.xml is present). 
 
+    .EXAMPLE
+    .\Invoke-HelloMyDir.ps1 -AddDC
+    Will run the script to empower the system as a new DC in an existing forest.
+
+    .EXAMPLE
+    .\Invoke-HelloMyDir.ps1 -AddDC -NewDCname 'SRV-ADDS-02'
+    Will run the script to empower the system as a new DC in an existing forest and name the new DC as SRV-ADDS-02.
+
     .NOTES
-    Version.: 01.00.000
+    Version.: 01.01.000
     Author..: Loic VEIRMAN (MSSec)
     History.: 
     01.00.000   Script creation.
+    01.01.000   Hello my DC - Add a DC to your forest.
 #>
+[CmdletBinding(DefaultParameterSetName = 'NewForest')]
 Param(
-    [Parameter(Position=0)]
+    [Parameter(Position=0, ParameterSetName = 'NewForest')]
     [switch]
-    $Prepare
+    $Prepare,
+
+    [Parameter(Position=1, ParameterSetName = 'NewDC')]
+    [switch]
+    $AddDC,
+
+    [Parameter(Position=1, ParameterSetName = 'NewDC')]
+    [string]
+    $NewDCname
 )
 #region Script Initialize
 # Load modules. If a module fails on load, the script will stop.
@@ -34,6 +61,7 @@ Try {
 }
 Catch {
     Write-Error "Failed to load modules."
+    Write-Host "`nError Message: $($_.ToString())`n" -ForegroundColor Yellow
     Exit 1
 }
 
@@ -44,8 +72,12 @@ Test-EventLog | Out-Null
 if ($Prepare) {
     $DbgLog += 'Option "Prepare" declared: the file RunSetup.xml will be generated'
 } 
-else {
-    $DbgLog += 'No option used: the setup will perform action to configure your AD.'
+if ($AddDC) {
+    $DbgLog += 'Option "AddDC" declared: the file RunSetup.xml will be used to promote the system as a DC'
+    $DbgLog += "Option NewDCname is equal to '$NewDCname'."
+} 
+if (-not($Prepare -and $AddDC)) {
+    $DbgLog += 'No option used: the setup will perform action to configure your AD (first DC in a brand new domain).'
 }
 
 # CHECK FOR FIRST RUN
@@ -65,7 +97,7 @@ $ScriptSettings = Get-XmlContent .\Configuration\ScriptSettings.xml
 Clear-Host
 $ScriptTitle = @(' ',"$([Char]0x2554)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2557)" `
                     ,"$([Char]0x2551) Hello My DIR! $([Char]0x2551)" `
-                    ,"$([Char]0x2551) version 1.0.0 $([Char]0x2551)" `
+                    ,"$([Char]0x2551) version 1.1.0 $([Char]0x2551)" `
                     ,"$([Char]0x2551) Lic. GNU GPL3 $([Char]0x2551)" `
                     ,"$([Char]0x255A)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x255D)" `
                     ,' ')
@@ -252,7 +284,7 @@ if ($Prepare) {
 #endregion
 
 #region USE CASE 2: SETUP AD
-Else {
+Elseif (-not($AddDC)) {
 
 
     # Create result text array
@@ -533,6 +565,47 @@ Else {
 
     }
     #endregion
+}
+#endregion
+
+#region USE CASE 3: ADD DC
+Elseif ($AddDC) {
+    # Get Computer info
+    $CsComputer = Get-ComputerInfo
+
+    # Is a domain member or standalone server? Then we can install.
+    # DomainRole acceptable value: https://learn.microsoft.com/en-us/dotnet/api/microsoft.powershell.commands.domainrole?view=powershellsdk-7.4.0
+    if ($CsComputer.CsDomainRole -eq 2 -or $CsComputer.CsDomainRole -eq 3) {
+        # Check if prerequesite are installed.
+        # Loading user desiderata
+        $RunSetup = Get-XmlContent .\Configuration\RunSetup.xml
+
+        #region Dealing with binaries to install
+        $reqBinaries = @('AD-Domain-Services','RSAT-AD-Tools','RSAT-DNS-Server','RSAT-DFS-Mgmt-Con','GPMC')
+
+        $ProgressPreference = "SilentlyContinue"
+
+        foreach ($ReqBinary in $reqBinaries) {
+            $CursorPosition = $Host.UI.RawUI.CursorPosition
+            Write-Host "[       ] binaries installation.....: $ReqBinary"
+            # installing
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
+            Write-Host $arrayRsltTxt[0] -ForegroundColor $arrayColrTxt[0] -NoNewline
+
+            Try {
+                install-windowsFeature -Name $ReqBinary -IncludeAllSubFeature -ErrorAction Stop | Out-Null
+                $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
+                Write-Host $arrayRsltTxt[1] -ForegroundColor $arrayColrTxt[1]
+                $RunSetup.Configuration.WindowsFeatures.$ReqBinary = "No"
+            }
+            Catch {
+                $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
+                Write-Host $arrayRsltTxt[2] -ForegroundColor $arrayColrTxt[2]                     
+                $prerequesiteKO = $True
+            }
+        }
+        $ProgressPreference = "Continue"
+    }
 }
 #endregion
 
