@@ -50,7 +50,7 @@ Param(
     [switch]
     $AddDC,
 
-    [Parameter(Position=1, ParameterSetName = 'NewDC')]
+    [Parameter(Position=2, ParameterSetName = 'NewDC')]
     [string]
     $NewDCname
 )
@@ -612,9 +612,39 @@ Elseif ($AddDC) {
         $ProgressPreference = "Continue"
         #endregion
 
+        #region Rename and deploy
+        if (-not($RprerequesiteKO)) {
+            # Ensure that the computer is not to be renamed
+            $CursorPosition = $Host.UI.RawUI.CursorPosition
+            Write-Host "[       ] system renaming to........: $NewDCname"
+            if ($null -ne $NewDCname -and $NewDCname -ne '') {
+                $DbgLog += @(' ','The script has been tasked to rename this system, if needed:')
+                if ($env:computername -ne $NewDCname) {
+                    # Rename computer
+                    Try {
+                    
+                    }
+                    Catch {
+                    
+                    }
+                }
+                Else {
+                    # Computer is already named as expected.
+                    $DbgLog += @("The computer is already named as expected ($($NewDCname))",' ')
+                }
+            }
+        }
+        Else {
+            # One or more Prerequesite have failed, hence this is to be reviewed. the script halt.
+            Write-Host "`tOne or more Prerequesite have failed, hence this is to be reviewed. the script halt.t" -Foregroundcolor Red
+            $DbgLog += "One  One or more Prerequesite have failed, hence this is to be reviewed. the script halt."
+            Exit 2
+        }
+        #endregion
+
     }
     Else {
-        $DbgLog += @("Error! The system is not in an expected state! Error: CsDomainMode is $($CsComputer.CsDomainMode) ; Allowed value are 2 or 3.","More information here: https://learn.microsoft.com/en-us/dotnet/api/microsoft.powershell.commands.domainrole?view=powershellsdk-7.4.0")
+        $DbgLog += @("Error! The system is not in an expected state! Error: CsDomainMode is $($CsComputer.CsDomainMode) ; Allowed value are 2 and 3.","More information here: https://learn.microsoft.com/en-us/dotnet/api/microsoft.powershell.commands.domainrole?view=powershellsdk-7.4.0")
     }
 }
 #endregion
