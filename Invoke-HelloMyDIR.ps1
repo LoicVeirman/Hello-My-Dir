@@ -614,6 +614,7 @@ Elseif ($AddDC) {
 
         #region Rename and deploy
         if (-not($RprerequesiteKO)) {
+            #region Computer rename
             # Ensure that the computer is not to be renamed
             $CursorPosition = $Host.UI.RawUI.CursorPosition
             Write-Host "[       ] system renaming to........: $NewDCname"
@@ -622,10 +623,17 @@ Elseif ($AddDC) {
                 if ($env:computername -ne $NewDCname) {
                     # Rename computer
                     Try {
-                    
+                        [void](Rename-Computer -NewName $NewDCname -Force -ErrorAction Stop)
+                        $DbgLog += "Computer was successfully renamed to $NewDCname"
+                        $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
+                        Write-Host $arrayRsltTxt[1] -ForegroundColor $arrayColrTxt[1]
                     }
                     Catch {
-                    
+                        # leaving.
+                        $DbgLog += @("Error! Failed to rename the computer to $NewDCname!","Error:$($_.ToString())")
+                        Write-toEventLog -EventType ERROR -EventMsg $DbgLog
+                        Remove-Module -Name (Get-ChildItem .\Modules).Name -ErrorAction SilentlyContinue | Out-Null
+                        Exit 3
                     }
                 }
                 Else {
@@ -633,15 +641,125 @@ Elseif ($AddDC) {
                     $DbgLog += @("The computer is already named as expected ($($NewDCname))",' ')
                 }
             }
+            Else {
+                $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
+                Write-Host $arrayRsltTxt[3] -ForegroundColor $arrayColrTxt[3]
+            }
+            #endregion
+            #region deploy ADDS
+            # Display data
+            $CursorPosition = $Host.UI.RawUI.CursorPosition
+            Write-Host "[       ] Installing your new domain controller in $($RunSetup.Configuration.Domain.FullName)"
+
+            # installing
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
+            Write-Host $arrayRsltTxt[0] -ForegroundColor $arrayColrTxt[0] -NoNewline
+
+            # Snooze progress bar
+            $ProgressPreference = "SilentlyContinue"
+
+            # Start installation...
+            $randomSMpwd = New-RandomComplexPasword -Length 24 -AsClearText
+            $HashArguments = @{
+                Credential                    = Get-Credential -Message "Specify an account with Enterprise or Domain Admins privileges" -Title "Account"
+                DatabasePath                  = $RunSetup.Configuration.Domain.NtdsPath
+                DomainName                    = $RunSetup.Configuration.domain.FullName
+                SysvolPath                    = $RunSetup.Configuration.Domain.SysvolPath
+                SafeModeAdministratorPassword = ConvertTo-SecureString -AsPlainText $randomSMpwd -Force
+                NoRebootOnCompletion          = $true
+                Confirm                       = $false
+                Force                         = $true
+                SkipPreChecks                 = $true
+                ErrorAction                   = "Stop"
+                WarningAction                 = "SilentlyContinue"
+                informationAction             = "SilentlyContinue"
+            }
+            Try {
+                Install-ADDSDomainController @HashArguments | Out-Null
+                
+                $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
+                Write-Host $arrayRsltTxt[1] -ForegroundColor $arrayColrTxt[1] 
+            }
+            Catch {
+                $DbgLog += @("Installation Failed!","Error: $($_.ToString())")
+                $DbgLog += @("Install-ADDSDomainController failed with the following arguments:",
+                             "Credential = (cyphered data)",
+                             "DatabasePath = $($RunSetup.Configuration.Domain.NtdsPath)",
+                             "DomainName = $($RunSetup.Configuration.Forest.FullName)",
+                             "SysvolPath = $($RunSetup.Configuration.Domain.SysvolPath)",
+                             "SafeModeAdministratorPassword = ConvertTo-SecureString -AsPlainText $randomSMpwd -Force",
+                             "NoRebootOnCompletion = $true",
+                             "Confirm = $false",
+                             "Force = $true",
+                             "SkipPreChecks = $true",
+                             "ErrorAction = ""Stop""",
+                             "WarningAction = ""SilentlyContinue""",
+                             "informationAction = ""SilentlyContinue""",
+                             "progressAction = ""SilentlyContinue"""
+                            )
+                Write-toEventLog Error $DbgLog
+                $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
+                Write-Host $arrayRsltTxt[2] -ForegroundColor $arrayColrTxt[2] -NoNewline
+            }
+            #endregion
+            #region setup for ldaps
+            $CursorPosition = $Host.UI.RawUI.CursorPosition
+            Write-Host "[       ] Setup certificate for LDAPS"
+            $DbgLog += @(' ','Installing a certificate for ldaps...')
+            Try {
+                # Calling the fix
+                $fixResult = &"resolve-LDAPSrequired"
+                # Switching display based on returned value
+                switch ($fixResult) {
+                    "Info" { 
+                        $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
+                        Write-Host $arrayRsltTxt[1] -ForegroundColor $arrayColrTxt[1]
+                        $DbgLog += 'Certificate installed.'
+                    }
+                    "Warning" {
+                        $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
+                        Write-Host $arrayRsltTxt[4] -ForegroundColor $arrayColrTxt[4]
+                        $DbgLog += 'WARNING: seems that the certificate was not copied in the root store.'
+                    }
+                    "Error" {
+                        $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
+                        Write-Host $arrayRsltTxt[2] -ForegroundColor $arrayColrTxt[2]
+                        $DbgLog += 'ERROR: failed to create the certificate!'
+                    }
+                }
+            }
+            Catch {
+                $DbgLog += @("Failed to create a self signed certificate!","Error:$($_.ToString())")
+                $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
+                Write-Host $arrayRsltTxt[2] -ForegroundColor $arrayColrTxt[2]
+            }
+            #endregion
         }
         Else {
             # One or more Prerequesite have failed, hence this is to be reviewed. the script halt.
             Write-Host "`tOne or more Prerequesite have failed, hence this is to be reviewed. the script halt.t" -Foregroundcolor Red
             $DbgLog += "One  One or more Prerequesite have failed, hence this is to be reviewed. the script halt."
+            Write-toEventLog -EventType ERROR -EventMsg $DbgLog
+            Remove-Module -Name (Get-ChildItem .\Modules).Name -ErrorAction SilentlyContinue | Out-Null
             Exit 2
         }
         #endregion
+        #region Final Reboot
+        $DbgLog += "Installation completed. The server will now reboot."
+        Write-toEventLog $fixResult $DbgLog
 
+        Write-Host
+        Write-Host "IMPORTANT!" -ForegroundColor Black -BackgroundColor Red -NoNewline
+        Write-Host " Please write-down the DSRM password randomly generated: " -ForegroundColor Yellow -NoNewline
+        Write-Host "$randomSMpwd" -ForegroundColor White -BackgroundColor Green
+        Write-Host 
+        Write-Host "Press any key to let the server reboot once you're ready..." -ForegroundColor Yellow -NoNewline
+        $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown") | Out-Null
+        Write-Host
+        $ProgressPreference = "Continue"
+        Restart-Computer -Force | out-null
+        Exit 0
+        #endregion
     }
     Else {
         $DbgLog += @("Error! The system is not in an expected state! Error: CsDomainMode is $($CsComputer.CsDomainMode) ; Allowed value are 2 and 3.","More information here: https://learn.microsoft.com/en-us/dotnet/api/microsoft.powershell.commands.domainrole?view=powershellsdk-7.4.0")
