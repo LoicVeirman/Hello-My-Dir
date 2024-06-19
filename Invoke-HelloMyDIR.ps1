@@ -121,7 +121,6 @@ Write-Host
 
 #region USE CASE 1: PREPARE XML SETUP FILE
 if ($Prepare) {
-
     # Test if a configuration file already exists - if so, we will use it.
     $DbgLog = @('PHASE INIT: LOAD PREVIOUS CHOICE SELECTION.')
 
@@ -570,12 +569,17 @@ Elseif (-not($AddDC)) {
 
 #region USE CASE 3: ADD DC
 Elseif ($AddDC) {
+    # Prepare debug log
+    $DbgLog = @('PHASE EXTEND: ADD A DC.',' ')
+
     # Get Computer info
     $CsComputer = Get-ComputerInfo
 
-    # Is a domain member or standalone server? Then we can install.
+    # If this is a domain member or standalone server, then we can install.
     # DomainRole acceptable value: https://learn.microsoft.com/en-us/dotnet/api/microsoft.powershell.commands.domainrole?view=powershellsdk-7.4.0
     if ($CsComputer.CsDomainRole -eq 2 -or $CsComputer.CsDomainRole -eq 3) {
+        #region Install Prerequesites
+        $DbgLog += "The system is in an expected state (CsCDomainRole: §($CsComputer.CsDomainRole))"
         # Check if prerequesite are installed.
         # Loading user desiderata
         $RunSetup = Get-XmlContent .\Configuration\RunSetup.xml
@@ -596,15 +600,21 @@ Elseif ($AddDC) {
                 install-windowsFeature -Name $ReqBinary -IncludeAllSubFeature -ErrorAction Stop | Out-Null
                 $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
                 Write-Host $arrayRsltTxt[1] -ForegroundColor $arrayColrTxt[1]
-                $RunSetup.Configuration.WindowsFeatures.$ReqBinary = "No"
+                $DbgLog += "$($ReqBinary): installed sucessfully."
             }
             Catch {
                 $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
-                Write-Host $arrayRsltTxt[2] -ForegroundColor $arrayColrTxt[2]                     
+                Write-Host $arrayRsltTxt[2] -ForegroundColor $arrayColrTxt[2]
+                $DbgLog += "$($ReqBinary): Failed to install! Error: $($_.ToString())"
                 $prerequesiteKO = $True
             }
         }
         $ProgressPreference = "Continue"
+        #endregion
+
+    }
+    Else {
+        $DbgLog += @("Error! The system is not in an expected state! Error: CsDomainMode is $($CsComputer.CsDomainMode) ; Allowed value are 2 or 3.","More information here: https://learn.microsoft.com/en-us/dotnet/api/microsoft.powershell.commands.domainrole?view=powershellsdk-7.4.0")
     }
 }
 #endregion
