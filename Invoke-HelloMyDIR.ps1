@@ -76,7 +76,7 @@ if ($AddDC) {
     $DbgLog += 'Option "AddDC" declared: the file RunSetup.xml will be used to promote the system as a DC'
     $DbgLog += "Option NewDCname is equal to '$NewDCname'."
 } 
-if (-not($Prepare -and $AddDC)) {
+if (-not($Prepare) -and -not($AddDC)) {
     $DbgLog += 'No option used: the setup will perform action to configure your AD (first DC in a brand new domain).'
 }
 
@@ -89,6 +89,10 @@ if (-not(Test-Path .\Configuration\RunSetup.xml)) {
 
 Write-toEventLog -EventType INFO -EventMsg $DbgLog | Out-Null
 $DbgLog = $null
+
+# Create result text array
+$arrayRsltTxt = @('RUNNING','SUCCESS',' ERROR ','SKIPPED','WARNING')
+$arrayColrTxt = @('Gray','Green','Red','cyan','Yellow')
 
 # Load Script Settings XML
 $ScriptSettings = Get-XmlContent .\Configuration\ScriptSettings.xml
@@ -284,12 +288,6 @@ if ($Prepare) {
 
 #region USE CASE 2: SETUP AD
 Elseif (-not($AddDC)) {
-
-
-    # Create result text array
-    $arrayRsltTxt = @('RUNNING','SUCCESS',' ERROR ','SKIPPED','WARNING')
-    $arrayColrTxt = @('Gray','Green','Red','cyan','Yellow')
-
     # Checking if the domain is to be installed or not
     $isDomain = (gwmi win32_computersystem).partofdomain
 
@@ -573,13 +571,14 @@ Elseif ($AddDC) {
     $DbgLog = @('PHASE EXTEND: ADD A DC.',' ')
 
     # Get Computer info
+    $ProgressPreference = "SilentlyContinue"
     $CsComputer = Get-ComputerInfo
 
     # If this is a domain member or standalone server, then we can install.
     # DomainRole acceptable value: https://learn.microsoft.com/en-us/dotnet/api/microsoft.powershell.commands.domainrole?view=powershellsdk-7.4.0
     if ($CsComputer.CsDomainRole -eq 2 -or $CsComputer.CsDomainRole -eq 3) {
         #region Install Prerequesites
-        $DbgLog += "The system is in an expected state (CsCDomainRole: §($CsComputer.CsDomainRole))"
+        $DbgLog += "The system is in an expected state (CsCDomainRole: $($CsComputer.CsDomainRole))"
         # Check if prerequesite are installed.
         # Loading user desiderata
         $RunSetup = Get-XmlContent .\Configuration\RunSetup.xml
@@ -661,7 +660,7 @@ Elseif ($AddDC) {
             # Start installation...
             $randomSMpwd = New-RandomComplexPasword -Length 24 -AsClearText
             $HashArguments = @{
-                Credential                    = Get-Credential -Message "Specify an account with Enterprise or Domain Admins privileges" -Title "Account"
+                Credential                    = (Get-Credential -Message "Specify an account with Enterprise or Domain Admins privileges")
                 DatabasePath                  = $RunSetup.Configuration.Domain.NtdsPath
                 DomainName                    = $RunSetup.Configuration.domain.FullName
                 SysvolPath                    = $RunSetup.Configuration.Domain.SysvolPath
@@ -699,7 +698,7 @@ Elseif ($AddDC) {
                             )
                 Write-toEventLog Error $DbgLog
                 $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
-                Write-Host $arrayRsltTxt[2] -ForegroundColor $arrayColrTxt[2] -NoNewline
+                Write-Host $arrayRsltTxt[2] -ForegroundColor $arrayColrTxt[2]
             }
             #endregion
             #region setup for ldaps
