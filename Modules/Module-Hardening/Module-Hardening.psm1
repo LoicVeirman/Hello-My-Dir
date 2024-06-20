@@ -76,7 +76,7 @@ Function Deploy-DomainJoinDelegation {
 
     #region ADD USER TO GROUPS
     $psoXml = Get-XmlContent .\Configuration\DomainSettings.xml
-    $GroupList = @((Select-Xml $psoXml -XPath "\\PSO[@Ref='PsoSvcStd']" | Select-Object -ExpandProperty Node).Name, $GroupName)
+    $GroupList = @((Select-Xml $psoXml -XPath "//*/PSO[@Ref='PsoSvcStd']" | Select-Object -ExpandProperty Node).Name, $GroupName)
 
     foreach ($Group in $GroupList) {
         $isMember = (Get-AdGroupMember $Group).SamAccountName -contains $UserName
