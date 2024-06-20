@@ -402,8 +402,37 @@ Elseif (-not($AddDC)) {
             }
         }
         #endregion
+        #region import delegation
+        foreach ($Deleg in $DomainSettings.Settings.Delegations.Delegation) {
+            # Get cursor position
+            $CursorPosition = $Host.UI.RawUI.CursorPosition
+            # Display action
+            Write-Host "[       ] Setting-up delegation.....: $($Deleg.Name)"
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
+            Write-Host $arrayRsltTxt[0] -ForegroundColor $arrayColrTxt[0] -NoNewline
 
-        # Result Array for final display
+            $fixResult = &"$($Deleg.Name)"
+            # Switching display based on returned value
+            switch ($fixResult) {
+                "Info" { 
+                    $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
+                    Write-Host $arrayRsltTxt[1] -ForegroundColor $arrayColrTxt[1]
+                    $isSuccess++
+                }
+                "Warning" {
+                    $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
+                    Write-Host $arrayRsltTxt[4] -ForegroundColor $arrayColrTxt[4]
+                    $isWarning++
+                }
+                "Error" {
+                    $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
+                    Write-Host $arrayRsltTxt[2] -ForegroundColor $arrayColrTxt[2]
+                    $isFailure++
+                }
+            }
+        }
+        #endregion
+        #region Result Array for final display
         $Results = New-Object -TypeName psobject -Property @{Success=$isSuccess ; Warning=$isWarning ; Error=$isFailure}
         $Results | Select-Object Success,Warning,Error | Format-Table -AutoSize
 
@@ -416,6 +445,7 @@ Elseif (-not($AddDC)) {
         } Else {
             Restart-Computer -force | Out-Null
         }
+        #endregion
     }
     #endregion
 
@@ -552,10 +582,8 @@ Elseif (-not($AddDC)) {
                 }
             }
             "No" {
-
             }
         }
-
     }
     #endregion
 }
@@ -592,7 +620,7 @@ Elseif ($AddDC) {
         # Check if prerequesite are installed.
         # Loading user desiderata
         $RunSetup = Get-XmlContent .\Configuration\RunSetup.xml
-
+        #endregion
         #region Dealing with binaries to install
         $reqBinaries = @('AD-Domain-Services','RSAT-AD-Tools','RSAT-DNS-Server','RSAT-DFS-Mgmt-Con','GPMC')
 
