@@ -48,11 +48,7 @@ Param(
 
     [Parameter(Position=1, ParameterSetName = 'NewDC')]
     [switch]
-    $AddDC,
-
-    [Parameter(Position=2, ParameterSetName = 'NewDC')]
-    [string]
-    $NewDCname
+    $AddDC
 )
 #region Script Initialize
 # Load modules. If a module fails on load, the script will stop.
@@ -571,8 +567,22 @@ Elseif ($AddDC) {
     $DbgLog = @('PHASE EXTEND: ADD A DC.',' ')
 
     # Get Computer info
-    $ProgressPreference = "SilentlyContinue"
-    $CsComputer = Get-ComputerInfo
+    $CursorPosition = $Host.UI.RawUI.CursorPosition
+    Write-Host "[       ] Getting Computer informations"
+    $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
+    Write-Host $arrayRsltTxt[0] -ForegroundColor $arrayColrTxt[0] -NoNewline
+    Try {
+        $ProgressPreference = "SilentlyContinue"
+        $CsComputer = Get-ComputerInfo
+        $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
+        Write-Host $arrayRsltTxt[1] -ForegroundColor $arrayColrTxt[1]
+    }
+    Catch {
+        $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
+        Write-Host $arrayRsltTxt[2] -ForegroundColor $arrayColrTxt[2]
+        $DbgLog += "Failed to get computer informations! Error: $($_.ToString())"
+        $prerequesiteKO = $True
+    }
 
     # If this is a domain member or standalone server, then we can install.
     # DomainRole acceptable value: https://learn.microsoft.com/en-us/dotnet/api/microsoft.powershell.commands.domainrole?view=powershellsdk-7.4.0
@@ -611,40 +621,48 @@ Elseif ($AddDC) {
         $ProgressPreference = "Continue"
         #endregion
 
-        #region Rename and deploy
-        if (-not($RprerequesiteKO)) {
-            #region Computer rename
-            # Ensure that the computer is not to be renamed
-            $CursorPosition = $Host.UI.RawUI.CursorPosition
-            Write-Host "[       ] system renaming to........: $NewDCname"
-            if ($null -ne $NewDCname -and $NewDCname -ne '') {
-                $DbgLog += @(' ','The script has been tasked to rename this system, if needed:')
-                if ($env:computername -ne $NewDCname) {
-                    # Rename computer
-                    Try {
-                        [void](Rename-Computer -NewName $NewDCname -Force -ErrorAction Stop)
-                        $DbgLog += "Computer was successfully renamed to $NewDCname"
-                        $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
-                        Write-Host $arrayRsltTxt[1] -ForegroundColor $arrayColrTxt[1]
-                    }
-                    Catch {
-                        # leaving.
-                        $DbgLog += @("Error! Failed to rename the computer to $NewDCname!","Error:$($_.ToString())")
-                        Write-toEventLog -EventType ERROR -EventMsg $DbgLog
-                        Remove-Module -Name (Get-ChildItem .\Modules).Name -ErrorAction SilentlyContinue | Out-Null
-                        Exit 3
-                    }
-                }
-                Else {
-                    # Computer is already named as expected.
-                    $DbgLog += @("The computer is already named as expected ($($NewDCname))",' ')
-                }
-            }
-            Else {
+        #region is not domain member
+        $CursorPosition = $Host.UI.RawUI.CursorPosition
+        Write-Host "[       ] Promoting the server as a domain member"
+        if ($CsComputer.CsDomainRole -eq 2) {
+            $DbgLog += @(" ","The server is not a domain member: the server will be joined to the domain first.")
+            try {
+                [void](Add-Computer -DomainName $RunSetup.Configuration.domain.FullName -DomainCredential (Get-Credential -Message 'Enter administration account to join a domain (netbios\username)'))
                 $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
-                Write-Host $arrayRsltTxt[3] -ForegroundColor $arrayColrTxt[3]
+                Write-Host $arrayRsltTxt[1] -ForegroundColor $arrayColrTxt[1]
+                $DbgLog += @(" ","The server will reboot - rerun the script to make it a domain controller.")
+
+                Write-Host
+                Write-Host "IMPORTANT!" -ForegroundColor Black -BackgroundColor Red
+                Write-Host "The server have to reboot to finalize the domain joining process." -ForegroundColor White
+                Write-Host "Rerun the script to make it a DC." -ForegroundColor Yellow
+                Write-Host 
+                Write-Host "Press any key to let the server reboot once you're ready..." -ForegroundColor DarkGray -NoNewline
+                $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown") | Out-Null
+                Write-Host
+                $ProgressPreference = "Continue"
+                Write-toEventLog Info $DbgLog
+                Restart-Computer -Force | out-null
+                Exit 0
             }
-            #endregion
+            Catch {
+                $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
+                Write-Host $arrayRsltTxt[1] -ForegroundColor $arrayColrTxt[1]
+                $DbgLog += @("Error! The server failed to join the domain!",' ',"Error: $($_.ToString())")
+                Write-Host "`nError! Failed to join the domain!`nError: $($_.ToString())`n" -ForegroundColor Red
+                Write-toEventLog Error $DbgLog
+                Exit 4
+            }
+        }
+        Else {
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
+            Write-Host $arrayRsltTxt[1] -ForegroundColor $arrayColrTxt[1]
+            $DbgLog += @(" ","The server is a domain member (prerequesite to domain join with a protected users account)")
+        }
+        #endregion
+
+        #region add DC
+        if (-not($RprerequesiteKO)) {
             #region deploy ADDS
             # Display data
             $CursorPosition = $Host.UI.RawUI.CursorPosition
@@ -660,7 +678,7 @@ Elseif ($AddDC) {
             # Start installation...
             $randomSMpwd = New-RandomComplexPasword -Length 24 -AsClearText
             $HashArguments = @{
-                Credential                    = (Get-Credential -Message "Specify an account with Enterprise or Domain Admins privileges")
+                Credential                    = $Creds
                 DatabasePath                  = $RunSetup.Configuration.Domain.NtdsPath
                 DomainName                    = $RunSetup.Configuration.domain.FullName
                 SysvolPath                    = $RunSetup.Configuration.Domain.SysvolPath
@@ -733,31 +751,31 @@ Elseif ($AddDC) {
                 Write-Host $arrayRsltTxt[2] -ForegroundColor $arrayColrTxt[2]
             }
             #endregion
+            #region Final Reboot
+            $DbgLog += "Installation completed. The server will now reboot."
+            Write-toEventLog $fixResult $DbgLog
+
+            Write-Host
+            Write-Host "IMPORTANT!" -ForegroundColor Black -BackgroundColor Red -NoNewline
+            Write-Host " Please write-down the DSRM password randomly generated: " -ForegroundColor Yellow -NoNewline
+            Write-Host "$randomSMpwd" -ForegroundColor White -BackgroundColor Green
+            Write-Host 
+            Write-Host "Press any key to let the server reboot once you're ready..." -ForegroundColor Yellow -NoNewline
+            $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown") | Out-Null
+            Write-Host
+            $ProgressPreference = "Continue"
+            Restart-Computer -Force | out-null
+            Exit 0
+            #endregion
         }
         Else {
             # One or more Prerequesite have failed, hence this is to be reviewed. the script halt.
-            Write-Host "`tOne or more Prerequesite have failed, hence this is to be reviewed. the script halt.t" -Foregroundcolor Red
+            Write-Host "`tOne or more Prerequesite have failed, hence this is to be reviewed. the script halt.`t" -Foregroundcolor Red
             $DbgLog += "One  One or more Prerequesite have failed, hence this is to be reviewed. the script halt."
             Write-toEventLog -EventType ERROR -EventMsg $DbgLog
             Remove-Module -Name (Get-ChildItem .\Modules).Name -ErrorAction SilentlyContinue | Out-Null
             Exit 2
         }
-        #endregion
-        #region Final Reboot
-        $DbgLog += "Installation completed. The server will now reboot."
-        Write-toEventLog $fixResult $DbgLog
-
-        Write-Host
-        Write-Host "IMPORTANT!" -ForegroundColor Black -BackgroundColor Red -NoNewline
-        Write-Host " Please write-down the DSRM password randomly generated: " -ForegroundColor Yellow -NoNewline
-        Write-Host "$randomSMpwd" -ForegroundColor White -BackgroundColor Green
-        Write-Host 
-        Write-Host "Press any key to let the server reboot once you're ready..." -ForegroundColor Yellow -NoNewline
-        $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown") | Out-Null
-        Write-Host
-        $ProgressPreference = "Continue"
-        Restart-Computer -Force | out-null
-        Exit 0
         #endregion
     }
     Else {
