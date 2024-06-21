@@ -125,10 +125,8 @@ if ($Prepare) {
     $DbgLog = @('PHASE INIT: LOAD PREVIOUS CHOICE SELECTION.')
 
     if (Test-Path .\Configuration\RunSetup.xml) {
-    
         # A file is present. We will rename it to a previous version to read old values and offers them as default option.
         $DbgLog += 'The file ".\Configuration\RunSetup.xml" is present.'
-
         # Loading .last file as default option for the script.
         Try {
             $RunSetup = Get-XmlContent .\Configuration\RunSetup.xml -ErrorAction SilentlyContinue
@@ -144,7 +142,6 @@ if ($Prepare) {
         $DbgLog += 'The file ".\Configuration\RunSetup.xml" is missing!'
         $DbgType = 'ERROR'
     }
-        
     Write-toEventLog $DbgType $DbgLog | Out-Null
     $DbgLog = $null
 
@@ -229,7 +226,7 @@ if ($Prepare) {
             $isKO = $false
         }
         Else {
-            # Is do it again!
+            # Is "do it again"!
             $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
             Write-Host $StringCleanSet -NoNewline
             $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y

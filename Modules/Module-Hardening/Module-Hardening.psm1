@@ -23,11 +23,12 @@ Function Deploy-DomainJoinDelegation {
     $CalledBy = ($CallStack[1].Command -split '\.')[0]
     $ExitLevel = 'INFO'
     $DbgLog = @('START: Deploy-DomainJoinDelegation',' ',"Called by: $($CalledBy)",' ')
+    $RunSetup = Get-XmlContent .\Configuration\RunSetup.xml
     #endregion
 
     #region CREATE GROUP
     #Create the new group for delegation puprose (it will be safe to rename it later, if needed)
-    $GroupName = "LS-DLG-DomainJoin-Extended"
+    $GroupName = $RunSetup.Configuration.ADObjects.Groups.DomainJoin
     $isPresent = Get-AdObject -LdapFilter "(&(ObjectClass=group)(SamAccountName=$GroupName))"
     if ($null -eq $isPresent) {
         Try {
@@ -48,7 +49,7 @@ Function Deploy-DomainJoinDelegation {
 
     #region CREATE USER
     $randomSMpwd = New-RandomComplexPasword -Length 24 -AsClearText
-    $UserName = "DLGUSER01"
+    $UserName = $RunSetup.Configuration.ADObjects.Groups.DomainJoin
     $isPresent = Get-AdObject -LdapFilter "(&(ObjectClass=user)(SamAccountName=$UserName))"
     if ($null -eq $isPresent) {
         Try {
@@ -62,7 +63,7 @@ Function Deploy-DomainJoinDelegation {
 
             # Show password to user
             Add-Type -AssemblyName System.Windows.Forms
-            [void]([System.Windows.Forms.MessageBox]::Show("$UserName password: $randomSPpwd","Warning"))
+            [void]([System.Windows.Forms.MessageBox]::Show("$UserName password: $randomSMpwd","Warning"))
         }
         Catch {
             $DbgLog += @(' ',"Failed to create the user '$UserName'!","Error: $($_.ToString())")

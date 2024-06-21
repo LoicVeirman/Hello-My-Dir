@@ -16,6 +16,8 @@
         <Text ID='013' Line1="What will be the new Domain Functional Level?" Line2=" " Line3="" Line4="" />
         <Text ID='014' Line1="Where do you want to set the SYSVOL folder (press Enter yo use the default one)?" Line2="[C:\Windows\SYSVOL] " Line3="" Line4="" />
         <Text ID='015' Line1="Where do you want to set the NTDS folder (press Enter yo use the default one)?" Line2="[C:\Windows\NTDS] " Line3="" Line4="" />
+        <Text ID='016' Line1="Domain Join: a service account will be created. How will you name it?" Line2="[DLGUSER01] " Line3="" Line4="" />
+        <Text ID='017' Line1="Domain Join: a delegation group will be created. How will you name it?" Line2="[LS-DLG-DomainJoin-Extended] " Line3="" Line4="" />
     </Message>
     <Warning>
         <RebootAction ColorScheme="Warning" Confirm="Yes">

@@ -25,8 +25,8 @@ Function New-HmDRunSetupXml {
     # - Start: Forest
     $myXml.WriteStartElement('Forest')
     $myXml.WriteElementString('Installation','')
-    $myXml.WriteElementString('FullName','')
-    $myXml.WriteElementString('NetBIOS','')
+    $myXml.WriteElementString('FullName','Hello.My.Dir')
+    $myXml.WriteElementString('NetBIOS','HELLO')
     $myXml.WriteElementString('FunctionalLevel','')
     $myXml.WriteElementString('RecycleBin','')
     $myXml.WriteElementString('PAM','')
@@ -35,8 +35,8 @@ Function New-HmDRunSetupXml {
     # - Start: Domain
     $myXml.WriteStartElement('Domain')
     $myXml.WriteElementString('Type','')
-    $myXml.WriteElementString('FullName','')
-    $myXml.WriteElementString('NetBIOS','')
+    $myXml.WriteElementString('FullName','Hello.My.Dir')
+    $myXml.WriteElementString('NetBIOS','HELLO')
     $myXml.WriteElementString('FunctionalLevel','')
     $myXml.WriteElementString('SysvolPath','')
     $myXml.WriteElementString('NtdsPath','')
@@ -51,6 +51,16 @@ Function New-HmDRunSetupXml {
     $myXml.WriteElementString('GPMC','')
     $myXml.WriteEndElement()
     # - end: WindowsFeatures
+    # - Start: ADObjects
+    $myXml.WriteStartElement('ADObjects')
+    $myXml.WriteStartElement('Users')
+    $myXml.WriteElementString('DomainJoin','DLGUSER01')
+    $myXml.WriteEndElement()
+    $myXml.WriteStartElement('Groups')
+    $myXml.WriteElementString('DomainJoin','LS-DLG-DomainJoin-Extended')
+    $myXml.WriteEndElement()
+    $myXml.WriteEndElement()
+    # - end: ADObjects
     # - End: Configuration
     $myXml.WriteEndElement()
 
@@ -556,6 +566,7 @@ Function Get-HmDDomain {
         $PreviousChoices
     )
 
+    #region INIT
     # Initiate logging. A specific variable is used to inform on the final result (info, warning or error).
     Test-EventLog | Out-Null
     $callStack = Get-PSCallStack
@@ -573,12 +584,16 @@ Function Get-HmDDomain {
     $DomainDFL = $PreviousChoices.Configuration.Domain.FunctionalLevel
     $DomainSYS = $PreviousChoices.Configuration.Domain.SysvolPath
     $DomainNTD = $PreviousChoices.Configuration.Domain.NtdsPath
+    $DomJoinGr = $PreviousChoices.Configuration.ADObject.Groups.DomainJoin
+    $DomJoinUr = $PreviousChoices.Configuration.ADObject.Users.DomainJoin
 
-    $DbgLog += @('Previous choices:',"> Domain Type: $domainTYP","> Domain Fullname: $domainDNS","> Domain NetBIOS name: $DomainNtB","> Domain Functional Level: $DomainDFL",' ')    
-
+    $DbgLog += @('Previous choices:',"> Domain Type: $domainTYP","> Domain Fullname: $domainDNS","> Domain NetBIOS name: $DomainNtB","> Domain Functional Level: $DomainDFL")    
+    $DbgLog += @("> Domain Join Group: $domJoinGr","> Domain Join User: $domJoinUr",' ')    
+    #endregion
     # Loading Script Settings
     $ScriptSettings = Get-XmlContent .\Configuration\ScriptSettings.xml
 
+    #region DOMAIN TYPE
     #########################
     # QUESTION: DOMAIN TYPE #
     #########################
@@ -678,10 +693,11 @@ Function Get-HmDDomain {
             }
         }
     }
-
+    #endregion
     ## Writing result to XML
     $PreviousChoices.Configuration.Domain.Type = $DomainTYP
 
+    #region DOMAIN FQDN
     #########################
     # QUESTION: DOMAIN FQDN #
     #########################
@@ -765,10 +781,11 @@ Function Get-HmDDomain {
             }
         }
     }
-
+    #endregion
     ## Writing result to XML
     $PreviousChoices.Configuration.Domain.FullName = $DomainDNS
 
+    #region DOMAIN NETBIOS NAME
     #################################
     # QUESTION: DOMAIN NETBIOS NAME #
     #################################
@@ -850,10 +867,11 @@ Function Get-HmDDomain {
             }
         }
     }
-    
+    #endregion
     ## Writing result to XML
     $PreviousChoices.Configuration.Domain.NetBIOS = $DomainNtB
 
+    #region DOMAIN FUNCTIONAL LEVEL
     #####################################
     # QUESTION: DOMAIN FUNCTIONAL LEVEL #
     #####################################
@@ -948,10 +966,11 @@ Function Get-HmDDomain {
             $isKO = $true
         }
     }
-
+    #endregion
     # Write to XML
     $PreviousChoices.Configuration.Domain.FunctionalLevel = $DomainDFL
 
+    #region SYSVOL PATH
     #########################
     # QUESTION: SYSVOL PATH #
     #########################
@@ -1023,11 +1042,12 @@ Function Get-HmDDomain {
             }
         }
     }    
-
+    #endregion
     # Write to XML
     $PreviousChoices.Configuration.Domain.sysvolPath = $DomainSYS
     $DbgLog += @("Domain SYSVOL: $domainSYS")
 
+    #region NTDS PATH
     #######################
     # QUESTION: NTDS PATH #
     #######################
@@ -1099,10 +1119,89 @@ Function Get-HmDDomain {
             }
         }
     }    
-
+    #endregion
     # Write to XML
     $PreviousChoices.Configuration.Domain.NtdsPath = $DomainNTD
     $DbgLog += @("Domain NTDS: $domainNTD")
+
+    #region DELEG DOMAIN JOIN
+    ########################################
+    # QUESTION: DOMAIN JOIN USER AND GROUP #
+    ########################################
+    # Enquiring for the new service account
+    ## Display question 
+    $toDisplayXml = Select-Xml $ScriptSettings -XPath "//Text[@ID='016']" | Select-Object -ExpandProperty Node
+    $toDisplayArr = @($toDisplayXml.Line1)
+    $toDisplayArr += $toDisplayXml.Line2
+    Write-UserChoice $toDisplayArr
+    ## Input time
+    $StringCleanSet = "                     "
+    ## Getting cursor position for relocation
+    $CursorPosition = $Host.UI.RawUI.CursorPosition
+    ## Writing default previous choice (will be used if RETURN is pressed)
+    Write-Host $DomJoinUr -NoNewline -ForegroundColor Magenta
+    ### Querying input: waiting for Y,N or ENTER.
+    $isKO = $True
+    While ($isKO)
+    {
+        # relocate cursor
+        $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+        # Getting user $input
+        [string]$answer = read-host
+        # if $answer is null, then we use the default choice
+        if ([String]::IsNullOrEmpty($answer)) {
+            [string]$answer = $DomJoinUr
+        }
+        # if answer is not null, we ensure that the regex for domain is matched
+        if (-not([String]::IsNullOrEmpty($answer))) {
+            $DomJoinUr = $answer
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+            Write-Host $StringCleanSet -NoNewline
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+            Write-Host $DomJoinUr -ForegroundColor Green
+            $isKO = $false
+        }
+    }
+    # Enquiring for the new delegation group
+    ## Display question 
+    $toDisplayXml = Select-Xml $ScriptSettings -XPath "//Text[@ID='017']" | Select-Object -ExpandProperty Node
+    $toDisplayArr = @($toDisplayXml.Line1)
+    $toDisplayArr += $toDisplayXml.Line2
+    Write-UserChoice $toDisplayArr
+    ## Input time
+    $StringCleanSet = "                     "
+    ## Getting cursor position for relocation
+    $CursorPosition = $Host.UI.RawUI.CursorPosition
+    ## Writing default previous choice (will be used if RETURN is pressed)
+    Write-Host $DomJoinGr -NoNewline -ForegroundColor Magenta
+    ### Querying input: waiting for Y,N or ENTER.
+    $isKO = $True
+    While ($isKO)
+    {
+        # relocate cursor
+        $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+        # Getting user $input
+        [string]$answer = read-host
+        # if $answer is null, then we use the default choice
+        if ([String]::IsNullOrEmpty($answer)) {
+            [string]$answer = $DomJoinGr
+        }
+        # if answer is not null, we ensure that the regex for domain is matched
+        if (-not([String]::IsNullOrEmpty($answer))) {
+            $DomJoinGr = $answer
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+            Write-Host $StringCleanSet -NoNewline
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+            Write-Host $DomJoinGr -ForegroundColor Green
+            $isKO = $false
+        }
+    }    
+    #endregion
+    
+    # Write to XML
+    $PreviousChoices.Configuration.ADObject.Groups.DomainJoin = $DomJoinGr
+    $PreviousChoices.Configuration.ADObject.Users.DomainJoin = $DomJoinUr
+    $DbgLog += @("Domain Join User: $domJoinUr","Domain Join Group: $DomJoinGr")
 
     # End logging
     Write-toEventLog $ExitLevel $DbgLog | Out-Null
