@@ -1199,8 +1199,8 @@ Function Get-HmDDomain {
     #endregion
 
     # Write to XML
-    $PreviousChoices.Configuration.ADObject.Groups.DomainJoin = $DomJoinGr
-    $PreviousChoices.Configuration.ADObject.Users.DomainJoin = $DomJoinUr
+    $PreviousChoices.Configuration.ADObjects.Groups.DomainJoin = $DomJoinGr
+    $PreviousChoices.Configuration.ADObjects.Users.DomainJoin = $DomJoinUr
     $DbgLog += @("Domain Join User: $domJoinUr","Domain Join Group: $DomJoinGr")
 
     # End logging
