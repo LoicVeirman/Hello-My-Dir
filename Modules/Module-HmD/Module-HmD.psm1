@@ -584,8 +584,8 @@ Function Get-HmDDomain {
     $DomainDFL = $PreviousChoices.Configuration.Domain.FunctionalLevel
     $DomainSYS = $PreviousChoices.Configuration.Domain.SysvolPath
     $DomainNTD = $PreviousChoices.Configuration.Domain.NtdsPath
-    $DomJoinGr = $PreviousChoices.Configuration.ADObject.Groups.DomainJoin
-    $DomJoinUr = $PreviousChoices.Configuration.ADObject.Users.DomainJoin
+    $DomJoinGr = $PreviousChoices.Configuration.ADObjects.Groups.DomainJoin
+    $DomJoinUr = $PreviousChoices.Configuration.ADObjects.Users.DomainJoin
 
     $DbgLog += @('Previous choices:',"> Domain Type: $domainTYP","> Domain Fullname: $domainDNS","> Domain NetBIOS name: $DomainNtB","> Domain Functional Level: $DomainDFL")    
     $DbgLog += @("> Domain Join Group: $domJoinGr","> Domain Join User: $domJoinUr",' ')    
@@ -1197,7 +1197,7 @@ Function Get-HmDDomain {
         }
     }    
     #endregion
-    
+
     # Write to XML
     $PreviousChoices.Configuration.ADObject.Groups.DomainJoin = $DomJoinGr
     $PreviousChoices.Configuration.ADObject.Users.DomainJoin = $DomJoinUr
