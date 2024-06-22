@@ -649,7 +649,7 @@ Elseif ($AddDC) {
         #region is not domain member
         $CursorPosition = $Host.UI.RawUI.CursorPosition
         Write-Host "[       ] Promoting the server as a domain member"
-        if ($CsComputer.CsDomainRole -eq 2) {
+        if ($CsComputer.CsDomainRole -eq 22) {
             $DbgLog += @(" ","The server is not a domain member: the server will be joined to the domain first.")
             try {
                 [void](Add-Computer -DomainName $RunSetup.Configuration.domain.FullName -DomainCredential (Get-Credential -Message 'Enter administration account to join a domain (netbios\username)'))
@@ -685,7 +685,6 @@ Elseif ($AddDC) {
             $DbgLog += @(" ","The server is a domain member (prerequesite to domain join with a protected users account)")
         }
         #endregion
-
         #region add DC
         if (-not($RprerequesiteKO)) {
             #region deploy ADDS
@@ -694,6 +693,7 @@ Elseif ($AddDC) {
             Write-Host "[       ] Installing your new domain controller in $($RunSetup.Configuration.Domain.FullName)"
 
             # installing
+            $Creds = Get-Credential -Message 'Enter administration account credential'
             $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
             Write-Host $arrayRsltTxt[0] -ForegroundColor $arrayColrTxt[0] -NoNewline
 
@@ -742,6 +742,87 @@ Elseif ($AddDC) {
                 Write-toEventLog Error $DbgLog
                 $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
                 Write-Host $arrayRsltTxt[2] -ForegroundColor $arrayColrTxt[2]
+            }
+            #endregion
+            #region reset SDDL
+            $CursorPosition = $Host.UI.RawUI.CursorPosition
+            Write-Host "[       ] Reseting owner and SDDL for security purpose"
+            $NoError = $True
+            Try {
+                $DAsid  = [String](Get-ADDomain $RunSetup.Configuration.Domain.FullName -Credential $Creds).DomainSID.Value + "-512"
+                $DAName = (Get-ADGroup $DAsid -Server $RunSetup.Configuration.Domain.FullName -Credential $Creds).Name
+                $Domain = $RunSetup.Configuration.Domain.NETBIOS 
+                $Cptr   = Get-ADComputer $env:computername -Properties nTSecurityDescriptor -Credential $Creds
+                $Cptr | foreach {
+                    $DistinguishedName    = $_.DistinguishedName
+                    $GroupCategory        = $_.GroupCategory
+                    $GroupScope           = $_.GroupScope
+                    $Name                 = $_.Name
+                    $ObjectClass          = $_.ObjectClass
+                    $ObjectGUID           = $_.ObjectGUID
+                    $SamAccountName       = $_.SamAccountName
+                    $SID                  = $_.SID
+                    $nTSecurityDescriptor = $_.nTSecurityDescriptor
+                
+                    $Array = New-Object psobject -Property @{
+                        DistinguishedName = $DistinguishedName
+                        DNSHostName       = $DNSHostName
+                        Enabled           = $Enabled
+                        Name              = $Name
+                        ObjectClass       = $ObjectClass
+                        ObjectGUID        = $ObjectGUID
+                        SamAccountName    = $SamAccountName
+                        SID               = $SID
+                        Owner             = $nTSecurityDescriptor.owner
+                        }
+                }
+            }
+            Catch {
+                $NoError = $False
+                $DbgLog += @(' ',"Could not get computer data to reset owner/sddl!","Error:$($_.ToString())")
+            }
+            Try {
+                $Array | foreach {
+                # Current  Computer
+                $SamAccountName = $_.SamAccountName
+                # Change Owner
+                ## Define Target
+                $TargetObject = Get-ADComputer $SamAccountName -Server $RunSetup.Configuration.Domain.FullName
+                $AdsiTarget   = [adsi]"LDAP://$($RunSetup.Configuration.Domain.FullName)/$($TargetObject.DistinguishedName)"
+                ## Set new Owner
+                $NewOwner = New-Object System.Security.Principal.NTAccount($DAName)
+                $AdsiTarget.PSBase.ObjectSecurity.SetOwner($NewOwner)
+                $AdsiTarget.PSBase.CommitChanges()
+                }
+            }
+            Catch {
+                $NoError = $False
+                $DbgLog += @(' ',"Could not reset owner!","Error:$($_.ToString())")
+            }
+            Try {
+                # Reset ACL
+                ## Get computer default ACL
+                $SchemaNamingContext       = (Get-ADRootDSE -Credential $Creds -Server $RunSetup.Configuration.Domain.FullName).schemaNamingContext
+                $DefaultSecurityDescriptor = Get-ADObject -Identity "CN=Computer,$SchemaNamingContext" -Properties defaultSecurityDescriptor -Credential $Creds -Server $RunSetup.Configuration.Domain.FullName | Select-Object -ExpandProperty defaultSecurityDescriptor
+
+                $ADObj = Get-ADComputer -Identity $SamAccountName -Properties nTSecurityDescriptor -Credential $Creds -Server $RunSetup.Configuration.Domain.FullName -ErrorAction Stop
+
+                $ADObj.nTSecurityDescriptor.SetSecurityDescriptorSddlForm( $DefaultSecurityDescriptor )
+                Set-ADObject -Identity $ADObj.DistinguishedName -Replace @{ nTSecurityDescriptor = $ADObj.nTSecurityDescriptor } -Confirm:$false -Credential $Creds -Server $RunSetup.Configuration.Domain.FullName
+            }
+            Catch {
+                $NoError = $False
+                $DbgLog += @(' ',"Could not reset SDDL!","Error:$($_.ToString())")
+            }
+            if ($NoError) {
+                $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
+                Write-Host $arrayRsltTxt[1] -ForegroundColor $arrayColrTxt[1]
+                $DbgLog += @(" ","The computer object is now safe and secure.")
+            }
+            Else {
+                $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
+                Write-Host $arrayRsltTxt[2] -ForegroundColor $arrayColrTxt[2]
+                $DbgLog += @(" ","The computer object has a wrong owner and/or SDDL are unsafe!")
             }
             #endregion
             #region setup for ldaps
