@@ -48,7 +48,7 @@ Function Deploy-DomainJoinDelegation {
     #endregion
 
     #region CREATE USER
-    $randomSMpwd = New-RandomComplexPasword -Length 24 -AsClearText
+    $randomSMpwd = New-LurchPassphrase
     $UserName = $RunSetup.Configuration.ADObjects.Users.DomainJoin
     $isPresent = Get-AdObject -LdapFilter "(&(ObjectClass=user)(SamAccountName=$UserName))"
     if ($null -eq $isPresent) {
