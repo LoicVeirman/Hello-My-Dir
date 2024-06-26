@@ -591,7 +591,7 @@ Elseif ($AddDC) {
     # Prepare debug log
     $DbgLog = @('PHASE EXTEND: ADD A DC.',' ')
 
-    # Get Computer info
+    #region Get Computer info
     $CursorPosition = $Host.UI.RawUI.CursorPosition
     Write-Host "[       ] Getting Computer informations"
     $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
@@ -608,6 +608,7 @@ Elseif ($AddDC) {
         $DbgLog += "Failed to get computer informations! Error: $($_.ToString())"
         $prerequesiteKO = $True
     }
+    #endregion
 
     # If this is a domain member or standalone server, then we can install.
     # DomainRole acceptable value: https://learn.microsoft.com/en-us/dotnet/api/microsoft.powershell.commands.domainrole?view=powershellsdk-7.4.0
@@ -617,12 +618,11 @@ Elseif ($AddDC) {
         # Check if prerequesite are installed.
         # Loading user desiderata
         $RunSetup = Get-XmlContent .\Configuration\RunSetup.xml
-        #endregion
+        
         #region Dealing with binaries to install
         $reqBinaries = @('AD-Domain-Services','RSAT-AD-Tools','RSAT-DNS-Server','RSAT-DFS-Mgmt-Con','GPMC')
 
         $ProgressPreference = "SilentlyContinue"
-
         foreach ($ReqBinary in $reqBinaries) {
             $CursorPosition = $Host.UI.RawUI.CursorPosition
             Write-Host "[       ] binaries installation.....: $ReqBinary"
@@ -645,14 +645,18 @@ Elseif ($AddDC) {
         }
         $ProgressPreference = "Continue"
         #endregion
+        #endregion
 
+        $DJoinUsr = $RunSetup.Configuration.ADObjects.Users.DomainJoin
+        $DomainFN = $RunSetup.Configuration.domain.FullName
+        $DomainNB = $RunSetup.Configuration.domain.NetBIOS
         #region is not domain member
         $CursorPosition = $Host.UI.RawUI.CursorPosition
         Write-Host "[       ] Promoting the server as a domain member"
-        if ($CsComputer.CsDomainRole -eq 22) {
+        if ($CsComputer.CsDomainRole -eq 2) {
             $DbgLog += @(" ","The server is not a domain member: the server will be joined to the domain first.")
             try {
-                [void](Add-Computer -DomainName $RunSetup.Configuration.domain.FullName -DomainCredential (Get-Credential -Message 'Enter administration account to join a domain (netbios\username)'))
+                [void](Add-Computer -DomainName $DomainFN -DomainCredential (Get-Credential -Message 'Enter credential to join this computer to the domain' -Credential "$DomainNB\$DJoinUsr"))
                 $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
                 Write-Host $arrayRsltTxt[1] -ForegroundColor $arrayColrTxt[1]
                 $DbgLog += @(" ","The server will reboot - rerun the script to make it a domain controller.")
@@ -685,15 +689,17 @@ Elseif ($AddDC) {
             $DbgLog += @(" ","The server is a domain member (prerequesite to domain join with a protected users account)")
         }
         #endregion
+
         #region add DC
-        if (-not($RprerequesiteKO)) {
+        if (-not($prerequesiteKO)) {
             #region deploy ADDS
             # Display data
             $CursorPosition = $Host.UI.RawUI.CursorPosition
-            Write-Host "[       ] Installing your new domain controller in $($RunSetup.Configuration.Domain.FullName)"
+            Write-Host "[       ] Installing your new domain controller in $($DomainFN.ToUpper())"
 
             # installing
-            $Creds = Get-Credential -Message 'Enter administration account credential'
+            $BuiltinAdmin = (Get-AdUSer "$((Get-AdDomain).DomainSID.Value)-500").SamAccountName
+            $Creds = Get-Credential -Message 'Enter Domain Admins accounts' -Credential "$DomainNB\$BuiltinAdmin"
             $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
             Write-Host $arrayRsltTxt[0] -ForegroundColor $arrayColrTxt[0] -NoNewline
 
@@ -744,14 +750,14 @@ Elseif ($AddDC) {
                 Write-Host $arrayRsltTxt[2] -ForegroundColor $arrayColrTxt[2]
             }
             #endregion
+
             #region reset SDDL
             $CursorPosition = $Host.UI.RawUI.CursorPosition
             Write-Host "[       ] Reseting owner and SDDL for security purpose"
             $NoError = $True
             Try {
-                $DAsid  = [String](Get-ADDomain $RunSetup.Configuration.Domain.FullName -Credential $Creds).DomainSID.Value + "-512"
-                $DAName = (Get-ADGroup $DAsid -Server $RunSetup.Configuration.Domain.FullName -Credential $Creds).Name
-                $Domain = $RunSetup.Configuration.Domain.NETBIOS 
+                $DAsid  = [String](Get-ADDomain $DomainFN).DomainSID.Value + "-512"
+                $DAName = (Get-ADGroup $DAsid -Server $DomainFN).Name
                 $Cptr   = Get-ADComputer $env:computername -Properties nTSecurityDescriptor -Credential $Creds
                 $Cptr | foreach {
                     $DistinguishedName    = $_.DistinguishedName
@@ -787,8 +793,8 @@ Elseif ($AddDC) {
                 $SamAccountName = $_.SamAccountName
                 # Change Owner
                 ## Define Target
-                $TargetObject = Get-ADComputer $SamAccountName -Server $RunSetup.Configuration.Domain.FullName
-                $AdsiTarget   = [adsi]"LDAP://$($RunSetup.Configuration.Domain.FullName)/$($TargetObject.DistinguishedName)"
+                $TargetObject = Get-ADComputer $SamAccountName -Server $DomainFN
+                $AdsiTarget = [adsi]"LDAP://$DomainFN/$($TargetObject.DistinguishedName)"
                 ## Set new Owner
                 $NewOwner = New-Object System.Security.Principal.NTAccount($DAName)
                 $AdsiTarget.PSBase.ObjectSecurity.SetOwner($NewOwner)
@@ -799,16 +805,16 @@ Elseif ($AddDC) {
                 $NoError = $False
                 $DbgLog += @(' ',"Could not reset owner!","Error:$($_.ToString())")
             }
+            # Reset ACL
             Try {
-                # Reset ACL
                 ## Get computer default ACL
-                $SchemaNamingContext       = (Get-ADRootDSE -Credential $Creds -Server $RunSetup.Configuration.Domain.FullName).schemaNamingContext
-                $DefaultSecurityDescriptor = Get-ADObject -Identity "CN=Computer,$SchemaNamingContext" -Properties defaultSecurityDescriptor -Credential $Creds -Server $RunSetup.Configuration.Domain.FullName | Select-Object -ExpandProperty defaultSecurityDescriptor
+                $SchemaNamingContext = (Get-ADRootDSE -Server $DomainFN).schemaNamingContext
+                $DefaultSecurityDescriptor = Get-ADObject -Identity "CN=Computer,$SchemaNamingContext" -Properties defaultSecurityDescriptor -Server $DomainFN | Select-Object -ExpandProperty defaultSecurityDescriptor
 
-                $ADObj = Get-ADComputer -Identity $SamAccountName -Properties nTSecurityDescriptor -Credential $Creds -Server $RunSetup.Configuration.Domain.FullName -ErrorAction Stop
+                $ADObj = Get-ADComputer -Identity $SamAccountName -Properties nTSecurityDescriptor -Server $DomainFN -ErrorAction Stop
 
                 $ADObj.nTSecurityDescriptor.SetSecurityDescriptorSddlForm( $DefaultSecurityDescriptor )
-                Set-ADObject -Identity $ADObj.DistinguishedName -Replace @{ nTSecurityDescriptor = $ADObj.nTSecurityDescriptor } -Confirm:$false -Credential $Creds -Server $RunSetup.Configuration.Domain.FullName
+                Set-ADObject -Identity $ADObj.DistinguishedName -Replace @{ nTSecurityDescriptor = $ADObj.nTSecurityDescriptor } -Confirm:$false  -Server $DomainFN
             }
             Catch {
                 $NoError = $False
@@ -825,6 +831,7 @@ Elseif ($AddDC) {
                 $DbgLog += @(" ","The computer object has a wrong owner and/or SDDL are unsafe!")
             }
             #endregion
+
             #region setup for ldaps
             $CursorPosition = $Host.UI.RawUI.CursorPosition
             Write-Host "[       ] Setup certificate for LDAPS"
@@ -857,6 +864,7 @@ Elseif ($AddDC) {
                 Write-Host $arrayRsltTxt[2] -ForegroundColor $arrayColrTxt[2]
             }
             #endregion
+
             #region Final Reboot
             $DbgLog += "Installation completed. The server will now reboot."
             Write-toEventLog $fixResult $DbgLog
@@ -864,7 +872,7 @@ Elseif ($AddDC) {
             Write-Host
             Write-Host "IMPORTANT!" -ForegroundColor Black -BackgroundColor Red -NoNewline
             Write-Host " Please write-down the DSRM password randomly generated: " -ForegroundColor Yellow -NoNewline
-            Write-Host "$randomSMpwd" -ForegroundColor White -BackgroundColor Green
+            Write-Host "$randomSMpwd" -ForegroundColor Green
             Write-Host 
             Write-Host "Press any key to let the server reboot once you're ready..." -ForegroundColor Yellow -NoNewline
             $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown") | Out-Null
