@@ -325,6 +325,7 @@ Elseif (-not($AddDC)) {
             }
         }
         #endregion
+
         #Region PurpleKnight Script Fixes
         # Fix list
         $PKFixList  = @('Protected-Users','LDAPS-required')
@@ -358,6 +359,7 @@ Elseif (-not($AddDC)) {
             }
         }
         #endregion
+
         #Region Import GPO
         $DomainSettings = Get-XmlContent .\Configuration\DomainSettings.xml
 
@@ -399,6 +401,7 @@ Elseif (-not($AddDC)) {
             }
         }
         #endregion
+
         #region import delegation
         foreach ($Deleg in $DomainSettings.Settings.Delegations.Delegation) {
             # Get cursor position
@@ -429,6 +432,7 @@ Elseif (-not($AddDC)) {
             }
         }
         #endregion
+        
         #region Result Array for final display
         $Results = New-Object -TypeName psobject -Property @{Success=$isSuccess ; Warning=$isWarning ; Error=$isFailure}
         $Results | Select-Object Success,Warning,Error | Format-Table -AutoSize
