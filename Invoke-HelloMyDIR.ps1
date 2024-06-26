@@ -432,7 +432,7 @@ Elseif (-not($AddDC)) {
             }
         }
         #endregion
-        
+
         #region Result Array for final display
         $Results = New-Object -TypeName psobject -Property @{Success=$isSuccess ; Warning=$isWarning ; Error=$isFailure}
         $Results | Select-Object Success,Warning,Error | Format-Table -AutoSize
@@ -660,7 +660,7 @@ Elseif ($AddDC) {
         if ($CsComputer.CsDomainRole -eq 2) {
             $DbgLog += @(" ","The server is not a domain member: the server will be joined to the domain first.")
             try {
-                [void](Add-Computer -DomainName $DomainFN -DomainCredential (Get-Credential -Message 'Enter credential to join this computer to the domain' -Credential "$DomainNB\$DJoinUsr"))
+                [void](Add-Computer -DomainName $DomainFN -Credential (Get-Credential -Message 'Enter credential to join this computer to the domain' -User "$DomainNB\$DJoinUsr"))
                 $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
                 Write-Host $arrayRsltTxt[1] -ForegroundColor $arrayColrTxt[1]
                 $DbgLog += @(" ","The server will reboot - rerun the script to make it a domain controller.")
@@ -696,65 +696,6 @@ Elseif ($AddDC) {
 
         #region add DC
         if (-not($prerequesiteKO)) {
-            #region deploy ADDS
-            # Display data
-            $CursorPosition = $Host.UI.RawUI.CursorPosition
-            Write-Host "[       ] Installing your new domain controller in $($DomainFN.ToUpper())"
-
-            # installing
-            $BuiltinAdmin = (Get-AdUSer "$((Get-AdDomain).DomainSID.Value)-500").SamAccountName
-            $Creds = Get-Credential -Message 'Enter Domain Admins accounts' -Credential "$DomainNB\$BuiltinAdmin"
-            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
-            Write-Host $arrayRsltTxt[0] -ForegroundColor $arrayColrTxt[0] -NoNewline
-
-            # Snooze progress bar
-            $ProgressPreference = "SilentlyContinue"
-
-            # Start installation...
-            $randomSMpwd = New-RandomComplexPasword -Length 24 -AsClearText
-            $HashArguments = @{
-                Credential                    = $Creds
-                DatabasePath                  = $RunSetup.Configuration.Domain.NtdsPath
-                DomainName                    = $RunSetup.Configuration.domain.FullName
-                SysvolPath                    = $RunSetup.Configuration.Domain.SysvolPath
-                SafeModeAdministratorPassword = ConvertTo-SecureString -AsPlainText $randomSMpwd -Force
-                NoRebootOnCompletion          = $true
-                Confirm                       = $false
-                Force                         = $true
-                SkipPreChecks                 = $true
-                ErrorAction                   = "Stop"
-                WarningAction                 = "SilentlyContinue"
-                informationAction             = "SilentlyContinue"
-            }
-            Try {
-                Install-ADDSDomainController @HashArguments | Out-Null
-                
-                $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
-                Write-Host $arrayRsltTxt[1] -ForegroundColor $arrayColrTxt[1] 
-            }
-            Catch {
-                $DbgLog += @("Installation Failed!","Error: $($_.ToString())")
-                $DbgLog += @("Install-ADDSDomainController failed with the following arguments:",
-                             "Credential = (cyphered data)",
-                             "DatabasePath = $($RunSetup.Configuration.Domain.NtdsPath)",
-                             "DomainName = $($RunSetup.Configuration.Forest.FullName)",
-                             "SysvolPath = $($RunSetup.Configuration.Domain.SysvolPath)",
-                             "SafeModeAdministratorPassword = ConvertTo-SecureString -AsPlainText $randomSMpwd -Force",
-                             "NoRebootOnCompletion = $true",
-                             "Confirm = $false",
-                             "Force = $true",
-                             "SkipPreChecks = $true",
-                             "ErrorAction = ""Stop""",
-                             "WarningAction = ""SilentlyContinue""",
-                             "informationAction = ""SilentlyContinue""",
-                             "progressAction = ""SilentlyContinue"""
-                            )
-                Write-toEventLog Error $DbgLog
-                $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
-                Write-Host $arrayRsltTxt[2] -ForegroundColor $arrayColrTxt[2]
-            }
-            #endregion
-
             #region reset SDDL
             $CursorPosition = $Host.UI.RawUI.CursorPosition
             Write-Host "[       ] Reseting owner and SDDL for security purpose"
@@ -809,16 +750,18 @@ Elseif ($AddDC) {
                 $NoError = $False
                 $DbgLog += @(' ',"Could not reset owner!","Error:$($_.ToString())")
             }
+            # Sleep
+            Start-Sleep -Seconds 10
             # Reset ACL
             Try {
                 ## Get computer default ACL
                 $SchemaNamingContext = (Get-ADRootDSE -Server $DomainFN).schemaNamingContext
-                $DefaultSecurityDescriptor = Get-ADObject -Identity "CN=Computer,$SchemaNamingContext" -Properties defaultSecurityDescriptor -Server $DomainFN | Select-Object -ExpandProperty defaultSecurityDescriptor
+                $DefaultSecurityDescriptor = Get-ADObject -Identity "CN=Computer,$SchemaNamingContext" -Properties defaultSecurityDescriptor | Select-Object -ExpandProperty defaultSecurityDescriptor
 
-                $ADObj = Get-ADComputer -Identity $SamAccountName -Properties nTSecurityDescriptor -Server $DomainFN -ErrorAction Stop
+                $ADObj = Get-ADComputer -Identity $SamAccountName -Properties nTSecurityDescriptor -ErrorAction Stop
 
                 $ADObj.nTSecurityDescriptor.SetSecurityDescriptorSddlForm( $DefaultSecurityDescriptor )
-                Set-ADObject -Identity $ADObj.DistinguishedName -Replace @{ nTSecurityDescriptor = $ADObj.nTSecurityDescriptor } -Confirm:$false  -Server $DomainFN
+                Set-ADObject -Identity $ADObj.DistinguishedName -Replace @{ nTSecurityDescriptor = $ADObj.nTSecurityDescriptor } -Confirm:$false 
             }
             Catch {
                 $NoError = $False
@@ -833,6 +776,65 @@ Elseif ($AddDC) {
                 $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
                 Write-Host $arrayRsltTxt[2] -ForegroundColor $arrayColrTxt[2]
                 $DbgLog += @(" ","The computer object has a wrong owner and/or SDDL are unsafe!")
+            }
+            #endregion
+
+            #region deploy ADDS
+            # Display data
+            $CursorPosition = $Host.UI.RawUI.CursorPosition
+            Write-Host "[       ] Installing your new domain controller in $($DomainFN.ToUpper())"
+
+            # installing
+            $BuiltinAdmin = (Get-AdUSer "$((Get-AdDomain).DomainSID.Value)-500").SamAccountName
+            $Creds = Get-Credential -Message 'Enter Domain Admins accounts' -User "$DomainNB\$BuiltinAdmin"
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
+            Write-Host $arrayRsltTxt[0] -ForegroundColor $arrayColrTxt[0] -NoNewline
+
+            # Snooze progress bar
+            $ProgressPreference = "SilentlyContinue"
+
+            # Start installation...
+            $randomSMpwd = New-RandomComplexPasword -Length 24 -AsClearText
+            $HashArguments = @{
+                Credential                    = $Creds
+                DatabasePath                  = $RunSetup.Configuration.Domain.NtdsPath
+                DomainName                    = $RunSetup.Configuration.domain.FullName
+                SysvolPath                    = $RunSetup.Configuration.Domain.SysvolPath
+                SafeModeAdministratorPassword = ConvertTo-SecureString -AsPlainText $randomSMpwd -Force
+                NoRebootOnCompletion          = $true
+                Confirm                       = $false
+                Force                         = $true
+                SkipPreChecks                 = $true
+                ErrorAction                   = "Stop"
+                WarningAction                 = "SilentlyContinue"
+                informationAction             = "SilentlyContinue"
+            }
+            Try {
+                Install-ADDSDomainController @HashArguments | Out-Null
+                
+                $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
+                Write-Host $arrayRsltTxt[1] -ForegroundColor $arrayColrTxt[1] 
+            }
+            Catch {
+                $DbgLog += @("Installation Failed!","Error: $($_.ToString())")
+                $DbgLog += @("Install-ADDSDomainController failed with the following arguments:",
+                             "Credential = (cyphered data)",
+                             "DatabasePath = $($RunSetup.Configuration.Domain.NtdsPath)",
+                             "DomainName = $($RunSetup.Configuration.Forest.FullName)",
+                             "SysvolPath = $($RunSetup.Configuration.Domain.SysvolPath)",
+                             "SafeModeAdministratorPassword = ConvertTo-SecureString -AsPlainText $randomSMpwd -Force",
+                             "NoRebootOnCompletion = $true",
+                             "Confirm = $false",
+                             "Force = $true",
+                             "SkipPreChecks = $true",
+                             "ErrorAction = ""Stop""",
+                             "WarningAction = ""SilentlyContinue""",
+                             "informationAction = ""SilentlyContinue""",
+                             "progressAction = ""SilentlyContinue"""
+                            )
+                Write-toEventLog Error $DbgLog
+                $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X +1), $CursorPosition.Y 
+                Write-Host $arrayRsltTxt[2] -ForegroundColor $arrayColrTxt[2]
             }
             #endregion
 
