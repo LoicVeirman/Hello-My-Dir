@@ -696,7 +696,7 @@ Elseif ($AddDC) {
 
         #region add DC
         if (-not($prerequesiteKO)) {
-            #region reset SDDL
+            #region reset ACL and owner
             $CursorPosition = $Host.UI.RawUI.CursorPosition
             Write-Host "[       ] Reseting owner and SDDL for security purpose"
             $NoError = $True
