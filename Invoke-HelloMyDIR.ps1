@@ -8,14 +8,14 @@
     .DESCRIPTION
     This is the main script to execute the project "Hello my Dir!". This project is intended to ease in building a secure active directory from scratch and maintain it afteward.
 
+    .PARAMETER UpdateConfigFile
+    Instruct the script to check and, if needed, update the configuration file (RunSetup.xml).
+
     .PARAMETER Prepare
     Instruct the script to create or edit the setup configuration file (RunSetup.xml).
 
     .PARAMETER AddDC
     Instruct the script to add a new DC to your domain.
-
-    .PARAMETER NewDCname
-    Specify your new DC name, if you need to rename it before promoting.
 
     .EXAMPLE
     .\Invoke-HelloMyDir.ps1 -Prepare
@@ -30,8 +30,8 @@
     Will run the script to empower the system as a new DC in an existing forest.
 
     .EXAMPLE
-    .\Invoke-HelloMyDir.ps1 -AddDC -NewDCname 'SRV-ADDS-02'
-    Will run the script to empower the system as a new DC in an existing forest and name the new DC as SRV-ADDS-02.
+    .\Invoke-HelloMyDir.ps1 -UpdateConfigFile
+    Will run the script and update the file RunSetup.xml, if exists (else, does nothing).
 
     .NOTES
     Version.: 01.01.000
@@ -42,18 +42,23 @@
 #>
 [CmdletBinding(DefaultParameterSetName = 'NewForest')]
 Param(
-    [Parameter(Position=0, ParameterSetName = 'NewForest')]
+    [Parameter(Position = 0, ParameterSetName = 'NewForest')]
     [switch]
     $Prepare,
 
-    [Parameter(Position=1, ParameterSetName = 'NewDC')]
+    [Parameter(Position = 1, ParameterSetName = 'NewDC')]
     [switch]
-    $AddDC
+    $AddDC,
+
+    [Parameter(Position = 2, ParameterSetName = 'Update')]
+    [Switch]
+    $UpdateConfigFile
 )
+
 #region Script Initialize
 # Load modules. If a module fails on load, the script will stop.
 Try {
-    Import-Module -Name (Get-ChildItem .\Modules).FullName -ErrorAction Stop | Out-Null
+    Import-Module -Name (Get-ChildItem .\Modules).FullName -ErrorAction Stop -WarningAction SilentlyContinue | Out-Null
 }
 Catch {
     Write-Error "Failed to load modules."
@@ -119,7 +124,7 @@ Write-InformationalText -Text $toDisplayArr
 Write-Host
 #endregion
 
-#region USE CASE 1: PREPARE XML SETUP FILE
+#region USE CASE 0: PREPARE XML SETUP FILE
 if ($Prepare) {
     # Test if a configuration file already exists - if so, we will use it.
     $DbgLog = @('PHASE INIT: LOAD PREVIOUS CHOICE SELECTION.')
@@ -276,6 +281,12 @@ if ($Prepare) {
     $RunSetup.save((Resolve-Path .\Configuration\RunSetup.xml).Path)
     $DbgLog += @(' ','File RunSetup.xml updated and saved.',' ')
     Write-toEventLog INFO $DbgLog | Out-Null
+}
+#endregion
+
+#region USE CASE 1: UPDATE XML SETUP FILE
+if ($UpdateConfigFile) {
+    
 }
 #endregion
 
