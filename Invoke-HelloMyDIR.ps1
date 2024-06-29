@@ -564,36 +564,36 @@ Switch ($ScriptMode)
         
                 foreach ($ReqBinary in $reqBinaries) 
                 {
-                    $CursorPosition = Write-Progression Create "binaries installation.....: $ReqBinary"
+                    $CursorPosition = Write-Progression -Step Create -message "binaries installation.....: $ReqBinary"
                     if ($BinariesStatus.$ReqBinary -eq 'Yes') 
                     {
                         # installing
-                        Write-Progression Update Running $CursorPosition
+                        Write-Progression -Step Update -code Running -CursorPosition $CursorPosition
 
                         Try 
                         {
                             install-windowsFeature -Name $ReqBinary -IncludeAllSubFeature -ErrorAction Stop | Out-Null
-                            Write-Progression Update success $CursorPosition
+                            Write-Progression -Step Update success $CursorPosition
                             $xmlRunSetup.Configuration.WindowsFeatures.$ReqBinary = "No"
                         }
                         Catch 
                         {
-                            Write-Progression Update error $CursorPosition
+                            Write-Progression -Step Update error $CursorPosition
                             $arrayScriptLog += @(' ',"Error: $($_.string())")
                             $prerequesiteKO = $True
                         }
                     }
                     Else 
                     {
-                        Write-Progression Update success $CursorPosition
+                        Write-Progression -Step Update success $CursorPosition
                     }
                 }
                 $xmlRunSetup.Save((Resolve-Path .\Configuration\RunSetup.xml).Path)
                 $ProgressPreference = "Continue"
         
                 # Display data
-                $CursorPosition = Write-Progression Create "Installing your new domain $($xmlRunSetup.Configuration.Domain.FullName)"
-                Write-Progression Update Running $CursorPosition
+                $CursorPosition = Write-Progression -Step Create -message "Installing your new domain $($xmlRunSetup.Configuration.Domain.FullName)"
+                Write-Progression -Step Update -code Running -CursorPosition $CursorPosition
         
                 # Snooze progress bar
                 $ProgressPreference = "SilentlyContinue"
@@ -626,7 +626,7 @@ Switch ($ScriptMode)
                         
                         $arrayScriptLog += "Installation completed. The server will now reboot."
                         Write-toEventLog INFO $arrayScriptLog
-                        Write-Progression Update Success $CursorPosition
+                        Write-Progression -Step Update -Code Success -CursorPosition $CursorPosition
                         Write-Host
                         Write-Host "IMPORTANT!" -ForegroundColor Black -BackgroundColor Red -NoNewline
                         Write-Host " Please write-down the DSRM password randomly generated: " -ForegroundColor Yellow -NoNewline
@@ -663,7 +663,7 @@ Switch ($ScriptMode)
                         )
                         Write-toEventLog Error $arrayScriptLog
                         Write-toEventLog Warning $HashArgumentsDebug
-                        Write-Progression Update Error $CursorPosition
+                        Write-Progression -Step Update -code Error -CursorPosition $CursorPosition
                     }
                 }
             }
@@ -681,8 +681,8 @@ Switch ($ScriptMode)
                 $PCFixList += @('P-UnprotectedOU','A-MinPwdLen','A-PreWin2000AuthenticatedUsers','A-LAPS-NOT-Installed','P-Delegated')
                 foreach ($Resolution in $PCFixList) 
                 {
-                    $CursorPosition = write-Progression Create "Fixing PingCastle alert...: $Resolution"
-                    Write-Progression Update Running $CursorPosition
+                    $CursorPosition = Write-Progression -Step Create -Message "Fixing PingCastle alert...: $Resolution"
+                    Write-Progression -Step Update -code Running -CursorPosition $CursorPosition
 
                     # Calling the fix
                     $fixResult = &"resolve-$($Resolution -replace '-','')"
@@ -692,17 +692,17 @@ Switch ($ScriptMode)
                     {
                         "Info" 
                         { 
-                            Write-Progression Update Running $CursorPosition
+                            Write-Progression -Step Update -code Success -CursorPosition $CursorPosition
                             $isSuccess++
                         }
                         "Warning" 
                         {
-                            Write-Progression Update Warning $CursorPosition
+                            Write-Progression -Step Update -code Warning -CursorPosition $CursorPosition
                             $isWarning++
                         }
                         "Error" 
                         {
-                            Write-Progression Update Error $CursorPosition
+                            Write-Progression -Step Update -code Error -CursorPosition $CursorPosition
                             $isFailure++
                         }
                     }
@@ -712,8 +712,8 @@ Switch ($ScriptMode)
                 $PKFixList  = @('Protected-Users','LDAPS-required')
                 foreach ($Resolution in $PKFixList) 
                 {
-                    $CursorPosition = Write-Progression Create "Fixing PurpleKnight alert.: $Resolution"
-                    Write-Progression Update Running $CursorPosition
+                    $CursorPosition = Write-Progression -Step Create -message "Fixing PurpleKnight alert.: $Resolution"
+                    Write-Progression -Step Update -code Running -CursorPosition $CursorPosition
 
                     # Calling the fix
                     $fixResult = &"resolve-$($Resolution -replace '-','')"
@@ -723,17 +723,17 @@ Switch ($ScriptMode)
                     {
                         "Info" 
                         { 
-                            Write-Progression Update Running $CursorPosition
+                            Write-Progression -Step Update -code Success -CursorPosition $CursorPosition
                             $isSuccess++
                         }
                         "Warning" 
                         {
-                            Write-Progression Update Warning $CursorPosition
+                            Write-Progression -Step Update -code Warning -CursorPosition $CursorPosition
                             $isWarning++
                         }
                         "Error" 
                         {
-                            Write-Progression Update Error $CursorPosition
+                            Write-Progression -Step Update -code Error -CursorPosition $CursorPosition
                             $isFailure++
                         }
                     }
@@ -742,15 +742,15 @@ Switch ($ScriptMode)
                 # Import GPO
                 foreach ($GPO in $xmlDomainSettings.Settings.GroupPolicies.Gpo) 
                 {
-                    $CursorPosition = Write-Progression Create "Adding Security GPO.......: $($GPO.Name)"
-                    Write-Progression Update Running $CursorPosition
+                    $CursorPosition = Write-Progression -Step Create -message "Adding Security GPO.......: $($GPO.Name)"
+                    Write-Progression -Step Update -code Running -CursorPosition $CursorPosition
                     Try 
                     {
                         $gpChek = Get-GPO -Name $GPO.Name -ErrorAction SilentlyContinue
                         if ($gpChek) 
                         {
                             Write-ToEventLog -EventType WARNING -EventMsg "GPO $($GPO.Name): already imported."
-                            Write-Progression Update Warning $CursorPosition
+                            Write-Progression -Step Update -code Warning -CursorPosition $CursorPosition
                             $isWarning++
                         }
                         Else 
@@ -765,14 +765,14 @@ Switch ($ScriptMode)
                             [void](New-GPLink -Name $gpo.Name -Target $gpPath -LinkEnabled Yes -Order 1 -ErrorAction Stop)
                             
                             Write-ToEventLog -EventType INFO -EventMsg "GPO $($GPO.Name): imported successfully."
-                            Write-Progression Update Success $CursorPosition
+                            Write-Progression -Step Update -Code Success -CursorPosition $CursorPosition
                             $isSuccess++
                         }
                     }
                     Catch 
                     {
                         Write-ToEventLog -EventType Error -EventMsg "GPO $($GPO.Name): import failed! Error: $($_.ToString())"
-                        Write-Progression Update Error $CursorPosition
+                        Write-Progression -Step Update -code Error -CursorPosition $CursorPosition
                         $isFailure++                
                     }
                 }
@@ -780,8 +780,8 @@ Switch ($ScriptMode)
                 # Import delegation
                 foreach ($Deleg in $xmlDomainSettings.Settings.Delegations.Delegation) 
                 {
-                    $CursorPosition = Write-Progression Create "Setting-up delegation.....: $($Deleg.Name)"
-                    Write-Progression Update Running $CursorPosition
+                    $CursorPosition = Write-Progression -Step Create -message "Setting-up delegation.....: $($Deleg.Name)"
+                    Write-Progression -Step Update -code Running -CursorPosition $CursorPosition
 
                     $fixResult = &"$($Deleg.Name)"
                     # Switching display based on returned value
@@ -789,17 +789,17 @@ Switch ($ScriptMode)
                     {
                         "Info" 
                         { 
-                            Write-Progression Update Running $CursorPosition
+                            Write-Progression -Step Update -code success -CursorPosition $CursorPosition
                             $isSuccess++
                         }
                         "Warning" 
                         {
-                            Write-Progression Update Warning $CursorPosition
+                            Write-Progression -Step Update -code Warning -CursorPosition $CursorPosition
                             $isWarning++
                         }
                         "Error" 
                         {
-                            Write-Progression Update Error $CursorPosition
+                            Write-Progression -Step Update -code Error -CursorPosition $CursorPosition
                             $isFailure++
                         }
                     }
@@ -830,8 +830,8 @@ Switch ($ScriptMode)
     "Add new DC"
     {
         $arrayScriptLog = @('PHASE EXTEND: ADD A DC.',' ')
-        $CursorPosition = write-Progression Create "Getting Computer informations"
-        write-Progression Update Running $CursorPosition
+        $CursorPosition = Write-Progression -Step Create -Message "Getting Computer informations"
+        write-Progression Update -code Running -CursorPosition $CursorPosition
         Try 
         {
             $ProgressPreference = "SilentlyContinue"
@@ -840,7 +840,7 @@ Switch ($ScriptMode)
         }
         Catch 
         {
-            write-Progression Update Error $CursorPosition
+            write-Progression Update -code Error -CursorPosition $CursorPosition
             $arrayScriptLog += "Failed to get computer informations! Error: $($_.ToString())"
             $prerequesiteKO = $True
         }
@@ -859,8 +859,8 @@ Switch ($ScriptMode)
             $ProgressPreference = "SilentlyContinue"
             foreach ($ReqBinary in $reqBinaries) 
             {
-                $CursorPosition = write-Progression Create "binaries installation.....: $ReqBinary"
-                write-Progression Update Running $CursorPosition
+                $CursorPosition = Write-Progression -Step Create -Message "binaries installation.....: $ReqBinary"
+                write-Progression Update -code Running -CursorPosition $CursorPosition
                 Try 
                 {
                     install-windowsFeature -Name $ReqBinary -IncludeAllSubFeature -ErrorAction Stop | Out-Null
@@ -869,7 +869,7 @@ Switch ($ScriptMode)
                 }
                 Catch 
                 {
-                    write-Progression Update Error $CursorPosition
+                    write-Progression Update -code Error -CursorPosition $CursorPosition
                     $arrayScriptLog += "$($ReqBinary): Failed to install! Error: $($_.ToString())"
                     $prerequesiteKO = $True
                 }
@@ -881,8 +881,8 @@ Switch ($ScriptMode)
             $DomainNB = $xmlRunSetup.Configuration.domain.NetBIOS
             
             # is not domain member
-            $CursorPosition = write-Progression Create 'Promoting the server as domain member'
-            write-Progression Update Running $CursorPosition
+            $CursorPosition = Write-Progression -Step Create -Message 'Promoting the server as domain member'
+            write-Progression Update -code Running -CursorPosition $CursorPosition
             if ($CsComputer.CsDomainRole -eq 2) 
             {
                 $arrayScriptLog += @(" ","The server is not a domain member: the server will be joined to the domain first.")
@@ -907,7 +907,7 @@ Switch ($ScriptMode)
                 }
                 Catch 
                 {
-                    write-Progression Update Error $CursorPosition
+                    write-Progression Update -code Error -CursorPosition $CursorPosition
                     $arrayScriptLog += @("Error! The server failed to join the domain!",' ',"Error: $($_.ToString())")
                     Write-Host "`nError! Failed to join the domain!`nError: $($_.ToString())`n" -ForegroundColor Red
                     Write-toEventLog Error $arrayScriptLog
@@ -924,8 +924,8 @@ Switch ($ScriptMode)
             if (-not($prerequesiteKO)) 
             {
                 # reset ACL and owner
-                $CursorPosition = write-Progression Create "Reseting owner and SDDL for security purpose"
-                write-Progression Update Running $CursorPosition
+                $CursorPosition = Write-Progression -Step Create -Message "Reseting owner and SDDL for security purpose"
+                write-Progression Update -code Running -CursorPosition $CursorPosition
                 $NoError = $True
                 Try 
                 {
@@ -1012,15 +1012,15 @@ Switch ($ScriptMode)
                 }
                 Else 
                 {
-                    write-Progression Update Error $CursorPosition
+                    write-Progression Update -code Error -CursorPosition $CursorPosition
                     $arrayScriptLog += @(" ","The computer object has a wrong owner and/or SDDL are unsafe!")
                 }
 
                 # deploy ADDS
-                $CursorPosition = write-Progression Create "Installing your new domain controller in $($DomainFN.ToUpper())"
+                $CursorPosition = Write-Progression -Step Create -Message "Installing your new domain controller in $($DomainFN.ToUpper())"
                 $BuiltinAdmin = (Get-AdUSer "$((Get-AdDomain).DomainSID.Value)-500").SamAccountName
                 $Creds = Get-Credential -Message 'Enter Domain Admins accounts' -User "$DomainNB\$BuiltinAdmin"
-                write-Progression Update Running $CursorPosition
+                write-Progression Update -code Running -CursorPosition $CursorPosition
 
                 # Snooze progress bar
                 $ProgressPreference = "SilentlyContinue"
@@ -1066,12 +1066,12 @@ Switch ($ScriptMode)
                                 "progressAction = ""SilentlyContinue"""
                                 )
                     Write-toEventLog Error $arrayScriptLog
-                    write-Progression Update Error $CursorPosition
+                    write-Progression Update -code Error -CursorPosition $CursorPosition
                 }
 
                 # setup for ldaps
-                $CursorPosition = write-Progression Create "Setup certificate for LDAPS"
-                write-Progression Update Running $CursorPosition
+                $CursorPosition = Write-Progression -Step Create -Message "Setup certificate for LDAPS"
+                write-Progression Update -code Running -CursorPosition $CursorPosition
                 $arrayScriptLog += @(' ','Installing a certificate for ldaps...')
                 Try 
                 {
@@ -1087,19 +1087,19 @@ Switch ($ScriptMode)
                         }
                         "Warning" 
                         {
-                            write-Progression Update Warning $CursorPosition
+                            write-Progression Update -code Warning -CursorPosition $CursorPosition
                             $arrayScriptLog += 'WARNING: seems that the certificate was not copied in the root store.'
                         }
                         "Error" 
                         {
-                            write-Progression Update Error $CursorPosition
+                            write-Progression Update -code Error -CursorPosition $CursorPosition
                             $arrayScriptLog += 'ERROR: failed to create the certificate!'
                         }
                     }
                 }
                 Catch 
                 {
-                    write-Progression Update Error $CursorPosition
+                    write-Progression Update -code Error -CursorPosition $CursorPosition
                     Write-Host $arrayRsltTxt[2] -ForegroundColor $arrayColrTxt[2]
                 }
 
