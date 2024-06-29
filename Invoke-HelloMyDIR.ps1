@@ -932,7 +932,7 @@ Switch ($ScriptMode)
                     $DAsid  = [String](Get-ADDomain $DomainFN).DomainSID.Value + "-512"
                     $DAName = (Get-ADGroup $DAsid -Server $DomainFN).Name
                     $Cptr   = Get-ADComputer $env:computername -Properties nTSecurityDescriptor -Credential $Creds
-                    $Cptr | ForEach-Object
+                    $Cptr | ForEach
                     {
                         $DistinguishedName    = $_.DistinguishedName
                         $GroupCategory        = $_.GroupCategory
@@ -965,7 +965,7 @@ Switch ($ScriptMode)
                 
                 Try 
                 {
-                    $Array | ForEach-Object 
+                    $Array | ForEach
                     {
                         # Current  Computer
                         $SamAccountName = $_.SamAccountName
