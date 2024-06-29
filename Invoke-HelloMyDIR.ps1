@@ -831,16 +831,16 @@ Switch ($ScriptMode)
     {
         $arrayScriptLog = @('PHASE EXTEND: ADD A DC.',' ')
         $CursorPosition = Write-Progression -Step Create -Message "Getting Computer informations"
-        write-Progression Update -code Running -CursorPosition $CursorPosition
+        write-Progression -Step Update -code Running -CursorPosition $CursorPosition
         Try 
         {
             $ProgressPreference = "SilentlyContinue"
             $CsComputer = Get-ComputerInfo
-            write-Progression Update Success $CursorPosition
+            write-Progression -Step Update -Code Success -CursorPosition $CursorPosition
         }
         Catch 
         {
-            write-Progression Update -code Error -CursorPosition $CursorPosition
+            write-Progression -Step Update -code Error -CursorPosition $CursorPosition
             $arrayScriptLog += "Failed to get computer informations! Error: $($_.ToString())"
             $prerequesiteKO = $True
         }
@@ -860,16 +860,16 @@ Switch ($ScriptMode)
             foreach ($ReqBinary in $reqBinaries) 
             {
                 $CursorPosition = Write-Progression -Step Create -Message "binaries installation.....: $ReqBinary"
-                write-Progression Update -code Running -CursorPosition $CursorPosition
+                write-Progression -Step Update -code Running -CursorPosition $CursorPosition
                 Try 
                 {
                     install-windowsFeature -Name $ReqBinary -IncludeAllSubFeature -ErrorAction Stop | Out-Null
-                    write-Progression Update Success $CursorPosition
+                    write-Progression -Step Update -code Success -CursorPosition $CursorPosition
                     $arrayScriptLog += "$($ReqBinary): installed sucessfully."
                 }
                 Catch 
                 {
-                    write-Progression Update -code Error -CursorPosition $CursorPosition
+                    write-Progression -Step Update -code Error -CursorPosition $CursorPosition
                     $arrayScriptLog += "$($ReqBinary): Failed to install! Error: $($_.ToString())"
                     $prerequesiteKO = $True
                 }
@@ -882,14 +882,14 @@ Switch ($ScriptMode)
             
             # is not domain member
             $CursorPosition = Write-Progression -Step Create -Message 'Promoting the server as domain member'
-            write-Progression Update -code Running -CursorPosition $CursorPosition
+            write-Progression -Step Update -code Running -CursorPosition $CursorPosition
             if ($CsComputer.CsDomainRole -eq 2) 
             {
                 $arrayScriptLog += @(" ","The server is not a domain member: the server will be joined to the domain first.")
                 try 
                 {
                     [void](Add-Computer -DomainName $DomainFN -Credential (Get-Credential -Message 'Enter credential to join this computer to the domain' -User "$DomainNB\$DJoinUsr"))
-                    write-Progression Update Success $CursorPosition
+                    write-Progression -Step Update -code Success -CursorPosition $CursorPosition
                     $arrayScriptLog += @(" ","The server will reboot - rerun the script to make it a domain controller.")
 
                     Write-Host
@@ -907,7 +907,7 @@ Switch ($ScriptMode)
                 }
                 Catch 
                 {
-                    write-Progression Update -code Error -CursorPosition $CursorPosition
+                    write-Progression -Step Update -code Error -CursorPosition $CursorPosition
                     $arrayScriptLog += @("Error! The server failed to join the domain!",' ',"Error: $($_.ToString())")
                     Write-Host "`nError! Failed to join the domain!`nError: $($_.ToString())`n" -ForegroundColor Red
                     Write-toEventLog Error $arrayScriptLog
@@ -916,7 +916,7 @@ Switch ($ScriptMode)
             }
             Else 
             {
-                write-Progression Update success $CursorPosition
+                write-Progression -Step Update -code success -CursorPosition $CursorPosition
                 $arrayScriptLog += @(" ","The server is a domain member (prerequesite to domain join with a protected users account)")
             }
 
@@ -925,7 +925,7 @@ Switch ($ScriptMode)
             {
                 # reset ACL and owner
                 $CursorPosition = Write-Progression -Step Create -Message "Reseting owner and SDDL for security purpose"
-                write-Progression Update -code Running -CursorPosition $CursorPosition
+                write-Progression -Step Update -code Running -CursorPosition $CursorPosition
                 $NoError = $True
                 Try 
                 {
@@ -1007,12 +1007,12 @@ Switch ($ScriptMode)
                 }
                 if ($NoError) 
                 {
-                    write-Progression Update Success $CursorPosition
+                    write-Progression -Step Update -code Success -CursorPosition $CursorPosition
                     $arrayScriptLog += @(" ","The computer object is now safe and secure.")
                 }
                 Else 
                 {
-                    write-Progression Update -code Error -CursorPosition $CursorPosition
+                    write-Progression -Step Update -code Error -CursorPosition $CursorPosition
                     $arrayScriptLog += @(" ","The computer object has a wrong owner and/or SDDL are unsafe!")
                 }
 
@@ -1020,7 +1020,7 @@ Switch ($ScriptMode)
                 $CursorPosition = Write-Progression -Step Create -Message "Installing your new domain controller in $($DomainFN.ToUpper())"
                 $BuiltinAdmin = (Get-AdUSer "$((Get-AdDomain).DomainSID.Value)-500").SamAccountName
                 $Creds = Get-Credential -Message 'Enter Domain Admins accounts' -User "$DomainNB\$BuiltinAdmin"
-                write-Progression Update -code Running -CursorPosition $CursorPosition
+                write-Progression -Step Update -code Running -CursorPosition $CursorPosition
 
                 # Snooze progress bar
                 $ProgressPreference = "SilentlyContinue"
@@ -1045,7 +1045,7 @@ Switch ($ScriptMode)
                 {
                     Install-ADDSDomainController @HashArguments | Out-Null
                 
-                    write-Progression Update Success $CursorPosition
+                    write-Progression -Step Update -code Success -CursorPosition $CursorPosition
                 }
                 Catch 
                 {
@@ -1066,12 +1066,12 @@ Switch ($ScriptMode)
                                 "progressAction = ""SilentlyContinue"""
                                 )
                     Write-toEventLog Error $arrayScriptLog
-                    write-Progression Update -code Error -CursorPosition $CursorPosition
+                    write-Progression -Step Update -code Error -CursorPosition $CursorPosition
                 }
 
                 # setup for ldaps
                 $CursorPosition = Write-Progression -Step Create -Message "Setup certificate for LDAPS"
-                write-Progression Update -code Running -CursorPosition $CursorPosition
+                write-Progression -Step Update -code Running -CursorPosition $CursorPosition
                 $arrayScriptLog += @(' ','Installing a certificate for ldaps...')
                 Try 
                 {
@@ -1082,24 +1082,24 @@ Switch ($ScriptMode)
                     {
                         "Info" 
                         { 
-                            write-Progression Update Success $CursorPosition
+                            write-Progression -Step Update -code Success -CursorPosition $CursorPosition
                             $arrayScriptLog += 'Certificate installed.'
                         }
                         "Warning" 
                         {
-                            write-Progression Update -code Warning -CursorPosition $CursorPosition
+                            write-Progression -Step Update -code Warning -CursorPosition $CursorPosition
                             $arrayScriptLog += 'WARNING: seems that the certificate was not copied in the root store.'
                         }
                         "Error" 
                         {
-                            write-Progression Update -code Error -CursorPosition $CursorPosition
+                            write-Progression -step Update -code Error -CursorPosition $CursorPosition
                             $arrayScriptLog += 'ERROR: failed to create the certificate!'
                         }
                     }
                 }
                 Catch 
                 {
-                    write-Progression Update -code Error -CursorPosition $CursorPosition
+                    write-Progression -step Update -code Error -CursorPosition $CursorPosition
                     Write-Host $arrayRsltTxt[2] -ForegroundColor $arrayColrTxt[2]
                 }
 
