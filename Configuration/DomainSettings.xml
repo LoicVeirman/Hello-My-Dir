@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Settings>
+<Settings Edition='1.1.0'>
     <PwdStrategyObjects>
         <PSO Name="PSO-EmergencyAccounts-LongLive" MaxPwdAge="1825.0:0:0.0" PwdLength="30" Precedence="105" />
         <PSO Name="PSO-ServiceAccounts-Legacy" MaxPwdAge="1825.0:0:0.0" PwdLength="30" Precedence="105" />

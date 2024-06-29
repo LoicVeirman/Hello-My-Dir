@@ -22,6 +22,7 @@ Function New-HmDRunSetupXml {
     # Add content
     # - Start: Configuration
     $myXml.WriteStartElement('Configuration')
+    $myXml.WriteAttributeString('Edition','1.1.0')
     # - Start: Forest
     $myXml.WriteStartElement('Forest')
     $myXml.WriteElementString('Installation','')
@@ -1208,4 +1209,102 @@ Function Get-HmDDomain {
 
     # Return result
     return $PreviousChoices
+}
+
+Function Update-HmDRunSetupXml {
+    <#
+        .SYNOPSIS
+        Update an existing runSetup.xml file.
+
+        .DESCRIPTION
+        The file runSetup.xml is a prerequesite for the script to run. This function updates one with no previous value set.
+
+        .NOTES
+        Version: 01.000.000 -- Loic VEIRMAN (MSSec)
+        History: 2024/06/29 -- Script creation.
+    #>
+    Param()
+
+    # No logging.
+    try 
+    {
+        # Create xml file
+        $myXml = New-XmlContent -XmlFile .\Configuration\RunSetupNew.xml
+        $pvXml = Get-XmlContent -XmlFile .\Configuration\RunSetup.xml
+
+        # Add content
+        # - Start: Configuration
+        $myXml.WriteStartElement('Configuration')
+        $myXml.WriteAttributeString('Edition','1.1.0')
+        # - Start: Forest
+        $myXml.WriteStartElement('Forest')
+        $myXml.WriteElementString('Installation',$pvXml.Configuration.Forest.Installation)
+        $myXml.WriteElementString('FullName',$pvXml.Configuration.Forest.Fullname)
+        $myXml.WriteElementString('NetBIOS',$pvXml.Configuration.Forest.NetBios)
+        $myXml.WriteElementString('FunctionalLevel',$pvXml.Configuration.Forest.FunctionalLevel)
+        $myXml.WriteElementString('RecycleBin',$pvXml.Configuration.Forest.RecycleBin)
+        $myXml.WriteElementString('PAM',$pvXml.Configuration.Forest.PAM)
+        $myXml.WriteEndElement()
+        # - End: Forest
+        # - Start: Domain
+        $myXml.WriteStartElement('Domain')
+        $myXml.WriteElementString('Type',$pvXml.Configuration.Domain.Type)
+        $myXml.WriteElementString('FullName',$pvXml.Configuration.Domain.Fullname)
+        $myXml.WriteElementString('NetBIOS',$pvXml.Configuration.Domain.NetBios)
+        $myXml.WriteElementString('FunctionalLevel',$pvXml.Configuration.Domain.FunctionalLevel)
+        $myXml.WriteElementString('SysvolPath',$pvXml.Configuration.Domain.sysvolPath)
+        $myXml.WriteElementString('NtdsPath',$pvXml.Configuration.Domain.ntdsPath)
+        $myXml.WriteEndElement()
+        # - End: Domain
+        # - Start: WindowsFeatures
+        $myXml.WriteStartElement('WindowsFeatures')
+        $myXml.WriteElementString('AD-Domain-Services',$pvXml.Configuration.WindowsFeatures."AD-Domain-Services")
+        $myXml.WriteElementString('RSAT-AD-Tools',$pvXml.Configuration.WindowsFeatures."RSAT-AD-Tools")
+        $myXml.WriteElementString('RSAT-DNS-Server',$pvXml.Configuration.WindowsFeatures."RSAT-DNS-Server")
+        $myXml.WriteElementString('RSAT-DFS-Mgmt-Con',$pvXml.Configuration.WindowsFeatures."RSAT-DFS-Mgmt-Con")
+        $myXml.WriteElementString('GPMC',$pvXml.Configuration.WindowsFeatures.GPMC)
+        $myXml.WriteEndElement()
+        # - end: WindowsFeatures
+        # - Start: ADObjects
+        $myXml.WriteStartElement('ADObjects')
+        $myXml.WriteStartElement('Users')
+        $myXml.WriteElementString('DomainJoin','DLGUSER01')
+        $myXml.WriteEndElement()
+        $myXml.WriteStartElement('Groups')
+        $myXml.WriteElementString('DomainJoin','LS-DLG-DomainJoin-Extended')
+        $myXml.WriteEndElement()
+        $myXml.WriteEndElement()
+        # - end: ADObjects
+        # - End: Configuration
+        $myXml.WriteEndElement()
+
+        # Closing document
+        $MyXml.WriteEndDocument()
+        $myXml.Flush()
+        $myXml.Close()
+
+        # Backing-up old xml and renaming new one
+        try 
+        {
+            Rename-Item .\Configuration\RunSetup.xml RunSetup.xml.bak -ErrorAction Stop
+        }
+        catch 
+        {
+            [void](Remove-Item .\Configuration\RunSetup.xml.bak -Force -Confirm:$false)
+            Start-Sleep -Milliseconds 15
+            Rename-Item .\Configuration\RunSetup.xml RunSetup.xml.bak
+        }
+        
+        Rename-Item .\Configuration\RunSetupNew.xml RunSetup.xml -Force
+
+        # Result
+        $arrayResult = @{Code="success";Message="The file RunSetup.xml has been successfully updated."}
+    }
+    Catch 
+    {
+        $arrayResult = @{Code="error";Message="Failed to update the RunSetup.xml file. Error: $($_.ToString())"}
+    }
+
+    # return result
+    return $arrayResult
 }

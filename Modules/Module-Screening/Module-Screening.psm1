@@ -447,3 +447,81 @@ Function Write-WarningText {
     # Return result
     return $result
 }
+
+Function Write-Progression {
+    <#
+        .SYNOPSIS
+        Display the progression status
+
+        .DESCRIPTION
+        Display the progression status on screen. The function returns the Cursor position when using the create step (else nothing).
+
+        .PARAMETER Step
+        >Create: will set a new line on screen.
+        >Update: will update an existing line on screen.
+
+        .PARAMETER Code
+        Which action result should be displayed on screen.
+
+        .PARAMETER Message
+        Line text to show on screen.
+
+        .PARAMETER CursorPosition
+        .Net object containing current cursor position for script writing.
+
+        .EXAMPLE 
+        .\Write-Progression Create 'This is an exemple'
+        Will output: [       ] This is an example
+
+        .EXAMPLE
+        .\Write-Progression running $coordinate
+        Will output: [running] This is an example
+
+        .NOTES
+        Version 1.0 (Creation - 2024/06/29)
+    #>
+    Param(
+        [Parameter(Position=0,ParameterSetName='new')]
+        [Parameter(Position=0,ParameterSetName='update')]
+        [ValidateSet('Create','Update')]
+        [String]$Step,
+
+        [Parameter(Position=1,ParameterSetName='new')]
+        [String]$Message,
+
+        [Parameter(Position=1,ParameterSetName='update')]
+        [ValidateSet('running','success','warning','error')]
+        [String]$Code,
+
+        [Parameter(Mandatory,Position=2,ParameterSetName='update')]
+        $CursorPosition
+    )
+    # No logging.
+    # Variables for this function
+    $arrayTextColor = @{"running"="cyan";"success"="green";"warning"="yellow";"error"="red";"text"="Gray";"history"="darkgray"}
+    $arrayTextDplay = @{"running"="running";"success"="success";"warning"="warning";"error"=" error ";"text"="[       ] "}
+
+    Switch ($Step)
+    {
+        # This is a new line
+        "Create"
+        {
+            # Getting the current cursor position
+            $CursorPosition = $Host.UI.RawUI.CursorPosition
+            # Displaying blank output
+            Write-Host $arrayTextDplay["text"] -ForegroundColor $arrayTextColor["text"] -NoNewline
+            # Adding text message
+            Write-Host $Message -ForegroundColor $arrayTextColor["text"] -NoNewline
+            # Return cursor position
+            return $CursorPosition
+        }
+        # Updating a line
+        "Update"
+        {
+            # Move cursor to new coordinates
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates ($CursorPosition.X + 1), $CursorPosition.Y
+            # write new status
+            Write-Host $arrayTextDplay[$Code] -ForegroundColor $arrayTextColor[$Code]
+        }
+    }
+}
