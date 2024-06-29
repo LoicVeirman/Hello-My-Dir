@@ -30,19 +30,23 @@ Function Deploy-DomainJoinDelegation {
     #Create the new group for delegation puprose (it will be safe to rename it later, if needed)
     $GroupName = $RunSetup.Configuration.ADObjects.Groups.DomainJoin
     $isPresent = Get-AdObject -LdapFilter "(&(ObjectClass=group)(SamAccountName=$GroupName))"
-    if ($null -eq $isPresent) {
-        Try {
+    if ($null -eq $isPresent) 
+    {
+        Try 
+        {
             [void](New-ADGroup -Description "Group to join a computer to the domain (allowed to create the object)" `
                                -DisplayName $GroupName -GroupCategory Security -GroupScope DomainLocal `
                                -Name $GroupName -SamAccountName $GroupName)
             $DbgLog += @(' ',"Group '$GroupName' successfully created.")
         }
-        Catch {
+        Catch 
+        {
             $DbgLog += @(' ',"Failed to create the group '$GroupName'!","Error: $($_.ToString())")
             $ExitLevel = 'Error'
         }
     }
-    Else {
+    Else 
+    {
         $DbgLog += @(' ',"Group '$GroupName' already exist (no change).")
     }
     #endregion
@@ -51,8 +55,10 @@ Function Deploy-DomainJoinDelegation {
     $randomSMpwd = New-LurchPassphrase
     $UserName = $RunSetup.Configuration.ADObjects.Users.DomainJoin
     $isPresent = Get-AdObject -LdapFilter "(&(ObjectClass=user)(SamAccountName=$UserName))"
-    if ($null -eq $isPresent) {
-        Try {
+    if ($null -eq $isPresent) 
+    {
+        Try 
+        {
             [void](New-ADUser -Description "DLGUSER01 - Delegated User (domain joining)" `
                               -Name $UserName -DisplayName $UserName `
                               -SamAccountName $UserName -accountNotDelegated 1 `
@@ -63,14 +69,16 @@ Function Deploy-DomainJoinDelegation {
 
             # Show password to user
             Add-Type -AssemblyName System.Windows.Forms
-            [void]([System.Windows.Forms.MessageBox]::Show("$UserName password: $randomSMpwd","Warning"))
+            [void]([System.Windows.Forms.MessageBox]::Show("$($UserName) password: $($randomSMpwd)","Warning"))
         }
-        Catch {
+        Catch 
+        {
             $DbgLog += @(' ',"Failed to create the user '$UserName'!","Error: $($_.ToString())")
             $ExitLevel = 'Error'
         }
     }
-    Else {
+    Else 
+    {
         $DbgLog += @(' ',"User '$UserName' already exist (no change).")
     }
     #endregion
@@ -79,17 +87,22 @@ Function Deploy-DomainJoinDelegation {
     $psoXml = Get-XmlContent .\Configuration\DomainSettings.xml
     $GroupList = @((Select-Xml $psoXml -XPath "//*/PSO[@Ref='PsoSvcStd']" | Select-Object -ExpandProperty Node).Name, $GroupName)
 
-    foreach ($Group in $GroupList) {
+    foreach ($Group in $GroupList) 
+    {
         $isMember = (Get-AdGroupMember $Group).SamAccountName -contains $UserName
-        if ($isMember) {
+        if ($isMember) 
+        {
             $DbgLog += @(' ',"User $Username is already member of $Group.")
         }
-        Else {
-            Try {
+        Else 
+        {
+            Try 
+            {
                 [void](Add-AdGroupMember -Identity $Group -Members $UserName -ErrorAction Stop)
                 $DbgLog += @(' ',"User $Username has been added to the group $group.")
             }
-            Catch {
+            Catch 
+            {
                 $DbgLog += @(' ',"Failed to add $Username to the group $group!","Error: $($_.ToString())")
                 $ExitLevel = "Error"
             }
@@ -99,7 +112,8 @@ Function Deploy-DomainJoinDelegation {
 
     #region SET DELEGATION
     $Container = (Get-ADDomain).ComputersContainer
-    Try {
+    Try 
+    {
         Push-Location AD:
 
         $inheritanceguid = New-Object Guid 00000000-0000-0000-0000-000000000000
@@ -134,7 +148,8 @@ Function Deploy-DomainJoinDelegation {
 
         $DbgLog += @(' ',"Successfully delegated rights on computer object to $GroupName at $Container.")
     }
-    Catch {
+    Catch 
+    {
         $DbgLog += @(' ',"Failed to delegate rights on computer object to $GroupName at $Container!","Error: $($_.ToString())")
         $ExitLevel = "Error"
     }

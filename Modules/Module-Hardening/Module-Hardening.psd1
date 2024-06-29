@@ -24,7 +24,7 @@ GUID = 'c2f2c291-eb6c-4582-90c4-a8bf108aab20'
 Author = 'loicveirman'
 
 # Company or vendor of this module
-CompanyName = 'Unknown'
+CompanyName = 'MSSEC'
 
 # Copyright statement for this module
 Copyright = '(c) loicveirman. All rights reserved.'
