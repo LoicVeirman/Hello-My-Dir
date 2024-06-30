@@ -1054,8 +1054,6 @@ Switch ($ScriptMode)
 
                 # deploy ADDS
                 $CursorPosition = Write-Progression -Step Create -Message "Installing your new domain controller in $($DomainFN.ToUpper())"
-                $BuiltinAdmin = (Get-AdUSer "$((Get-AdDomain).DomainSID.Value)-500").SamAccountName
-                $Creds = Get-Credential -Message 'Enter Domain Admins accounts' -User "$DomainNB\$BuiltinAdmin"
                 write-Progression -Step Update -code Running -CursorPosition $CursorPosition
 
                 # Snooze progress bar
