@@ -874,7 +874,11 @@ Switch ($ScriptMode)
                 {
                     write-Progression -Step Update -code Error -CursorPosition $CursorPosition
                     $arrayScriptLog += "$($ReqBinary): Failed to install! Error: $($_.ToString())"
-                    $prerequesiteKO = $True
+                    if ($ReqBinary -ne 'GPMC') 
+                    {
+                        # GPMC will fail on core systems, so we don't define this as a missing one.
+                        $prerequesiteKO = $True
+                    }
                 }
             }
             $ProgressPreference = "Continue"
