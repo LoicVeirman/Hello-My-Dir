@@ -1,4 +1,3 @@
-#Region help, params and init
 <#
     .SYNOPSIS
     This is the main script of the project "Hello my Dir!".
@@ -44,9 +43,13 @@
     Exit Code:
     1...: Prerequesite are not compliant.
     2...: Failed to add the server to the domain.
+    3...: Not logged in with a domain account.
+    4...: Not using a domain or enterprise admins account.
+    998.: AD Query failed abnormaly. Emmergency exit.
     999.: PowerShell Major version is not compliant (5.x expected).
 #>
 
+#Region help, params and init
 [CmdletBinding(DefaultParameterSetName = 'NewForest')]
 Param
 (
@@ -923,38 +926,79 @@ Switch ($ScriptMode)
             # add DC 
             if (-not($prerequesiteKO)) 
             {
+                # Check that the user is a domain account and not local account
+                $CursorPosition = Write-Progression -Step Create -Message "Ensure the script is run with a domain account"
+                Write-Progression -Step Update -Code Running -CursorPosition $CursorPosition
+                
+                $USerWhoAmI = WhoAmI
+                if ($USerWhoAmI -match "$($ENV:ComputerName)")
+                {
+                    # Erratum
+                    write-Progression -Step Update -Code Error -CursorPosition $CursorPosition
+                    $arrayScriptLog += @(' ','Error: the current user is not a domain user.')
+                    Write-ToEventLog Error $arrayScriptLog
+                    Write-Host "`nError: your are not loggin with a domain account! The script will leave.`n" -ForegroundColor Red
+                    Exit 3
+                }
+                Else 
+                {
+                    write-Progression -Step Update -Code Success -CursorPosition $CursorPosition
+                    $arrayScriptLog += @(' ','The current user is a domain user.')
+                    
+                    # well, is the user BA, DA or EA?
+                    $CursorPosition = Write-Progression -Step Create -Message "Ensure the user is granted BA, DA or EA privileges"
+                    Write-Progression -Step Update -Code Running -CursorPosition $CursorPosition
+                    
+                    Try
+                    {
+                        $BAName = (Get-ADGroup "S-1-5-32-544" -ErrorAction Stop).Name
+                        $DAsid  = [String](Get-ADDomain $DomainFN -ErrorAction Stop).DomainSID.Value + "-512"
+                        $DAName = (Get-ADGroup $DAsid -Server $DomainFN -ErrorAction Stop).Name
+                        $EAsid  = [String](Get-ADDomain $DomainFN -ErrorAction Stop).DomainSID.Value + "-519"
+                        $EAName = (Get-ADGroup $EAsid -Server $DomainFN -ErrorAction Stop).Name
+                    }
+                    Catch
+                    {
+                        # Query failed, emergency exit.
+                        write-Progression -Step Update -Code Error -CursorPosition $CursorPosition
+                        $arrayScriptLog += @(' ','Error: something went wrong while querying AD for BA, DA and EA group names!')
+                        Write-ToEventLog Error $arrayScriptLog
+                        Write-Host "`nError: Could not query properly AD! The script will leave.`n" -ForegroundColor Red
+                        Exit 998
+                    }
+
+                    $UserGroups = Get-ADPrincipalGroupMembership $env:username -ErrorAction SilentlyContinue | Select-Object name
+                    if ($UserGroups.Name -match $BAName -or $UserGroups.Name -match $DAName -or $UserGroups.Name -match $EAName)
+                    {
+                        write-Progression -Step Update -Code success -CursorPosition $CursorPosition
+                        $arrayScriptLog += @('The account is member of either BA, DA and/or EA.')
+                    }
+                    Else 
+                    {
+                        write-Progression -Step Update -Code Error -CursorPosition $CursorPosition
+                        $arrayScriptLog += @(' ','Error: the used account is not member of BA, DA or EA group!')
+                        Write-ToEventLog Error $arrayScriptLog
+                        Write-Host "`nError: The account used is not granted expected rights to perform a DC promotion.`n" -ForegroundColor Red
+                        Exit 4
+                    }
+                }
+
                 # reset ACL and owner
                 $CursorPosition = Write-Progression -Step Create -Message "Reseting owner and SDDL for security purpose"
                 write-Progression -Step Update -code Running -CursorPosition $CursorPosition
                 $NoError = $True
                 Try 
                 {
-                    $DAsid  = [String](Get-ADDomain $DomainFN).DomainSID.Value + "-512"
-                    $DAName = (Get-ADGroup $DAsid -Server $DomainFN).Name
-                    $Cptr   = Get-ADComputer $env:computername -Properties nTSecurityDescriptor -Credential $Creds
-                    $Cptr | ForEach {
-                        $DistinguishedName    = $_.DistinguishedName
-                        $GroupCategory        = $_.GroupCategory
-                        $GroupScope           = $_.GroupScope
-                        $Name                 = $_.Name
-                        $ObjectClass          = $_.ObjectClass
-                        $ObjectGUID           = $_.ObjectGUID
-                        $SamAccountName       = $_.SamAccountName
-                        $SID                  = $_.SID
-                        $nTSecurityDescriptor = $_.nTSecurityDescriptor
-                
-                        $Array = New-Object psobject -Property @{
-                            DistinguishedName = $DistinguishedName
-                            DNSHostName       = $DNSHostName
-                            Enabled           = $Enabled
-                            Name              = $Name
-                            ObjectClass       = $ObjectClass
-                            ObjectGUID        = $ObjectGUID
-                            SamAccountName    = $SamAccountName
-                            SID               = $SID
-                            Owner             = $nTSecurityDescriptor.owner
-                        }
-                    }
+                    $Cptr   = Get-ADComputer $env:computername -Properties nTSecurityDescriptor -ErrorAction Stop
+                    $Array  = New-Object psobject -Property @{  DistinguishedName = $Cptr.DistinguishedName
+                                                                DNSHostName       = $Cptr.DNSHostName
+                                                                Enabled           = $Cptr.Enabled
+                                                                Name              = $Cptr.Name
+                                                                ObjectClass       = $Cptr.ObjectClass
+                                                                ObjectGUID        = $Cptr.ObjectGUID
+                                                                SamAccountName    = $Cptr.SamAccountName
+                                                                SID               = $Cptr.SID
+                                                                Owner             = $Cptr.nTSecurityDescriptor.owner }
                 }
                 Catch 
                 {
@@ -964,18 +1008,13 @@ Switch ($ScriptMode)
                 
                 Try 
                 {
-                    $Array | ForEach {
-                        # Current  Computer
-                        $SamAccountName = $_.SamAccountName
-                        # Change Owner
-                        ## Define Target
-                        $TargetObject = Get-ADComputer $SamAccountName -Server $DomainFN
-                        $AdsiTarget = [adsi]"LDAP://$DomainFN/$($TargetObject.DistinguishedName)"
-                        ## Set new Owner
-                        $NewOwner = New-Object System.Security.Principal.NTAccount($DAName)
-                        $AdsiTarget.PSBase.ObjectSecurity.SetOwner($NewOwner)
-                        $AdsiTarget.PSBase.CommitChanges()
-                    }
+                    # Reset owner
+                    $SamAccountName = $Array.SamAccountName
+                    $TargetObject = Get-ADComputer $SamAccountName -Server $DomainFN -ErrorAction Stop
+                    $AdsiTarget = [adsi]"LDAP://$DomainFN/$($TargetObject.DistinguishedName)"
+                    $NewOwner = New-Object System.Security.Principal.NTAccount($DAName)
+                    $AdsiTarget.PSBase.ObjectSecurity.SetOwner($NewOwner)
+                    $AdsiTarget.PSBase.CommitChanges()
                 }
                 Catch 
                 {
@@ -990,11 +1029,10 @@ Switch ($ScriptMode)
                 Try 
                 {
                     # Get computer default ACL
-                    $SchemaNamingContext = (Get-ADRootDSE -Server $DomainFN).schemaNamingContext
-                    $DefaultSecurityDescriptor = Get-ADObject -Identity "CN=Computer,$SchemaNamingContext" -Properties defaultSecurityDescriptor | Select-Object -ExpandProperty defaultSecurityDescriptor
-
+                    $SchemaNamingContext = (Get-ADRootDSE -Server $DomainFN -ErrorAction Stop).schemaNamingContext
+                    $DefaultSecurityDescriptor = Get-ADObject -Identity "CN=Computer,$SchemaNamingContext" -Properties defaultSecurityDescriptor -ErrorAction Stop | Select-Object -ExpandProperty defaultSecurityDescriptor
+                    # Reset ACL to default
                     $ADObj = Get-ADComputer -Identity $SamAccountName -Properties nTSecurityDescriptor -ErrorAction Stop
-
                     $ADObj.nTSecurityDescriptor.SetSecurityDescriptorSddlForm( $DefaultSecurityDescriptor )
                     Set-ADObject -Identity $ADObj.DistinguishedName -Replace @{ nTSecurityDescriptor = $ADObj.nTSecurityDescriptor } -Confirm:$false 
                 }
