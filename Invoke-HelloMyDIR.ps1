@@ -582,7 +582,7 @@ Switch ($ScriptMode)
                         Catch 
                         {
                             Write-Progression -Step Update -code error -CursorPosition $CursorPosition
-                            $arrayScriptLog += @(' ',"Error: $($_.string())")
+                            $arrayScriptLog += @(' ',"Error: $($_.ToString())")
                             $prerequesiteKO = $True
                         }
                     }
