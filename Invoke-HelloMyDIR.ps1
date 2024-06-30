@@ -581,14 +581,14 @@ Switch ($ScriptMode)
                         }
                         Catch 
                         {
-                            Write-Progression -Step Update error $CursorPosition
+                            Write-Progression -Step Update -code error -CursorPosition $CursorPosition
                             $arrayScriptLog += @(' ',"Error: $($_.string())")
                             $prerequesiteKO = $True
                         }
                     }
                     Else 
                     {
-                        Write-Progression -Step Update success $CursorPosition
+                        Write-Progression -Step Update -code success -CursorPosition $CursorPosition
                     }
                 }
                 $xmlRunSetup.Save((Resolve-Path .\Configuration\RunSetup.xml).Path)
