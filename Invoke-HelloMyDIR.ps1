@@ -874,9 +874,10 @@ Switch ($ScriptMode)
                 {
                     write-Progression -Step Update -code Error -CursorPosition $CursorPosition
                     $arrayScriptLog += "$($ReqBinary): Failed to install! Error: $($_.ToString())"
-                    if ($ReqBinary -ne 'GPMC') 
+                    if ($ReqBinary -ne 'GPMC' -and $ReqBinary -ne 'RSAT-DFS-Mgmt-Con') 
                     {
                         # GPMC will fail on core systems, so we don't define this as a missing one.
+                        # RSAT-DFS-Mgmt-Con not mandatory, just a nice feature to manage DFSr.
                         $prerequesiteKO = $True
                     }
                 }
