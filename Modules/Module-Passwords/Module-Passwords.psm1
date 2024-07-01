@@ -125,4 +125,44 @@ Function New-RandomComplexPasword {
     return $yourPassword
 }
 
+Function New-LurchPassphrase {
+    <#
+        .SYNOPSIS
+        Return a passphrase as password.
+
+        .DESCRIPTION
+        Lurch can generate grumphy password phrase to ease in write them down while being secure.
+
+        .NOTES
+        Version 01.00.00 (2024/06/26 - Creation)
+    #>
+
+    #region initialize
+    # No log
+    # Init lurch word database
+    $ScriptSettings = Get-XmlContent .\Configuration\ScriptSettings.xml
+    $LurchWordsList = [array]($ScriptSettings.Settings.Lurch.WordList -split ';')
+    $LurchKnownWord = $LurchWordsList.Count
+    $passphraseBomb = @('-','+','=','_',' ')
+    #endregion
+
+    #region build passphrase
+    $words = 0
+    $passphrase = ""
+    While ($words -lt 5) {
+        $Random = Get-Random -Minimum 0 -Maximum ($LurchKnownWord -1)
+        $newWord = $LurchWordsList[$Random]
+        if ($passphrase -ne "") {
+            $random = Get-Random -Minimum 0 -Maximum 4
+            $newWord = "$($passphraseBomb[$random])$newWord"
+        }
+        $passphrase += $newWord
+        $words++
+    }
+    #endregion
+
+    #Return Password
+    return $passphrase
+}
+
 Export-ModuleMember -Function *

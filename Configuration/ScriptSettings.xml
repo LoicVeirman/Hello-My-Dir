@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Settings>
+<Settings Edition='1.1.0'>
     <Logging Name="HelloMyDir" Prefix="HmD_" />
     <Message>
         <Text ID='000' Line1="Welcome!" Line2="This script will assist you in creating a new domain fully secured." Line3="" Line4="" />
@@ -16,6 +16,8 @@
         <Text ID='013' Line1="What will be the new Domain Functional Level?" Line2=" " Line3="" Line4="" />
         <Text ID='014' Line1="Where do you want to set the SYSVOL folder (press Enter yo use the default one)?" Line2="[C:\Windows\SYSVOL] " Line3="" Line4="" />
         <Text ID='015' Line1="Where do you want to set the NTDS folder (press Enter yo use the default one)?" Line2="[C:\Windows\NTDS] " Line3="" Line4="" />
+        <Text ID='016' Line1="Domain Join: how will you name the service account?" Line2="[DLGUSER01] " Line3="" Line4="" />
+        <Text ID='017' Line1="Domain Join: how will you name the delegation group?" Line2="[LS-DLG-DomainJoin-Extended] " Line3="" Line4="" />
     </Message>
     <Warning>
         <RebootAction ColorScheme="Warning" Confirm="Yes">
@@ -35,6 +37,7 @@
     <Lurch>
         <BadKeyPress>No;Nop;Han Han...;Try Again;No way;Are you kidding me?;Grmpf...;Not a chance;I don't think so;That's negative...;Sorry, but... No;I'll pass;Forget it;Not happening;I have better things to do;I have to feed my pet rock;I already have a subscription to the 'no' magazine;I don't have energy for that right now;I'm not really into that sort of thing;Maybe some other time?</BadKeyPress>
         <BadInputFormat>Let’s consider a different angle on this;I’ve encountered some contrasting insights;Might there be another side to this story?;This calls for a deeper dive into the facts;Perhaps there’s more to it than meets the eye;Are we in a parallel universe where wrong is right?;Can’t say I agree with your logic there;Don’t be fooled by your neurons</BadInputFormat>
+        <Wordlist>Uh!;Bad;Feeling;Plan;Grrr;Coach;Play;Give;Chance;Handle:The;Rock;Dog;Crap;Hate;Spider;Down;42;Handball;Squash;Pumpkin;Bat;Skull;Black;Adams;Family</Wordlist>
     </Lurch>
     <FunctionalLevel>
         <OS Caption="2025" Regex="^[(4-7)0]$" />

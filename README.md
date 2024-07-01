@@ -1,7 +1,15 @@
 <img src="https://github.com/LoicVeirman/Pimp-My-Directory/assets/85032445/0dc7aeeb-04b8-4c45-8d76-804ba9799c4f" alt="repo logo" width="200"/>
 
 # Hello My Dir!
+#### Release 01.01.00 - *Hello My DC!*
 
+## Important notice  
+You should always update your existing HmD repository with the latest edition and run the below command to adapt your configuration file:
+```PS
+Invoke-HelloMyDir.ps1 -UpdateConfigFile
+```  
+
+## Project description  
 This project is specifically made for brand new directories and ease their creation with all security rules in place:
 > - Remove legacy protocols/setup used by Microsoft for compliance purposes
 > - Enforce the use of modern alogrithm for cyphering and authentication
@@ -11,6 +19,16 @@ This project is specifically made for brand new directories and ease their creat
 
 The script will automate the answer file by itself at first run, but can modify it by using the parameter *-Prepare*.
 The documentation is in place in the folder "Documentation" and explain how you can run it.
+
+## Release history
+**01.01.00: Hello My DC!**  
+> - Add the ability to promote a Domain Controller in your domain.
+> - Add a new group named "*LS-DELEG-DomainJoin-Extended*" intended to delegate right on computer objet at location *CN=Computers,DC-Your,DC=Domain*.
+> - Add a  new user named "*DLGUSER01*" intended to join computer to the domain. The user is a member of "*LS-DELEG-DomainJoin-Extended*" and have a PSO applied on it (*PSO-ServiceAccounts-ADdelegatedRight*).
+> - Set a delegation on *CN=Computers,DC-Your,DC=Domain* to allow "*LS-DELEG-DomainJoin-Extended*"'s group members to manage computer objects (domain joining).
+
+**01.00.00: Hello My Dir!**  
+> - Script creation. Allow you to create a brand new domain/forest fully secured.
 
 ## Auditing with Ping Castle and Purple Knight
 While diving around the script, we have ensured that both well known AD security auditing tools will give you the maximum score you can expect right after building up your domain. 

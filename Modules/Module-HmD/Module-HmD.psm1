@@ -22,11 +22,12 @@ Function New-HmDRunSetupXml {
     # Add content
     # - Start: Configuration
     $myXml.WriteStartElement('Configuration')
+    $myXml.WriteAttributeString('Edition','1.1.0')
     # - Start: Forest
     $myXml.WriteStartElement('Forest')
     $myXml.WriteElementString('Installation','')
-    $myXml.WriteElementString('FullName','')
-    $myXml.WriteElementString('NetBIOS','')
+    $myXml.WriteElementString('FullName','Hello.My.Dir')
+    $myXml.WriteElementString('NetBIOS','HELLO')
     $myXml.WriteElementString('FunctionalLevel','')
     $myXml.WriteElementString('RecycleBin','')
     $myXml.WriteElementString('PAM','')
@@ -35,8 +36,8 @@ Function New-HmDRunSetupXml {
     # - Start: Domain
     $myXml.WriteStartElement('Domain')
     $myXml.WriteElementString('Type','')
-    $myXml.WriteElementString('FullName','')
-    $myXml.WriteElementString('NetBIOS','')
+    $myXml.WriteElementString('FullName','Hello.My.Dir')
+    $myXml.WriteElementString('NetBIOS','HELLO')
     $myXml.WriteElementString('FunctionalLevel','')
     $myXml.WriteElementString('SysvolPath','')
     $myXml.WriteElementString('NtdsPath','')
@@ -51,6 +52,16 @@ Function New-HmDRunSetupXml {
     $myXml.WriteElementString('GPMC','')
     $myXml.WriteEndElement()
     # - end: WindowsFeatures
+    # - Start: ADObjects
+    $myXml.WriteStartElement('ADObjects')
+    $myXml.WriteStartElement('Users')
+    $myXml.WriteElementString('DomainJoin','DLGUSER01')
+    $myXml.WriteEndElement()
+    $myXml.WriteStartElement('Groups')
+    $myXml.WriteElementString('DomainJoin','LS-DLG-DomainJoin-Extended')
+    $myXml.WriteEndElement()
+    $myXml.WriteEndElement()
+    # - end: ADObjects
     # - End: Configuration
     $myXml.WriteEndElement()
 
@@ -556,6 +567,7 @@ Function Get-HmDDomain {
         $PreviousChoices
     )
 
+    #region INIT
     # Initiate logging. A specific variable is used to inform on the final result (info, warning or error).
     Test-EventLog | Out-Null
     $callStack = Get-PSCallStack
@@ -573,12 +585,16 @@ Function Get-HmDDomain {
     $DomainDFL = $PreviousChoices.Configuration.Domain.FunctionalLevel
     $DomainSYS = $PreviousChoices.Configuration.Domain.SysvolPath
     $DomainNTD = $PreviousChoices.Configuration.Domain.NtdsPath
+    $DomJoinGr = $PreviousChoices.Configuration.ADObjects.Groups.DomainJoin
+    $DomJoinUr = $PreviousChoices.Configuration.ADObjects.Users.DomainJoin
 
-    $DbgLog += @('Previous choices:',"> Domain Type: $domainTYP","> Domain Fullname: $domainDNS","> Domain NetBIOS name: $DomainNtB","> Domain Functional Level: $DomainDFL",' ')    
-
+    $DbgLog += @('Previous choices:',"> Domain Type: $domainTYP","> Domain Fullname: $domainDNS","> Domain NetBIOS name: $DomainNtB","> Domain Functional Level: $DomainDFL")    
+    $DbgLog += @("> Domain Join Group: $domJoinGr","> Domain Join User: $domJoinUr",' ')    
+    #endregion
     # Loading Script Settings
     $ScriptSettings = Get-XmlContent .\Configuration\ScriptSettings.xml
 
+    #region DOMAIN TYPE
     #########################
     # QUESTION: DOMAIN TYPE #
     #########################
@@ -678,10 +694,11 @@ Function Get-HmDDomain {
             }
         }
     }
-
+    #endregion
     ## Writing result to XML
     $PreviousChoices.Configuration.Domain.Type = $DomainTYP
 
+    #region DOMAIN FQDN
     #########################
     # QUESTION: DOMAIN FQDN #
     #########################
@@ -765,10 +782,11 @@ Function Get-HmDDomain {
             }
         }
     }
-
+    #endregion
     ## Writing result to XML
     $PreviousChoices.Configuration.Domain.FullName = $DomainDNS
 
+    #region DOMAIN NETBIOS NAME
     #################################
     # QUESTION: DOMAIN NETBIOS NAME #
     #################################
@@ -850,10 +868,11 @@ Function Get-HmDDomain {
             }
         }
     }
-    
+    #endregion
     ## Writing result to XML
     $PreviousChoices.Configuration.Domain.NetBIOS = $DomainNtB
 
+    #region DOMAIN FUNCTIONAL LEVEL
     #####################################
     # QUESTION: DOMAIN FUNCTIONAL LEVEL #
     #####################################
@@ -948,10 +967,11 @@ Function Get-HmDDomain {
             $isKO = $true
         }
     }
-
+    #endregion
     # Write to XML
     $PreviousChoices.Configuration.Domain.FunctionalLevel = $DomainDFL
 
+    #region SYSVOL PATH
     #########################
     # QUESTION: SYSVOL PATH #
     #########################
@@ -1023,11 +1043,12 @@ Function Get-HmDDomain {
             }
         }
     }    
-
+    #endregion
     # Write to XML
     $PreviousChoices.Configuration.Domain.sysvolPath = $DomainSYS
     $DbgLog += @("Domain SYSVOL: $domainSYS")
 
+    #region NTDS PATH
     #######################
     # QUESTION: NTDS PATH #
     #######################
@@ -1099,14 +1120,191 @@ Function Get-HmDDomain {
             }
         }
     }    
-
+    #endregion
     # Write to XML
     $PreviousChoices.Configuration.Domain.NtdsPath = $DomainNTD
     $DbgLog += @("Domain NTDS: $domainNTD")
+
+    #region DELEG DOMAIN JOIN
+    ########################################
+    # QUESTION: DOMAIN JOIN USER AND GROUP #
+    ########################################
+    # Enquiring for the new service account
+    ## Display question 
+    $toDisplayXml = Select-Xml $ScriptSettings -XPath "//Text[@ID='016']" | Select-Object -ExpandProperty Node
+    $toDisplayArr = @($toDisplayXml.Line1)
+    $toDisplayArr += $toDisplayXml.Line2
+    Write-UserChoice $toDisplayArr
+    ## Input time
+    $StringCleanSet = "                     "
+    ## Getting cursor position for relocation
+    $CursorPosition = $Host.UI.RawUI.CursorPosition
+    ## Writing default previous choice (will be used if RETURN is pressed)
+    Write-Host $DomJoinUr -NoNewline -ForegroundColor Magenta
+    ### Querying input: waiting for Y,N or ENTER.
+    $isKO = $True
+    While ($isKO)
+    {
+        # relocate cursor
+        $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+        # Getting user $input
+        [string]$answer = read-host
+        # if $answer is null, then we use the default choice
+        if ([String]::IsNullOrEmpty($answer)) {
+            [string]$answer = $DomJoinUr
+        }
+        # if answer is not null, we ensure that the regex for domain is matched
+        if (-not([String]::IsNullOrEmpty($answer))) {
+            $DomJoinUr = $answer
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+            Write-Host $StringCleanSet -NoNewline
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+            Write-Host $DomJoinUr -ForegroundColor Green
+            $isKO = $false
+        }
+    }
+    # Enquiring for the new delegation group
+    ## Display question 
+    $toDisplayXml = Select-Xml $ScriptSettings -XPath "//Text[@ID='017']" | Select-Object -ExpandProperty Node
+    $toDisplayArr = @($toDisplayXml.Line1)
+    $toDisplayArr += $toDisplayXml.Line2
+    Write-UserChoice $toDisplayArr
+    ## Input time
+    $StringCleanSet = "                     "
+    ## Getting cursor position for relocation
+    $CursorPosition = $Host.UI.RawUI.CursorPosition
+    ## Writing default previous choice (will be used if RETURN is pressed)
+    Write-Host $DomJoinGr -NoNewline -ForegroundColor Magenta
+    ### Querying input: waiting for Y,N or ENTER.
+    $isKO = $True
+    While ($isKO)
+    {
+        # relocate cursor
+        $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+        # Getting user $input
+        [string]$answer = read-host
+        # if $answer is null, then we use the default choice
+        if ([String]::IsNullOrEmpty($answer)) {
+            [string]$answer = $DomJoinGr
+        }
+        # if answer is not null, we ensure that the regex for domain is matched
+        if (-not([String]::IsNullOrEmpty($answer))) {
+            $DomJoinGr = $answer
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+            Write-Host $StringCleanSet -NoNewline
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+            Write-Host $DomJoinGr -ForegroundColor Green
+            $isKO = $false
+        }
+    }    
+    #endregion
+
+    # Write to XML
+    $PreviousChoices.Configuration.ADObjects.Groups.DomainJoin = $DomJoinGr
+    $PreviousChoices.Configuration.ADObjects.Users.DomainJoin = $DomJoinUr
+    $DbgLog += @("Domain Join User: $domJoinUr","Domain Join Group: $DomJoinGr")
 
     # End logging
     Write-toEventLog $ExitLevel $DbgLog | Out-Null
 
     # Return result
     return $PreviousChoices
+}
+
+Function Update-HmDRunSetupXml {
+    <#
+        .SYNOPSIS
+        Update an existing runSetup.xml file.
+
+        .DESCRIPTION
+        The file runSetup.xml is a prerequesite for the script to run. This function updates one with no previous value set.
+
+        .NOTES
+        Version: 01.000.000 -- Loic VEIRMAN (MSSec)
+        History: 2024/06/29 -- Script creation.
+    #>
+    Param()
+
+    # No logging.
+    try 
+    {
+        # Create xml file
+        $myXml = New-XmlContent -XmlFile .\Configuration\RunSetupNew.xml
+        $pvXml = Get-XmlContent -XmlFile .\Configuration\RunSetup.xml
+
+        # Add content
+        # - Start: Configuration
+        $myXml.WriteStartElement('Configuration')
+        $myXml.WriteAttributeString('Edition','1.1.0')
+        # - Start: Forest
+        $myXml.WriteStartElement('Forest')
+        $myXml.WriteElementString('Installation',$pvXml.Configuration.Forest.Installation)
+        $myXml.WriteElementString('FullName',$pvXml.Configuration.Forest.Fullname)
+        $myXml.WriteElementString('NetBIOS',$pvXml.Configuration.Forest.NetBios)
+        $myXml.WriteElementString('FunctionalLevel',$pvXml.Configuration.Forest.FunctionalLevel)
+        $myXml.WriteElementString('RecycleBin',$pvXml.Configuration.Forest.RecycleBin)
+        $myXml.WriteElementString('PAM',$pvXml.Configuration.Forest.PAM)
+        $myXml.WriteEndElement()
+        # - End: Forest
+        # - Start: Domain
+        $myXml.WriteStartElement('Domain')
+        $myXml.WriteElementString('Type',$pvXml.Configuration.Domain.Type)
+        $myXml.WriteElementString('FullName',$pvXml.Configuration.Domain.Fullname)
+        $myXml.WriteElementString('NetBIOS',$pvXml.Configuration.Domain.NetBios)
+        $myXml.WriteElementString('FunctionalLevel',$pvXml.Configuration.Domain.FunctionalLevel)
+        $myXml.WriteElementString('SysvolPath',$pvXml.Configuration.Domain.sysvolPath)
+        $myXml.WriteElementString('NtdsPath',$pvXml.Configuration.Domain.ntdsPath)
+        $myXml.WriteEndElement()
+        # - End: Domain
+        # - Start: WindowsFeatures
+        $myXml.WriteStartElement('WindowsFeatures')
+        $myXml.WriteElementString('AD-Domain-Services',$pvXml.Configuration.WindowsFeatures."AD-Domain-Services")
+        $myXml.WriteElementString('RSAT-AD-Tools',$pvXml.Configuration.WindowsFeatures."RSAT-AD-Tools")
+        $myXml.WriteElementString('RSAT-DNS-Server',$pvXml.Configuration.WindowsFeatures."RSAT-DNS-Server")
+        $myXml.WriteElementString('RSAT-DFS-Mgmt-Con',$pvXml.Configuration.WindowsFeatures."RSAT-DFS-Mgmt-Con")
+        $myXml.WriteElementString('GPMC',$pvXml.Configuration.WindowsFeatures.GPMC)
+        $myXml.WriteEndElement()
+        # - end: WindowsFeatures
+        # - Start: ADObjects
+        $myXml.WriteStartElement('ADObjects')
+        $myXml.WriteStartElement('Users')
+        $myXml.WriteElementString('DomainJoin','DLGUSER01')
+        $myXml.WriteEndElement()
+        $myXml.WriteStartElement('Groups')
+        $myXml.WriteElementString('DomainJoin','LS-DLG-DomainJoin-Extended')
+        $myXml.WriteEndElement()
+        $myXml.WriteEndElement()
+        # - end: ADObjects
+        # - End: Configuration
+        $myXml.WriteEndElement()
+
+        # Closing document
+        $MyXml.WriteEndDocument()
+        $myXml.Flush()
+        $myXml.Close()
+
+        # Backing-up old xml and renaming new one
+        try 
+        {
+            Rename-Item .\Configuration\RunSetup.xml RunSetup.xml.bak -ErrorAction Stop
+        }
+        catch 
+        {
+            [void](Remove-Item .\Configuration\RunSetup.xml.bak -Force -Confirm:$false)
+            Start-Sleep -Milliseconds 15
+            Rename-Item .\Configuration\RunSetup.xml RunSetup.xml.bak
+        }
+        
+        Rename-Item .\Configuration\RunSetupNew.xml RunSetup.xml -Force
+
+        # Result
+        $arrayResult = @{Code="success";Message="The file RunSetup.xml has been successfully updated."}
+    }
+    Catch 
+    {
+        $arrayResult = @{Code="error";Message="Failed to update the RunSetup.xml file. Error: $($_.ToString())"}
+    }
+
+    # return result
+    return $arrayResult
 }
