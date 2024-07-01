@@ -7,6 +7,7 @@ This project is specifically made for brand new directories and ease their creat
 > - Enforce the use of modern alogrithm for cyphering and authentication
 > - Enforce LDAPS when a client requests a connection to your DC 
 > - Enforce the default password strategy to match with modern expectation
+> - Add other Domain Controllers to your secured domain
 
 The script will automate the answer file by itself at first run, but can modify it by using the parameter *-Prepare*.
 The documentation is in place in the folder "Documentation" and explain how you can run it.
