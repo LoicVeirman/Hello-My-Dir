@@ -39,11 +39,12 @@ Function Resolve-LDAPSrequired {
     # Retrieve DC data
     $DCfullname = "$($env:ComputerName).$($env:UserDNSdomain)"
     $DCname = $env:ComputerName
-    $LogData += @("DNS Name will be $DCfullname.","Certificate name will be $DCname.",' ')
+    $DomainName = $env:userdnsdomain
+    $LogData += @("DNS Name will be $DCfullname and $DomainName.","Certificate name will be $DCname.",' ')
 
     # Generate New Cert
     Try {
-        $myCert = New-SelfSignedCertificate -DnsName $DCfullname, $DCname -CertStoreLocation cert:\LocalMachine\My -ErrorAction Stop
+        $myCert = New-SelfSignedCertificate -DnsName $DCfullname, $DCname, $DomainName -CertStoreLocation cert:\LocalMachine\My -ErrorAction Stop
         $LogData += @('Certificate successfully generated.',"Command: New-SelfSignedCertificate -DnsName $DCfullname, $DCname -CertStoreLocation cert:\LocalMachine\My -ErrorAction Stop",' ')
     }
     Catch {
