@@ -881,6 +881,7 @@ Function Get-HmDDomain {
     $LurchMood = @(($ScriptSettings.Settings.Lurch.BadKeyPress).Split(';'))
 
     # Regex computing
+    $OSCaption = (gwmi Win32_OperatingSystem).Caption
     $IdRegexFL = ($ScriptSettings.Settings.FunctionalLevel.OS | Where-Object { $OSCaption -match $_.Caption }).Regex
 
     # Alert User on avail' choices
