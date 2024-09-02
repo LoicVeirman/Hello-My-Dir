@@ -1,7 +1,7 @@
 <img src="https://github.com/LoicVeirman/Pimp-My-Directory/assets/85032445/0dc7aeeb-04b8-4c45-8d76-804ba9799c4f" alt="repo logo" width="200"/>
 
 # Hello My Dir!
-#### Release 01.01.01 - *Hello My DC!*
+#### Release 01.01.02.001 - *Hello My DC!*
 
 ## Important notice  
 You should always update your existing HmD repository with the latest edition and run the below command to adapt your configuration file:
