@@ -576,7 +576,7 @@ Switch ($ScriptMode)
                         Try 
                         {
                             install-windowsFeature -Name $ReqBinary -IncludeAllSubFeature -ErrorAction Stop | Out-Null
-                            Write-Progression -Step Update success $CursorPosition
+                            Write-Progression Update success $CursorPosition
                             $xmlRunSetup.Configuration.WindowsFeatures.$ReqBinary = "No"
                         }
                         Catch 
