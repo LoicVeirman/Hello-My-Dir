@@ -10,7 +10,7 @@ The code is intended to create any kind of domain (in an existing forest as a ch
 only cover the unique case of building a new forest - this is just a matter of testing before we update our code and enhance its ability to 
 deliver the same in any build context!
 
-Angry to learn how this works? Then let's go deep in details!
+Hungry to learn how this works? Then let's go deep in details!
 
 ### What's New
 The version 1.1.0 add new feature to Hello My Dir:
