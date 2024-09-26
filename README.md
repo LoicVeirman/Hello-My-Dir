@@ -1,4 +1,4 @@
-<img src="https://github.com/LoicVeirman/Pimp-My-Directory/assets/85032445/0dc7aeeb-04b8-4c45-8d76-804ba9799c4f" alt="repo logo" width="200"/>
+![logo hello my dir baniere fond gris](https://github.com/user-attachments/assets/83c3f729-8adc-4084-9765-51318256cbb6)
 
 # Hello My Dir!
 #### Release 01.01.02.001 - *Hello My DC!*
