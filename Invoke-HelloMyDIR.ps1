@@ -571,17 +571,17 @@ Switch ($ScriptMode)
                     if ($BinariesStatus.$ReqBinary -eq 'Yes') 
                     {
                         # installing
-                        Write-Progression -Step Update -code Running -CursorPosition $CursorPosition
+                        Write-Progression -Step Update -Code Running -CursorPosition $CursorPosition
 
                         Try 
                         {
                             install-windowsFeature -Name $ReqBinary -IncludeAllSubFeature -ErrorAction Stop | Out-Null
-                            Write-Progression Update success $CursorPosition
+                            Write-Progression Update -Code success $CursorPosition
                             $xmlRunSetup.Configuration.WindowsFeatures.$ReqBinary = "No"
                         }
                         Catch 
                         {
-                            Write-Progression -Step Update -code error -CursorPosition $CursorPosition
+                            Write-Progression -Step Update -Code error -CursorPosition $CursorPosition
                             $arrayScriptLog += @(' ',"Error: $($_.ToString())")
                             $prerequesiteKO = $True
                         }
