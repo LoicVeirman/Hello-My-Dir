@@ -486,7 +486,6 @@ Switch ($ScriptMode) {
         $xmlRunSetup.Configuration.SetupFile.isCompliant = "True"
         # Saving RunSetup.xml
         $xmlRunSetup.save((Resolve-Path .\Configuration\RunSetup.xml).Path)
-        pause
         $arrayScriptLog += @(' ', 'File RunSetup.xml updated and saved.', ' ')
         [void](Write-toEventLog INFO $arrayScriptLog)
         write-host
