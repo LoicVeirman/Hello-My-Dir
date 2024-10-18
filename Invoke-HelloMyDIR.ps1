@@ -484,6 +484,11 @@ Switch ($ScriptMode) {
         
         # Write Setup file compliant
         $xmlRunSetup.Configuration.SetupFile.isCompliant = "True"
+        
+        # Validating new data
+        $arrayScriptLog += @(' ', "Validating new data:")
+        Get-HmDValidates
+
         # Saving RunSetup.xml
         $xmlRunSetup.save((Resolve-Path .\Configuration\RunSetup.xml).Path)
         $arrayScriptLog += @(' ', 'File RunSetup.xml updated and saved.', ' ')
