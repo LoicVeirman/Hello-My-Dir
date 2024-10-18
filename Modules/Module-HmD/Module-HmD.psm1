@@ -1347,16 +1347,16 @@ function Get-HmDValidates {
     param (
     )
 
-    # Charger le fichier XML
+    # Load the XML file
     $xmlRunSetup = Get-XmlContent .\Configuration\RunSetup.xml -ErrorAction SilentlyContinue
 
 
-    # Définir les expressions régulières pour validation
+    # Define regular expressions for validation
     $domainRegex = '^(?=.{1,255}$)(?:(?!-)[A-Za-z0-9-]{1,63}(?<!-)\.)+[A-Za-z]{2,6}$'
     $yesNoRegex = '^(Yes|No)$'
     $functionalLevelRegex = '^\d+$'
 
-    # Créer un objet PowerShell pour stocker les résultats
+    # Create PowerShell objects to store the results Result contains the result of the validation for two nodes: Forest and Domain
     $result = [PSCustomObject]@{
         Forest = [PSCustomObject]@{
             Installation = $null
@@ -1390,7 +1390,7 @@ function Get-HmDValidates {
 
     $hasInvalidValue = $false
 
-    # Valider les éléments sous Forest
+    # Validate elements under Forest
     $forest = $xmlRunSetup.Configuration.Forest
     $result.Forest.Installation = $forest.Installation
     $result.Forest.IsValidInstallation = $forest.Installation -match $yesNoRegex
@@ -1416,7 +1416,7 @@ function Get-HmDValidates {
     $result.Forest.IsValidPAM = $forest.PAM -match $yesNoRegex
     if (-not $result.Forest.IsValidPAM) { $hasInvalidValue = $true }
 
-    # Valider les éléments sous Domain
+    # Validate elements under Domain
     $domain = $xmlRunSetup.Configuration.Domain
     $result.Domain.Type = $domain.Type
     $result.Domain.IsValidType = $null -ne $domain.Type
@@ -1447,12 +1447,15 @@ function Get-HmDValidates {
         Write-Host "`nRunSetup.xml is not in the expected format!" -ForegroundColor Red
         Write-Host  "Error message...: The file RunSetup.xml contain invalid data" -ForegroundColor Yellow
         Write-Host  "Advised solution: run the script with the parameter '-UpdateConfigFile'.`n"-ForegroundColor Yellow
-    
+        
+        # Output the results to the screen
         Write-Output $result.Forest | Format-List
         Write-Output $result.Domain | Format-List
+
         $arrayScriptLog += @(' ', "RunSetup.xml contain invalid data", "Error:$($result.Forest | Format-Table)")
         $arrayScriptLog += @(' ', "RunSetup.xml contain invalid data", "Error:$($result.Domain | Format-Table)")
 
+        # Log the error to the event log
         Write-toEventLog ERROR $arrayScriptLog
 
     } else {
