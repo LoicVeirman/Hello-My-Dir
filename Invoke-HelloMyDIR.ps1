@@ -79,102 +79,91 @@ Param
 # > xmlRunSetup.......: xml data from RunSetup.xml. Null on loading, filled-up with the function Get-XmlContent.
 
 $ScriptPrerequesite = $True
-$ScriptEdition      = '1.1.0'
-$arrayScriptLog     = @("Running Hello My DIR! Edition $ScriptEdition.")
-$xmlDomainSettings  = $null
-$xmlScriptSettings  = $null
-$xmlRunSetup        = $null
+$ScriptEdition = '1.1.0'
+$arrayScriptLog = @("Running Hello My DIR! Edition $ScriptEdition.")
+$xmlDomainSettings = $null
+$xmlScriptSettings = $null
+$xmlRunSetup = $null
 
 # Ensure running in PShell 5.x
-if ($PSVersionTable.PSVersion.Major -ne 5)
-{
+if ($PSVersionTable.PSVersion.Major -ne 5) {
     Write-Host "You must run this script using PowerShell Major Version 5!`n" -ForegroundColor Red
     Exit 999
 }
 
 # Load modules
-Try 
-{
+Try {
     Import-module -Name (Get-ChildItem .\Modules).FullName -ErrorAction Stop -WarningAction SilentlyContinue 
 }
-Catch 
-{
+Catch {
     Write-host "Failed to load one or modules!" -ForegroundColor Red
     Write-Host  "`nError message...: $($_.ToString())`n" -ForegroundColor Yellow
     $ScriptPrerequesite = $false
 }
 
 # Create Event Log Source and Event (need module-Logs)
-try 
-{
-    Switch(Test-EventLog -ErrorAction Stop -WarningAction SilentlyContinue)
-    {
-        $False
-        {
+try {
+    Switch (Test-EventLog -ErrorAction Stop -WarningAction SilentlyContinue) {
+        $False {
             Write-Host "Failed to create the Event Log!" -ForegroundColor Red
             Write-Host  "`nError message...: Function Test-EventLog returned 'False'.`n" -ForegroundColor Yellow
             $ScriptPrerequesite = $false
         }
-        Default
-        {
-            $arrayScriptLog += @(' ','Event Log "HelloMyDir" successfully created in "Applications and Services Logs"')
+        Default {
+            $arrayScriptLog += @(' ', 'Event Log "HelloMyDir" successfully created in "Applications and Services Logs"')
         }
     }
 }
-catch 
-{
+catch {
     Write-Host "Failed to create the Event Log!" -ForegroundColor Red
     Write-Host  "`nError message...: $($_.ToString())`n" -ForegroundColor Yellow
     $ScriptPrerequesite = $false    
 }
 
 # Loading XML data
-try 
-{
-    $xmlDomainSettings  = Get-XmlContent -XmlFile .\Configuration\DomainSettings.xml
-    $xmlScriptSettings  = Get-XmlContent -XmlFile .\Configuration\ScriptSettings.xml
-    $xmlRunSetup        = Get-XmlContent -XmlFile .\Configuration\RunSetup.xml    
+try {
+    $xmlDomainSettings = Get-XmlContent -XmlFile .\Configuration\DomainSettings.xml
+    $xmlScriptSettings = Get-XmlContent -XmlFile .\Configuration\ScriptSettings.xml
+    $xmlRunSetup = Get-XmlContent -XmlFile .\Configuration\RunSetup.xml    
+
 }
-catch 
-{
+catch {
     Write-Host "Failed to create the Event Log!" -ForegroundColor Red
     Write-Host  "`nError message: $($_.ToString())`n" -ForegroundColor Yellow
     $ScriptPrerequesite = $false        
 }
 
 # Ensure that xml file are present and in the expected edition.
-if ($xmlDomainSettings.Settings.Edition -ne $ScriptEdition -or $null -eq $xmlDomainSettings) 
-{ 
+if ($xmlDomainSettings.Settings.Edition -ne $ScriptEdition -or $null -eq $xmlDomainSettings) { 
     Write-Host "`nDomainSettings.xml is not in the expected format!" -ForegroundColor Red
     Write-Host  "Error message...: DomainSettings.xml version '$($xmlDomainSettings.Settings.Edition)' detected, instead of '$ScriptEdition'" -ForegroundColor Yellow
     Write-Host  "Advised solution: replace the DomainSettings.xml file with the proper one (downloadable from GitHub).`n"-ForegroundColor Yellow
     $ScriptPrerequesite = $false        
 }
-if ($xmlScriptSettings.Settings.Edition -ne $ScriptEdition -or $null -eq $xmlScriptSettings) 
-{ 
+if ($xmlScriptSettings.Settings.Edition -ne $ScriptEdition -or $null -eq $xmlScriptSettings) { 
     Write-Host "`nScriptSettings.xml is not in the expected format!" -ForegroundColor Red
     Write-Host  "Error message...: ScriptSettings.xml version '$($xmlScriptSettings.Settings.Edition)' detected, instead of '$ScriptEdition'" -ForegroundColor Yellow
     Write-Host  "Advised solution: replace the ScriptSettings.xml file with the proper one (downloadable from GitHub).`n"-ForegroundColor Yellow
     $ScriptPrerequesite = $false        
 }
-if ($xmlRunSetup.Configuration.Edition -ne $ScriptEdition -and $null -ne $xmlRunSetup -and -not($UpdateConfigFile)) 
-{ 
+if ($xmlRunSetup.Configuration.Edition -ne $ScriptEdition -and $null -ne $xmlRunSetup -and -not($UpdateConfigFile)) { 
     Write-Host "`nRunSetup.xml is not in the expected format!" -ForegroundColor Red
     Write-Host  "Error message...: RunSetup.xml version '$($xmlRunSetup.Configuration.Edition)' detected, instead of '$ScriptEdition'" -ForegroundColor Yellow
     Write-Host  "Advised solution: run the script with the parameter '-UpdateConfigFile'.`n"-ForegroundColor Yellow
     $ScriptPrerequesite = $false        
 }
-elseif ($null -eq $xmlRunSetup)
-{
+if ($xmlRunSetup.Configuration.SetupFile.isCompliant -eq $true) {
+    $SetupFileisCompliant = $True
+    
+}
+elseif ($null -eq $xmlRunSetup) {
     # Special use case: file is missing, we will instruct the script to create it first.
     $Prepare = $true
 }
-if ($ScriptPrerequesite)
-{
-    $arrayScriptLog += @(' ','All prerequesites are fullfilled. Parameters for this run:',"> Prepare: $Prepare","> UpdateConfigFile: $UpdateConfigFile","> AddDC: $AddDC")
+if ($ScriptPrerequesite) {
+    $arrayScriptLog += @(' ', 'All prerequesites are fullfilled. Parameters for this run:', "> Prepare: $Prepare", "> UpdateConfigFile: $UpdateConfigFile", "> AddDC: $AddDC")
 }
-else 
-{
+else {
     Write-Host "The script can not continue." -ForegroundColor Red
     [void](Remove-Module -Name (Get-ChildItem .\Modules).Name -ErrorAction SilentlyContinue)
     Exit 1
@@ -185,12 +174,12 @@ else
 #region Say Hello
 # Write Header
 Clear-Host
-$ScriptTitle = @(' ',"$([Char]0x2554)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2557)" `
-                    ,"$([Char]0x2551) Hello My DIR! $([Char]0x2551)" `
-                    ,"$([Char]0x2551) version 1.1.0 $([Char]0x2551)" `
-                    ,"$([Char]0x2551) Lic. GNU GPL3 $([Char]0x2551)" `
-                    ,"$([Char]0x255A)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x255D)" `
-                    ,' ')
+$ScriptTitle = @(' ', "$([Char]0x2554)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2557)" `
+        , "$([Char]0x2551) Hello My DIR! $([Char]0x2551)" `
+        , "$([Char]0x2551) version 1.1.0 $([Char]0x2551)" `
+        , "$([Char]0x2551) Lic. GNU GPL3 $([Char]0x2551)" `
+        , "$([Char]0x255A)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x2550)$([Char]0x255D)" `
+        , ' ')
 Write-TitleText -Text $ScriptTitle
 
 # Say Hello: Display welcome text
@@ -203,22 +192,20 @@ Write-InformationalText -Text $toDisplayArr
 Write-Host
 
 # Compute Script Execution mode
-if ($UpdateConfigFile) { $ScriptMode = "Update"            }
-elseif ($Prepare)      { $ScriptMode = "First Run"         }
-elseif ($AddDC)        { $ScriptMode = "Add new DC"        }
-Else                   { $ScriptMode = "Create new Domain" }
+if ($UpdateConfigFile) { $ScriptMode = "Update" }
+elseif ($Prepare) { $ScriptMode = "First Run" }
+elseif ($AddDC) { $ScriptMode = "Add new DC" }
+Else { $ScriptMode = "Create new Domain" }
 
 # Logging to Event log
-$arrayScriptLog += @(' ',"Script will now call mode: $ScriptMode.")
+$arrayScriptLog += @(' ', "Script will now call mode: $ScriptMode.")
 Write-toEventLog INFO $arrayScriptLog
 $arrayScriptLog = $null
 #endregion
 # Calling script mode
-Switch ($ScriptMode)
-{
+Switch ($ScriptMode) {
     #region update
-    "Update"
-    {
+    "Update" {
         $arrayScriptLog = @('EXECUTION MODE: UPDATE')
         # information start
         $relativeCoordinate = Write-Progression -Step Create -Message "Update RunSetup.xml to edition $ScriptEdition"
@@ -226,15 +213,14 @@ Switch ($ScriptMode)
         write-host 
         # Calling function to update
         $updateResult = Update-HmDRunSetupXml
-        $arrayScriptLog += @(' ',$updateResult.Message)
+        $arrayScriptLog += @(' ', $updateResult.Message)
 
         # information update
         write-Progression -Step Update -Code $updateResult.Code -CursorPosition $relativeCoordinate
 
         # Asking user to confirm xml data if it is a success
-        if ($updateResult.Code -eq "success")
-        {
-            $arrayScriptLog += @(' ',"Validating new data:")
+        if ($updateResult.Code -eq "success") {
+            $arrayScriptLog += @(' ', "Validating new data:")
             
             # Loading xml
             $xmlRunSetup = Get-XmlContent .\Configuration\RunSetup.xml -ErrorAction SilentlyContinue
@@ -253,8 +239,7 @@ Switch ($ScriptMode)
             # Get current cursor position and create the Blanco String
             $StringCleanSet = " "
             $MaxStringLength = ($LurchMood | Measure-Object -Property Length -Maximum).Maximum
-            for ($i=2 ; $i -le $MaxStringLength ; $i++) 
-            { 
+            for ($i = 2 ; $i -le $MaxStringLength ; $i++) { 
                 $StringCleanSet += " " 
             }
 
@@ -266,28 +251,22 @@ Switch ($ScriptMode)
 
             # Querying input: waiting for Y,N or ENTER.
             $isKO = $True
-            While ($isKO)
-            {
+            While ($isKO) {
                 # Reading key press
                 $key = $Host.UI.RawUI.ReadKey("IncludeKeyDown,NoEcho")
                 # Analyzong key pressed
-                if ($key.VirtualKeyCode -eq 13) 
-                {
+                if ($key.VirtualKeyCode -eq 13) {
                     # Is Last Choice or Yes if no previous choice
-                    if ($xmlRunSetup.Configuration.Forest.Installation -eq '' -or $null -eq $xmlRunSetup.Configuration.Forest.Installation) 
-                    {
+                    if ($xmlRunSetup.Configuration.Forest.Installation -eq '' -or $null -eq $xmlRunSetup.Configuration.Forest.Installation) {
                         # No previous choice, so it's a Yes
                         Write-Host "Yes" -ForegroundColor Green
                         $ForestChoice = "Yes"
                     }
-                    Else 
-                    {
-                        if ($xmlRunSetup.Configuration.Forest.Installation -eq 'No') 
-                        {
+                    Else {
+                        if ($xmlRunSetup.Configuration.Forest.Installation -eq 'No') {
                             $color = 'Red'
                         } 
-                        Else
-                        {
+                        Else {
                             $color = 'Green'
                         }
                         $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
@@ -296,8 +275,7 @@ Switch ($ScriptMode)
                     }
                     $isKO = $false
                 }
-                Elseif ($key.VirtualKeyCode -eq 89) 
-                {
+                Elseif ($key.VirtualKeyCode -eq 89) {
                     # Is Yes
                     $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
                     Write-Host $StringCleanSet -NoNewline
@@ -306,8 +284,7 @@ Switch ($ScriptMode)
                     $ForestChoice = "Yes"
                     $isKO = $false
                 }
-                elseif ($key.VirtualKeyCode -eq 78) 
-                {
+                elseif ($key.VirtualKeyCode -eq 78) {
                     # Is No
                     $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
                     Write-Host $StringCleanSet -NoNewline
@@ -316,8 +293,7 @@ Switch ($ScriptMode)
                     $ForestChoice = "No"
                     $isKO = $false
                 }
-                Else 
-                {
+                Else {
                     # Is "do it again"!
                     $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
                     Write-Host $StringCleanSet -NoNewline
@@ -328,69 +304,65 @@ Switch ($ScriptMode)
             }
 
             # Writing result to XML
-            $xmlRunSetup.Configuration.Forest.Installation=$ForestChoice
+            $xmlRunSetup.Configuration.Forest.Installation = $ForestChoice
             $arrayScriptLog += @("Install a new forest: $ForestChoice")
 
             # Getting Forest Data
             $xmlRunSetup = Get-HmDForest $ForestChoice $xmlRunSetup
-            $arrayScriptLog += @("Forest - FullName: $($xmlRunSetup.Configuration.Forest.FullName)","Forest - NetBIOS: $($xmlRunSetup.Configuration.Forest.NetBIOS)","Forest - FFL: $($xmlRunSetup.Configuration.Forest.FunctionalLevel)")
-            $arrayScriptLog += @("Forest - RecycleBin: $($xmlRunSetup.Configuration.Forest.RecycleBin)","Forest - PAM: $($xmlRunSetup.Configuration.Forest.PAM)")
+            $arrayScriptLog += @("Forest - FullName: $($xmlRunSetup.Configuration.Forest.FullName)", "Forest - NetBIOS: $($xmlRunSetup.Configuration.Forest.NetBIOS)", "Forest - FFL: $($xmlRunSetup.Configuration.Forest.FunctionalLevel)")
+            $arrayScriptLog += @("Forest - RecycleBin: $($xmlRunSetup.Configuration.Forest.RecycleBin)", "Forest - PAM: $($xmlRunSetup.Configuration.Forest.PAM)")
 
             # Geting Domain Data
             $xmlRunSetup = Get-HmDDomain $ForestChoice $xmlRunSetup
-            $arrayScriptLog += @("Domain - Type: $($xmlRunSetup.Configuration.Domain.Type)","Domain - FullName: $($xmlRunSetup.Configuration.Domain.FullName)","Domain - NetBIOS: $($xmlRunSetup.Configuration.Domain.NetBIOS)")
-            $arrayScriptLog += @("Domain - FFL: $($xmlRunSetup.Configuration.Domain.FunctionalLevel)","Domain - Sysvol Path: $($xmlRunSetup.Configuration.Domain.sysvolPath)","Domain - NTDS Path: $($xmlRunSetup.Configuration.Domain.NtdsPath)")
+            $arrayScriptLog += @("Domain - Type: $($xmlRunSetup.Configuration.Domain.Type)", "Domain - FullName: $($xmlRunSetup.Configuration.Domain.FullName)", "Domain - NetBIOS: $($xmlRunSetup.Configuration.Domain.NetBIOS)")
+            $arrayScriptLog += @("Domain - FFL: $($xmlRunSetup.Configuration.Domain.FunctionalLevel)", "Domain - Sysvol Path: $($xmlRunSetup.Configuration.Domain.sysvolPath)", "Domain - NTDS Path: $($xmlRunSetup.Configuration.Domain.NtdsPath)")
 
             # Checking for binaries...
             $binaries = $xmlScriptSettings.Settings.WindowsFeatures.Role
 
-            foreach ($Binary in $binaries) 
-            {
+            foreach ($Binary in $binaries) {
                 # Getting Install Status
                 $InsStat = (Get-WindowsFeature $Binary.Name).InstallState
 
                 # What will we do? 
-                Switch ($InsStat) 
-                {
+                Switch ($InsStat) {
                     # Available for installation
-                    "Available" 
-                    {
+                    "Available" {
                         # Update xml
                         $xmlRunSetup.Configuration.WindowsFeatures.$($Binary.Name) = "Yes"
                         $arrayScriptLog += @("Install $($Binary.Name): Yes")
                     }
                     # Any other status may end in error...
-                    Default 
-                    {
+                    Default {
                         # Update xml
                         $xmlRunSetup.Configuration.WindowsFeatures.$($Binary.Name) = "No"  
                         $arrayScriptLog += @("Install $($Binary.Name): No")
                     }
                 }
             }
-
+    
+            # Write Setup file compliant
+            $xmlRunSetup.Configuration.SetupFile.isCompliant = "True"
             # Saving RunSetup.xml
             $xmlRunSetup.save((Resolve-Path .\Configuration\RunSetup.xml).Path)
-            $arrayScriptLog += @(' ','File RunSetup.xml updated and saved.',' ')
+            $arrayScriptLog += @(' ', 'File RunSetup.xml updated and saved.', ' ')
             [void](Write-toEventLog INFO $arrayScriptLog)
         }
-        else 
-        {
-            $arrayScriptLog += @(' ','Could not confirm with user new parameters!')
+        else {
+            $arrayScriptLog += @(' ', 'Could not confirm with user new parameters!')
             Write-ToEventLog Error $arrayScriptLog
         }
         Write-Host
     }
     #endregion
     #region first run
-    "First Run"
-    {
+    "First Run" {
         $arrayScriptLog = @('EXECUTION MODE: FIRST RUN')
-        $arrayScriptLog += @(' ',"asking for data:")
+        $arrayScriptLog += @(' ', "asking for data:")
             
         # Creating empty file
         New-HmDRunSetupXml
-
+        
         # Loading xml
         $xmlRunSetup = Get-XmlContent .\Configuration\RunSetup.xml -ErrorAction SilentlyContinue
 
@@ -408,8 +380,7 @@ Switch ($ScriptMode)
         # Get current cursor position and create the Blanco String
         $StringCleanSet = " "
         $MaxStringLength = ($LurchMood | Measure-Object -Property Length -Maximum).Maximum
-        for ($i=2 ; $i -le $MaxStringLength ; $i++) 
-        { 
+        for ($i = 2 ; $i -le $MaxStringLength ; $i++) { 
             $StringCleanSet += " " 
         }
 
@@ -421,28 +392,22 @@ Switch ($ScriptMode)
 
         # Querying input: waiting for Y,N or ENTER.
         $isKO = $True
-        While ($isKO)
-        {
+        While ($isKO) {
             # Reading key press
             $key = $Host.UI.RawUI.ReadKey("IncludeKeyDown,NoEcho")
             # Analyzong key pressed
-            if ($key.VirtualKeyCode -eq 13) 
-            {
+            if ($key.VirtualKeyCode -eq 13) {
                 # Is Last Choice or Yes if no previous choice
-                if ($xmlRunSetup.Configuration.Forest.Installation -eq '' -or $null -eq $xmlRunSetup.Configuration.Forest.Installation) 
-                {
+                if ($xmlRunSetup.Configuration.Forest.Installation -eq '' -or $null -eq $xmlRunSetup.Configuration.Forest.Installation) {
                     # No previous choice, so it's a Yes
                     Write-Host "Yes" -ForegroundColor Green
                     $ForestChoice = "Yes"
                 }
-                Else 
-                {
-                    if ($xmlRunSetup.Configuration.Forest.Installation -eq 'No') 
-                    {
+                Else {
+                    if ($xmlRunSetup.Configuration.Forest.Installation -eq 'No') {
                         $color = 'Red'
                     } 
-                    Else
-                    {
+                    Else {
                         $color = 'Green'
                     }
                     $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
@@ -451,8 +416,7 @@ Switch ($ScriptMode)
                 }
                 $isKO = $false
             }
-            Elseif ($key.VirtualKeyCode -eq 89) 
-            {
+            Elseif ($key.VirtualKeyCode -eq 89) {
                 # Is Yes
                 $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
                 Write-Host $StringCleanSet -NoNewline
@@ -461,8 +425,7 @@ Switch ($ScriptMode)
                 $ForestChoice = "Yes"
                 $isKO = $false
             }
-            elseif ($key.VirtualKeyCode -eq 78) 
-            {
+            elseif ($key.VirtualKeyCode -eq 78) {
                 # Is No
                 $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
                 Write-Host $StringCleanSet -NoNewline
@@ -471,8 +434,7 @@ Switch ($ScriptMode)
                 $ForestChoice = "No"
                 $isKO = $false
             }
-            Else 
-            {
+            Else {
                 # Is "do it again"!
                 $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
                 Write-Host $StringCleanSet -NoNewline
@@ -483,111 +445,107 @@ Switch ($ScriptMode)
         }
 
         # Writing result to XML
-        $xmlRunSetup.Configuration.Forest.Installation=$ForestChoice
+        $xmlRunSetup.Configuration.Forest.Installation = $ForestChoice
         $arrayScriptLog += @("Install a new forest: $ForestChoice")
 
         # Getting Forest Data
         $xmlRunSetup = Get-HmDForest $ForestChoice $xmlRunSetup
-        $arrayScriptLog += @("Forest - FullName: $($xmlRunSetup.Configuration.Forest.FullName)","Forest - NetBIOS: $($xmlRunSetup.Configuration.Forest.NetBIOS)","Forest - FFL: $($xmlRunSetup.Configuration.Forest.FunctionalLevel)")
-        $arrayScriptLog += @("Forest - RecycleBin: $($xmlRunSetup.Configuration.Forest.RecycleBin)","Forest - PAM: $($xmlRunSetup.Configuration.Forest.PAM)")
+        $arrayScriptLog += @("Forest - FullName: $($xmlRunSetup.Configuration.Forest.FullName)", "Forest - NetBIOS: $($xmlRunSetup.Configuration.Forest.NetBIOS)", "Forest - FFL: $($xmlRunSetup.Configuration.Forest.FunctionalLevel)")
+        $arrayScriptLog += @("Forest - RecycleBin: $($xmlRunSetup.Configuration.Forest.RecycleBin)", "Forest - PAM: $($xmlRunSetup.Configuration.Forest.PAM)")
 
         # Geting Domain Data
         $xmlRunSetup = Get-HmDDomain $ForestChoice $xmlRunSetup
-        $arrayScriptLog += @("Domain - Type: $($xmlRunSetup.Configuration.Domain.Type)","Domain - FullName: $($xmlRunSetup.Configuration.Domain.FullName)","Domain - NetBIOS: $($xmlRunSetup.Configuration.Domain.NetBIOS)")
-        $arrayScriptLog += @("Domain - FFL: $($xmlRunSetup.Configuration.Domain.FunctionalLevel)","Domain - Sysvol Path: $($xmlRunSetup.Configuration.Domain.sysvolPath)","Domain - NTDS Path: $($xmlRunSetup.Configuration.Domain.NtdsPath)")
+        $arrayScriptLog += @("Domain - Type: $($xmlRunSetup.Configuration.Domain.Type)", "Domain - FullName: $($xmlRunSetup.Configuration.Domain.FullName)", "Domain - NetBIOS: $($xmlRunSetup.Configuration.Domain.NetBIOS)")
+        $arrayScriptLog += @("Domain - FFL: $($xmlRunSetup.Configuration.Domain.FunctionalLevel)", "Domain - Sysvol Path: $($xmlRunSetup.Configuration.Domain.sysvolPath)", "Domain - NTDS Path: $($xmlRunSetup.Configuration.Domain.NtdsPath)")
 
         # Checking for binaries...
         $binaries = $xmlScriptSettings.Settings.WindowsFeatures.Role
 
-        foreach ($Binary in $binaries) 
-        {
+        foreach ($Binary in $binaries) {
             # Getting Install Status
             $InsStat = (Get-WindowsFeature $Binary.Name).InstallState
 
             # What will we do? 
-            Switch ($InsStat) 
-            {
+            Switch ($InsStat) {
                 # Available for installation
-                "Available" 
-                {
+                "Available" {
                     # Update xml
                     $xmlRunSetup.Configuration.WindowsFeatures.$($Binary.Name) = "Yes"
                     $arrayScriptLog += @("Install $($Binary.Name): Yes")
                 }
                 # Any other status may end in error...
-                Default 
-                {
+                Default {
                     # Update xml
                     $xmlRunSetup.Configuration.WindowsFeatures.$($Binary.Name) = "No"  
                     $arrayScriptLog += @("Install $($Binary.Name): No")
                 }
             }
         }
-
+        
+        # Write Setup file compliant
+        $xmlRunSetup.Configuration.SetupFile.isCompliant = "True"
         # Saving RunSetup.xml
         $xmlRunSetup.save((Resolve-Path .\Configuration\RunSetup.xml).Path)
-        $arrayScriptLog += @(' ','File RunSetup.xml updated and saved.',' ')
+        pause
+        $arrayScriptLog += @(' ', 'File RunSetup.xml updated and saved.', ' ')
         [void](Write-toEventLog INFO $arrayScriptLog)
         write-host
     }
     #endregion
     #region new domain
-    "Create new Domain"
-    {
+    "Create new Domain" {
         # Checking if the domain is to be installed or not
         $isDomain = (gwmi win32_computersystem).partofdomain
 
         # Switching following result
-        Switch ($isDomain)
-        {
+        Switch ($isDomain) {
             #region Not a domain member.
-            $false
-            {
+            $false {
                 $arrayScriptLog += @('USE CASE: The domain is to be installed')
         
                 # The script may require to install binairies. In any case, a reboot will be needed and the script run a second time.
                 # A warning message is shown to the user with a reminder to run the script once logged in back.
                 $UserDeclined = Write-WarningText -Id RebootAction
-                if ($UserDeclined) 
-                {
-                    Write-toEventLog -EventType Warning -EventMsg @("User has canceled the installation.","END: invoke-HelloMyDir")
+                if ($UserDeclined) {
+                    Write-toEventLog -EventType Warning -EventMsg @("User has canceled the installation.", "END: invoke-HelloMyDir")
                     Remove-Module -Name (Get-ChildItem .\Modules).Name -ErrorAction SilentlyContinue | Out-Null
                     Exit 0
                 }
         
                 # Loading user desiderata
                 $xmlRunSetup = Get-XmlContent .\Configuration\RunSetup.xml
-        
+                
+                if (!( $SetupFileisCompliant = $True)) {
+                
+                    Write-Host "`nRunSetup.xml is not in the expected format!" -ForegroundColor Red
+                    Write-Host  "Advised solution: run the script with the parameter '-UpdateConfigFile'.`n"-ForegroundColor Yellow
+                    break
+                }
                 #Dealing with binaries to install
-                $reqBinaries = @('AD-Domain-Services','RSAT-AD-Tools','RSAT-DNS-Server','RSAT-DFS-Mgmt-Con','GPMC')
+                $reqBinaries = @('AD-Domain-Services', 'RSAT-AD-Tools', 'RSAT-DNS-Server', 'RSAT-DFS-Mgmt-Con', 'GPMC')
                 $BinariesStatus = $xmlRunSetup.Configuration.WindowsFeatures
                 $prerequesiteKO = $false
                 
                 $ProgressPreference = "SilentlyContinue"
         
-                foreach ($ReqBinary in $reqBinaries) 
-                {
+                foreach ($ReqBinary in $reqBinaries) {
                     $CursorPosition = Write-Progression -Step Create -message "binaries installation.....: $ReqBinary"
-                    if ($BinariesStatus.$ReqBinary -eq 'Yes') 
-                    {
+                    if ($BinariesStatus.$ReqBinary -eq 'Yes') {
                         # installing
-                        Write-Progression -Step Update -Code Running -CursorPosition $CursorPosition
+                        Write-Progression -Step Update -code Running -CursorPosition $CursorPosition
 
-                        Try 
-                        {
+                        Try {
                             install-windowsFeature -Name $ReqBinary -IncludeAllSubFeature -ErrorAction Stop | Out-Null
-                            Write-Progression Update -Code success $CursorPosition
+                            Write-Progression -Step Update success $CursorPosition
                             $xmlRunSetup.Configuration.WindowsFeatures.$ReqBinary = "No"
                         }
-                        Catch 
-                        {
-                            Write-Progression -Step Update -Code error -CursorPosition $CursorPosition
-                            $arrayScriptLog += @(' ',"Error: $($_.ToString())")
+                        Catch {
+                            Write-Progression -Step Update -code error -CursorPosition $CursorPosition
+                            $arrayScriptLog += @(' ', "Error: $($_.ToString())")
                             $prerequesiteKO = $True
                         }
                     }
-                    Else 
-                    {
+                    Else {
                         Write-Progression -Step Update -code success -CursorPosition $CursorPosition
                     }
                 }
@@ -602,8 +560,7 @@ Switch ($ScriptMode)
                 $ProgressPreference = "SilentlyContinue"
         
                 # Start installation...
-                if ($xmlRunSetup.Configuration.Forest.Installation -eq "Yes") 
-                {
+                if ($xmlRunSetup.Configuration.Forest.Installation -eq "Yes" -and $SetupFileisCompliant -eq $True ) {
                     $randomSMpwd = New-RandomComplexPasword -Length 24 -AsClearText
                     $HashArguments = @{
                         CreateDNSDelegation           = $false
@@ -623,8 +580,7 @@ Switch ($ScriptMode)
                         WarningAction                 = "SilentlyContinue"
                         informationAction             = "SilentlyContinue"
                     }
-                    Try 
-                    {
+                    Try {
                         Install-ADDSForest @HashArguments | Out-Null
                         
                         $arrayScriptLog += "Installation completed. The server will now reboot."
@@ -642,27 +598,26 @@ Switch ($ScriptMode)
                         Restart-Computer -Force | out-null
                         Exit 0
                     }
-                    Catch 
-                    {
-                        $arrayScriptLog += @("Installation Failed!",($Error[0]).ToString())
+                    Catch {
+                        $arrayScriptLog += @("Installation Failed!", ($Error[0]).ToString())
                         $HashArgumentsDebug = @("Install-ADDSForest failed with the following arguments:",
-                                                "CreateDNSDelegation = $false",
-                                                "DatabasePath = $($xmlRunSetup.Configuration.Domain.NtdsPath)",
-                                                "DomainMode = $($xmlRunSetup.Configuration.Domain.FunctionalLevel)",
-                                                "DomainName = $($xmlRunSetup.Configuration.Forest.FullName)",
-                                                "ForestMode = $($xmlRunSetup.Configuration.Forest.FunctionalLevel)",
-                                                "LogPath = ""C:\Logs""",
-                                                "SysvolPath = $($xmlRunSetup.Configuration.Domain.SysvolPath)",
-                                                "SafeModeAdministratorPassword = ConvertTo-SecureString -AsPlainText $randomSMpwd -Force",
-                                                "DomainNetbiosName = $(($xmlRunSetup.Configuration.Domain.NetBIOS).ToUpper())",
-                                                "NoRebootOnCompletion = $true",
-                                                "Confirm = $false",
-                                                "Force = $true",
-                                                "SkipPreChecks = $true",
-                                                "ErrorAction = ""Stop""",
-                                                "WarningAction = ""SilentlyContinue""",
-                                                "informationAction = ""SilentlyContinue""",
-                                                "progressAction = ""SilentlyContinue"""
+                            "CreateDNSDelegation = $false",
+                            "DatabasePath = $($xmlRunSetup.Configuration.Domain.NtdsPath)",
+                            "DomainMode = $($xmlRunSetup.Configuration.Domain.FunctionalLevel)",
+                            "DomainName = $($xmlRunSetup.Configuration.Forest.FullName)",
+                            "ForestMode = $($xmlRunSetup.Configuration.Forest.FunctionalLevel)",
+                            "LogPath = ""C:\Logs""",
+                            "SysvolPath = $($xmlRunSetup.Configuration.Domain.SysvolPath)",
+                            "SafeModeAdministratorPassword = ConvertTo-SecureString -AsPlainText $randomSMpwd -Force",
+                            "DomainNetbiosName = $(($xmlRunSetup.Configuration.Domain.NetBIOS).ToUpper())",
+                            "NoRebootOnCompletion = $true",
+                            "Confirm = $false",
+                            "Force = $true",
+                            "SkipPreChecks = $true",
+                            "ErrorAction = ""Stop""",
+                            "WarningAction = ""SilentlyContinue""",
+                            "informationAction = ""SilentlyContinue""",
+                            "progressAction = ""SilentlyContinue"""
                         )
                         Write-toEventLog Error $arrayScriptLog
                         Write-toEventLog Warning $HashArgumentsDebug
@@ -672,18 +627,16 @@ Switch ($ScriptMode)
             }
             #endregion
             #region is a domain member.
-            $true
-            {
+            $true {
                 # Action result counters
                 $isSuccess = 0
                 $isWarning = 0
                 $isFailure = 0
 
                 # PingCastle Script Fixes
-                $PCFixList  = @('S-ADRegistration','S-DC-SubnetMissing','S-DC-SubnetMissing-IPv6','S-PwdNeverExpires','P-RecycleBin','P-SchemaAdmin')
-                $PCFixList += @('P-UnprotectedOU','A-MinPwdLen','A-PreWin2000AuthenticatedUsers','A-LAPS-NOT-Installed','P-Delegated')
-                foreach ($Resolution in $PCFixList) 
-                {
+                $PCFixList = @('S-ADRegistration', 'S-DC-SubnetMissing', 'S-DC-SubnetMissing-IPv6', 'S-PwdNeverExpires', 'P-RecycleBin', 'P-SchemaAdmin')
+                $PCFixList += @('P-UnprotectedOU', 'A-MinPwdLen', 'A-PreWin2000AuthenticatedUsers', 'A-LAPS-NOT-Installed', 'P-Delegated')
+                foreach ($Resolution in $PCFixList) {
                     $CursorPosition = Write-Progression -Step Create -Message "Fixing PingCastle alert...: $Resolution"
                     Write-Progression -Step Update -code Running -CursorPosition $CursorPosition
 
@@ -691,20 +644,16 @@ Switch ($ScriptMode)
                     $fixResult = &"resolve-$($Resolution -replace '-','')"
 
                     # Switching display based on returned value
-                    switch ($fixResult) 
-                    {
-                        "Info" 
-                        { 
+                    switch ($fixResult) {
+                        "Info" { 
                             Write-Progression -Step Update -code Success -CursorPosition $CursorPosition
                             $isSuccess++
                         }
-                        "Warning" 
-                        {
+                        "Warning" {
                             Write-Progression -Step Update -code Warning -CursorPosition $CursorPosition
                             $isWarning++
                         }
-                        "Error" 
-                        {
+                        "Error" {
                             Write-Progression -Step Update -code Error -CursorPosition $CursorPosition
                             $isFailure++
                         }
@@ -712,9 +661,8 @@ Switch ($ScriptMode)
                 }
 
                 # PurpleKnight Script Fixes
-                $PKFixList  = @('Protected-Users','LDAPS-required')
-                foreach ($Resolution in $PKFixList) 
-                {
+                $PKFixList = @('Protected-Users', 'LDAPS-required')
+                foreach ($Resolution in $PKFixList) {
                     $CursorPosition = Write-Progression -Step Create -message "Fixing PurpleKnight alert.: $Resolution"
                     Write-Progression -Step Update -code Running -CursorPosition $CursorPosition
 
@@ -722,20 +670,16 @@ Switch ($ScriptMode)
                     $fixResult = &"resolve-$($Resolution -replace '-','')"
                     
                     # Switching display based on returned value
-                    switch ($fixResult) 
-                    {
-                        "Info" 
-                        { 
+                    switch ($fixResult) {
+                        "Info" { 
                             Write-Progression -Step Update -code Success -CursorPosition $CursorPosition
                             $isSuccess++
                         }
-                        "Warning" 
-                        {
+                        "Warning" {
                             Write-Progression -Step Update -code Warning -CursorPosition $CursorPosition
                             $isWarning++
                         }
-                        "Error" 
-                        {
+                        "Error" {
                             Write-Progression -Step Update -code Error -CursorPosition $CursorPosition
                             $isFailure++
                         }
@@ -743,24 +687,19 @@ Switch ($ScriptMode)
                 }
 
                 # Import GPO
-                foreach ($GPO in $xmlDomainSettings.Settings.GroupPolicies.Gpo) 
-                {
+                foreach ($GPO in $xmlDomainSettings.Settings.GroupPolicies.Gpo) {
                     $CursorPosition = Write-Progression -Step Create -message "Adding Security GPO.......: $($GPO.Name)"
                     Write-Progression -Step Update -code Running -CursorPosition $CursorPosition
-                    Try 
-                    {
+                    Try {
                         $gpChek = Get-GPO -Name $GPO.Name -ErrorAction SilentlyContinue
-                        if ($gpChek) 
-                        {
+                        if ($gpChek) {
                             Write-ToEventLog -EventType WARNING -EventMsg "GPO $($GPO.Name): already imported."
                             Write-Progression -Step Update -code Warning -CursorPosition $CursorPosition
                             $isWarning++
                         }
-                        Else 
-                        {
+                        Else {
                             $gpPath = (Get-AdDomain).DistinguishedName
-                            if ($GPO.Linkage -eq "DC") 
-                            {
+                            if ($GPO.Linkage -eq "DC") {
                                 $gpPath = "OU=Domain Controllers,$gpPath"
                             }
                             [void](New-Gpo -Name $gpo.Name -ErrorAction Stop)
@@ -772,8 +711,7 @@ Switch ($ScriptMode)
                             $isSuccess++
                         }
                     }
-                    Catch 
-                    {
+                    Catch {
                         Write-ToEventLog -EventType Error -EventMsg "GPO $($GPO.Name): import failed! Error: $($_.ToString())"
                         Write-Progression -Step Update -code Error -CursorPosition $CursorPosition
                         $isFailure++                
@@ -781,27 +719,22 @@ Switch ($ScriptMode)
                 }
 
                 # Import delegation
-                foreach ($Deleg in $xmlDomainSettings.Settings.Delegations.Delegation) 
-                {
+                foreach ($Deleg in $xmlDomainSettings.Settings.Delegations.Delegation) {
                     $CursorPosition = Write-Progression -Step Create -message "Setting-up delegation.....: $($Deleg.Name)"
                     Write-Progression -Step Update -code Running -CursorPosition $CursorPosition
 
                     $fixResult = &"$($Deleg.Name)"
                     # Switching display based on returned value
-                    switch ($fixResult) 
-                    {
-                        "Info" 
-                        { 
+                    switch ($fixResult) {
+                        "Info" { 
                             Write-Progression -Step Update -code success -CursorPosition $CursorPosition
                             $isSuccess++
                         }
-                        "Warning" 
-                        {
+                        "Warning" {
                             Write-Progression -Step Update -code Warning -CursorPosition $CursorPosition
                             $isWarning++
                         }
-                        "Error" 
-                        {
+                        "Error" {
                             Write-Progression -Step Update -code Error -CursorPosition $CursorPosition
                             $isFailure++
                         }
@@ -809,19 +742,17 @@ Switch ($ScriptMode)
                 }
 
                 # Result Array for final display
-                $Results = New-Object -TypeName psobject -Property @{Success=$isSuccess ; Warning=$isWarning ; Error=$isFailure}
-                $Results | Select-Object Success,Warning,Error | Format-Table -AutoSize
+                $Results = New-Object -TypeName psobject -Property @{Success = $isSuccess ; Warning = $isWarning ; Error = $isFailure }
+                $Results | Select-Object Success, Warning, Error | Format-Table -AutoSize
 
                 # Final action: reboot
                 $UserDeclined = Write-WarningText -Id FinalAction
-                if ($UserDeclined) 
-                {
-                    Write-toEventLog -EventType Warning -EventMsg @("User has canceled the reboot.",'But I give no care, that is to be done.','...','Wait, he is my master...','Damned. No reboot...',' ',"END: invoke-HelloMyDir")
+                if ($UserDeclined) {
+                    Write-toEventLog -EventType Warning -EventMsg @("User has canceled the reboot.", 'But I give no care, that is to be done.', '...', 'Wait, he is my master...', 'Damned. No reboot...', ' ', "END: invoke-HelloMyDir")
                     Remove-Module -Name (Get-ChildItem .\Modules).Name -ErrorAction SilentlyContinue | Out-Null
                     Exit 0
                 } 
-                Else 
-                {
+                Else {
                     Restart-Computer -force | Out-Null
                 }
             }
@@ -830,19 +761,16 @@ Switch ($ScriptMode)
     }
     #endregion
     #region new dc
-    "Add new DC"
-    {
-        $arrayScriptLog = @('PHASE EXTEND: ADD A DC.',' ')
+    "Add new DC" {
+        $arrayScriptLog = @('PHASE EXTEND: ADD A DC.', ' ')
         $CursorPosition = Write-Progression -Step Create -Message "Getting Computer informations"
         write-Progression -Step Update -code Running -CursorPosition $CursorPosition
-        Try 
-        {
+        Try {
             $ProgressPreference = "SilentlyContinue"
             $CsComputer = Get-ComputerInfo
             write-Progression -Step Update -Code Success -CursorPosition $CursorPosition
         }
-        Catch 
-        {
+        Catch {
             write-Progression -Step Update -code Error -CursorPosition $CursorPosition
             $arrayScriptLog += "Failed to get computer informations! Error: $($_.ToString())"
             $prerequesiteKO = $True
@@ -850,32 +778,27 @@ Switch ($ScriptMode)
 
         # If this is a domain member or standalone server, then we can install.
         # DomainRole acceptable value: https://learn.microsoft.com/en-us/dotnet/api/microsoft.powershell.commands.domainrole?view=powershellsdk-7.4.0
-        if ($CsComputer.CsDomainRole -eq 2 -or $CsComputer.CsDomainRole -eq 3) 
-        {
+        if ($CsComputer.CsDomainRole -eq 2 -or $CsComputer.CsDomainRole -eq 3) {
             # Install Prerequesites
             $arrayScriptLog += "The system is in an expected state (CsCDomainRole: $($CsComputer.CsDomainRole))"
         
             # Check if prerequesite are installed.
             # Dealing with binaries to install
-            $reqBinaries = @('AD-Domain-Services','RSAT-AD-Tools','RSAT-DNS-Server','RSAT-DFS-Mgmt-Con','GPMC')
+            $reqBinaries = @('AD-Domain-Services', 'RSAT-AD-Tools', 'RSAT-DNS-Server', 'RSAT-DFS-Mgmt-Con', 'GPMC')
 
             $ProgressPreference = "SilentlyContinue"
-            foreach ($ReqBinary in $reqBinaries) 
-            {
+            foreach ($ReqBinary in $reqBinaries) {
                 $CursorPosition = Write-Progression -Step Create -Message "binaries installation.....: $ReqBinary"
                 write-Progression -Step Update -code Running -CursorPosition $CursorPosition
-                Try 
-                {
+                Try {
                     install-windowsFeature -Name $ReqBinary -IncludeAllSubFeature -ErrorAction Stop | Out-Null
                     write-Progression -Step Update -code Success -CursorPosition $CursorPosition
                     $arrayScriptLog += "$($ReqBinary): installed sucessfully."
                 }
-                Catch 
-                {
+                Catch {
                     write-Progression -Step Update -code Error -CursorPosition $CursorPosition
                     $arrayScriptLog += "$($ReqBinary): Failed to install! Error: $($_.ToString())"
-                    if ($ReqBinary -ne 'GPMC' -and $ReqBinary -ne 'RSAT-DFS-Mgmt-Con') 
-                    {
+                    if ($ReqBinary -ne 'GPMC' -and $ReqBinary -ne 'RSAT-DFS-Mgmt-Con') {
                         # GPMC will fail on core systems, so we don't define this as a missing one.
                         # RSAT-DFS-Mgmt-Con not mandatory, just a nice feature to manage DFSr.
                         $prerequesiteKO = $True
@@ -891,14 +814,12 @@ Switch ($ScriptMode)
             # is not domain member
             $CursorPosition = Write-Progression -Step Create -Message 'Promoting the server as domain member'
             write-Progression -Step Update -code Running -CursorPosition $CursorPosition
-            if ($CsComputer.CsDomainRole -eq 2) 
-            {
-                $arrayScriptLog += @(" ","The server is not a domain member: the server will be joined to the domain first.")
-                try 
-                {
+            if ($CsComputer.CsDomainRole -eq 2) {
+                $arrayScriptLog += @(" ", "The server is not a domain member: the server will be joined to the domain first.")
+                try {
                     [void](Add-Computer -DomainName $DomainFN -Credential (Get-Credential -Message 'Enter credential to join this computer to the domain' -User "$DomainNB\$DJoinUsr"))
                     write-Progression -Step Update -code Success -CursorPosition $CursorPosition
-                    $arrayScriptLog += @(" ","The server will reboot - rerun the script to make it a domain controller.")
+                    $arrayScriptLog += @(" ", "The server will reboot - rerun the script to make it a domain controller.")
 
                     Write-Host
                     Write-Host "IMPORTANT!" -ForegroundColor Black -BackgroundColor Red
@@ -913,75 +834,66 @@ Switch ($ScriptMode)
                     Restart-Computer -Force | out-null
                     Exit 0
                 }
-                Catch 
-                {
+                Catch {
                     write-Progression -Step Update -code Error -CursorPosition $CursorPosition
-                    $arrayScriptLog += @("Error! The server failed to join the domain!",' ',"Error: $($_.ToString())")
+                    $arrayScriptLog += @("Error! The server failed to join the domain!", ' ', "Error: $($_.ToString())")
                     Write-Host "`nError! Failed to join the domain!`nError: $($_.ToString())`n" -ForegroundColor Red
                     Write-toEventLog Error $arrayScriptLog
                     Exit 2
                 }
             }
-            Else 
-            {
+            Else {
                 write-Progression -Step Update -code success -CursorPosition $CursorPosition
-                $arrayScriptLog += @(" ","The server is a domain member (prerequesite to domain join with a protected users account)")
+                $arrayScriptLog += @(" ", "The server is a domain member (prerequesite to domain join with a protected users account)")
             }
 
             # add DC 
-            if (-not($prerequesiteKO)) 
-            {
+            if (-not($prerequesiteKO)) {
                 # Check that the user is a domain account and not local account
                 $CursorPosition = Write-Progression -Step Create -Message "Ensure the script is run with a domain account"
                 Write-Progression -Step Update -Code Running -CursorPosition $CursorPosition
                 
                 $USerWhoAmI = WhoAmI
-                if ($USerWhoAmI -match "$($ENV:ComputerName)")
-                {
+                if ($USerWhoAmI -match "$($ENV:ComputerName)") {
                     # Erratum
                     write-Progression -Step Update -Code Error -CursorPosition $CursorPosition
-                    $arrayScriptLog += @(' ','Error: the current user is not a domain user.')
+                    $arrayScriptLog += @(' ', 'Error: the current user is not a domain user.')
                     Write-ToEventLog Error $arrayScriptLog
                     Write-Host "`nError: your are not loggin with a domain account! The script will leave.`n" -ForegroundColor Red
                     Exit 3
                 }
-                Else 
-                {
+                Else {
                     write-Progression -Step Update -Code Success -CursorPosition $CursorPosition
-                    $arrayScriptLog += @(' ','The current user is a domain user.')
+                    $arrayScriptLog += @(' ', 'The current user is a domain user.')
                     
                     # well, is the user BA, DA or EA?
                     $CursorPosition = Write-Progression -Step Create -Message "Ensure the user is granted BA, DA or EA privileges"
                     Write-Progression -Step Update -Code Running -CursorPosition $CursorPosition
                     
-                    Try
-                    {
+                    Try {
                         $BAName = (Get-ADGroup "S-1-5-32-544" -ErrorAction Stop).Name
-                        $DAsid  = [String](Get-ADDomain $DomainFN -ErrorAction Stop).DomainSID.Value + "-512"
+                        $DAsid = [String](Get-ADDomain $DomainFN -ErrorAction Stop).DomainSID.Value + "-512"
                         $DAName = (Get-ADGroup $DAsid -Server $DomainFN -ErrorAction Stop).Name
-                        $EAsid  = [String](Get-ADDomain $DomainFN -ErrorAction Stop).DomainSID.Value + "-519"
+                        $EAsid = [String](Get-ADDomain $DomainFN -ErrorAction Stop).DomainSID.Value + "-519"
                         $EAName = (Get-ADGroup $EAsid -Server $DomainFN -ErrorAction Stop).Name
                     }
-                    Catch
-                    {
+                    Catch {
                         # Query failed, emergency exit.
                         write-Progression -Step Update -Code Error -CursorPosition $CursorPosition
-                        $arrayScriptLog += @(' ','Error: something went wrong while querying AD for BA, DA and EA group names!')
+                        $arrayScriptLog += @(' ', 'Error: something went wrong while querying AD for BA, DA and EA group names!')
                         Write-ToEventLog Error $arrayScriptLog
                         Write-Host "`nError: Could not query properly AD! The script will leave.`n" -ForegroundColor Red
                         Exit 998
                     }
 
                     $UserGroups = Get-ADPrincipalGroupMembership $env:username -ErrorAction SilentlyContinue | Select-Object name
-                    if ($UserGroups.Name -match $BAName -or $UserGroups.Name -match $DAName -or $UserGroups.Name -match $EAName)
-                    {
+                    if ($UserGroups.Name -match $BAName -or $UserGroups.Name -match $DAName -or $UserGroups.Name -match $EAName) {
                         write-Progression -Step Update -Code success -CursorPosition $CursorPosition
                         $arrayScriptLog += @('The account is member of either BA, DA and/or EA.')
                     }
-                    Else 
-                    {
+                    Else {
                         write-Progression -Step Update -Code Error -CursorPosition $CursorPosition
-                        $arrayScriptLog += @(' ','Error: the used account is not member of BA, DA or EA group!')
+                        $arrayScriptLog += @(' ', 'Error: the used account is not member of BA, DA or EA group!')
                         Write-ToEventLog Error $arrayScriptLog
                         Write-Host "`nError: The account used is not granted expected rights to perform a DC promotion.`n" -ForegroundColor Red
                         Exit 4
@@ -992,27 +904,25 @@ Switch ($ScriptMode)
                 $CursorPosition = Write-Progression -Step Create -Message "Reseting owner and SDDL for security purpose"
                 write-Progression -Step Update -code Running -CursorPosition $CursorPosition
                 $NoError = $True
-                Try 
-                {
-                    $Cptr   = Get-ADComputer $env:computername -Properties nTSecurityDescriptor -ErrorAction Stop
-                    $Array  = New-Object psobject -Property @{  DistinguishedName = $Cptr.DistinguishedName
-                                                                DNSHostName       = $Cptr.DNSHostName
-                                                                Enabled           = $Cptr.Enabled
-                                                                Name              = $Cptr.Name
-                                                                ObjectClass       = $Cptr.ObjectClass
-                                                                ObjectGUID        = $Cptr.ObjectGUID
-                                                                SamAccountName    = $Cptr.SamAccountName
-                                                                SID               = $Cptr.SID
-                                                                Owner             = $Cptr.nTSecurityDescriptor.owner }
+                Try {
+                    $Cptr = Get-ADComputer $env:computername -Properties nTSecurityDescriptor -ErrorAction Stop
+                    $Array = New-Object psobject -Property @{  DistinguishedName = $Cptr.DistinguishedName
+                        DNSHostName                                              = $Cptr.DNSHostName
+                        Enabled                                                  = $Cptr.Enabled
+                        Name                                                     = $Cptr.Name
+                        ObjectClass                                              = $Cptr.ObjectClass
+                        ObjectGUID                                               = $Cptr.ObjectGUID
+                        SamAccountName                                           = $Cptr.SamAccountName
+                        SID                                                      = $Cptr.SID
+                        Owner                                                    = $Cptr.nTSecurityDescriptor.owner 
+                    }
                 }
-                Catch 
-                {
+                Catch {
                     $NoError = $False
-                    $arrayScriptLog += @(' ',"Could not get computer data to reset owner/sddl!","Error:$($_.ToString())")
+                    $arrayScriptLog += @(' ', "Could not get computer data to reset owner/sddl!", "Error:$($_.ToString())")
                 }
                 
-                Try 
-                {
+                Try {
                     # Reset owner
                     $SamAccountName = $Array.SamAccountName
                     $TargetObject = Get-ADComputer $SamAccountName -Server $DomainFN -ErrorAction Stop
@@ -1021,18 +931,16 @@ Switch ($ScriptMode)
                     $AdsiTarget.PSBase.ObjectSecurity.SetOwner($NewOwner)
                     $AdsiTarget.PSBase.CommitChanges()
                 }
-                Catch 
-                {
+                Catch {
                     $NoError = $False
-                    $arrayScriptLog += @(' ',"Could not reset owner!","Error:$($_.ToString())")
+                    $arrayScriptLog += @(' ', "Could not reset owner!", "Error:$($_.ToString())")
                 }
                 
                 # Sleep
                 Start-Sleep -Seconds 10
                 
                 # Reset ACL
-                Try 
-                {
+                Try {
                     # Get computer default ACL
                     $SchemaNamingContext = (Get-ADRootDSE -Server $DomainFN -ErrorAction Stop).schemaNamingContext
                     $DefaultSecurityDescriptor = Get-ADObject -Identity "CN=Computer,$SchemaNamingContext" -Properties defaultSecurityDescriptor -ErrorAction Stop | Select-Object -ExpandProperty defaultSecurityDescriptor
@@ -1041,20 +949,17 @@ Switch ($ScriptMode)
                     $ADObj.nTSecurityDescriptor.SetSecurityDescriptorSddlForm( $DefaultSecurityDescriptor )
                     Set-ADObject -Identity $ADObj.DistinguishedName -Replace @{ nTSecurityDescriptor = $ADObj.nTSecurityDescriptor } -Confirm:$false 
                 }
-                Catch 
-                {
+                Catch {
                     $NoError = $False
-                    $arrayScriptLog += @(' ',"Could not reset SDDL!","Error:$($_.ToString())")
+                    $arrayScriptLog += @(' ', "Could not reset SDDL!", "Error:$($_.ToString())")
                 }
-                if ($NoError) 
-                {
+                if ($NoError) {
                     write-Progression -Step Update -code Success -CursorPosition $CursorPosition
-                    $arrayScriptLog += @(" ","The computer object is now safe and secure.")
+                    $arrayScriptLog += @(" ", "The computer object is now safe and secure.")
                 }
-                Else 
-                {
+                Else {
                     write-Progression -Step Update -code Error -CursorPosition $CursorPosition
-                    $arrayScriptLog += @(" ","The computer object has a wrong owner and/or SDDL are unsafe!")
+                    $arrayScriptLog += @(" ", "The computer object has a wrong owner and/or SDDL are unsafe!")
                 }
 
                 # deploy ADDS
@@ -1080,30 +985,28 @@ Switch ($ScriptMode)
                     WarningAction                 = "SilentlyContinue"
                     informationAction             = "SilentlyContinue"
                 }
-                Try 
-                {
+                Try {
                     Install-ADDSDomainController @HashArguments | Out-Null
                 
                     write-Progression -Step Update -code Success -CursorPosition $CursorPosition
                 }
-                Catch 
-                {
-                    $arrayScriptLog += @("Installation Failed!","Error: $($_.ToString())")
+                Catch {
+                    $arrayScriptLog += @("Installation Failed!", "Error: $($_.ToString())")
                     $arrayScriptLog += @("Install-ADDSDomainController failed with the following arguments:",
-                                "Credential = (cyphered data)",
-                                "DatabasePath = $($xmlRunSetup.Configuration.Domain.NtdsPath)",
-                                "DomainName = $($xmlRunSetup.Configuration.Forest.FullName)",
-                                "SysvolPath = $($xmlRunSetup.Configuration.Domain.SysvolPath)",
-                                "SafeModeAdministratorPassword = ConvertTo-SecureString -AsPlainText $randomSMpwd -Force",
-                                "NoRebootOnCompletion = $true",
-                                "Confirm = $false",
-                                "Force = $true",
-                                "SkipPreChecks = $true",
-                                "ErrorAction = ""Stop""",
-                                "WarningAction = ""SilentlyContinue""",
-                                "informationAction = ""SilentlyContinue""",
-                                "progressAction = ""SilentlyContinue"""
-                                )
+                        "Credential = (cyphered data)",
+                        "DatabasePath = $($xmlRunSetup.Configuration.Domain.NtdsPath)",
+                        "DomainName = $($xmlRunSetup.Configuration.Forest.FullName)",
+                        "SysvolPath = $($xmlRunSetup.Configuration.Domain.SysvolPath)",
+                        "SafeModeAdministratorPassword = ConvertTo-SecureString -AsPlainText $randomSMpwd -Force",
+                        "NoRebootOnCompletion = $true",
+                        "Confirm = $false",
+                        "Force = $true",
+                        "SkipPreChecks = $true",
+                        "ErrorAction = ""Stop""",
+                        "WarningAction = ""SilentlyContinue""",
+                        "informationAction = ""SilentlyContinue""",
+                        "progressAction = ""SilentlyContinue"""
+                    )
                     Write-toEventLog Error $arrayScriptLog
                     write-Progression -Step Update -code Error -CursorPosition $CursorPosition
                 }
@@ -1111,33 +1014,27 @@ Switch ($ScriptMode)
                 # setup for ldaps
                 $CursorPosition = Write-Progression -Step Create -Message "Setup certificate for LDAPS"
                 write-Progression -Step Update -code Running -CursorPosition $CursorPosition
-                $arrayScriptLog += @(' ','Installing a certificate for ldaps...')
-                Try 
-                {
+                $arrayScriptLog += @(' ', 'Installing a certificate for ldaps...')
+                Try {
                     # Calling the fix
                     $fixResult = &"resolve-LDAPSrequired"
                     # Switching display based on returned value
-                    switch ($fixResult) 
-                    {
-                        "Info" 
-                        { 
+                    switch ($fixResult) {
+                        "Info" { 
                             write-Progression -Step Update -code Success -CursorPosition $CursorPosition
                             $arrayScriptLog += 'Certificate installed.'
                         }
-                        "Warning" 
-                        {
+                        "Warning" {
                             write-Progression -Step Update -code Warning -CursorPosition $CursorPosition
                             $arrayScriptLog += 'WARNING: seems that the certificate was not copied in the root store.'
                         }
-                        "Error" 
-                        {
+                        "Error" {
                             write-Progression -step Update -code Error -CursorPosition $CursorPosition
                             $arrayScriptLog += 'ERROR: failed to create the certificate!'
                         }
                     }
                 }
-                Catch 
-                {
+                Catch {
                     write-Progression -step Update -code Error -CursorPosition $CursorPosition
                     Write-Host $arrayRsltTxt[2] -ForegroundColor $arrayColrTxt[2]
                 }
@@ -1158,9 +1055,8 @@ Switch ($ScriptMode)
                 Restart-Computer -Force | out-null
                 Exit 0
             }
-            else 
-            {
-                $arrayScriptLog += @("Error! The system is not in an expected state! Error: CsDomainMode is $($CsComputer.CsDomainMode) ; Allowed value are 2 and 3.","More information here: https://learn.microsoft.com/en-us/dotnet/api/microsoft.powershell.commands.domainrole?view=powershellsdk-7.4.0")
+            else {
+                $arrayScriptLog += @("Error! The system is not in an expected state! Error: CsDomainMode is $($CsComputer.CsDomainMode) ; Allowed value are 2 and 3.", "More information here: https://learn.microsoft.com/en-us/dotnet/api/microsoft.powershell.commands.domainrole?view=powershellsdk-7.4.0")
             }
         }
     }
