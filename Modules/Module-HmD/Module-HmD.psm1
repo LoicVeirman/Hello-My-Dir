@@ -22,7 +22,7 @@ Function New-HmDRunSetupXml {
     # Add content
     # - Start: Configuration
     $myXml.WriteStartElement('Configuration')
-    $myXml.WriteAttributeString('Edition','1.1.0')
+    $myXml.WriteAttributeString('Edition','1.1.2 Quick Fix 002')
     # - Start: Forest
     $myXml.WriteStartElement('Forest')
     $myXml.WriteElementString('Installation','')
