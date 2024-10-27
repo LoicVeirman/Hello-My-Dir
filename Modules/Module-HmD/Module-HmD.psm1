@@ -62,6 +62,11 @@ Function New-HmDRunSetupXml {
     $myXml.WriteEndElement()
     $myXml.WriteEndElement()
     # - end: ADObjects
+    # - Start: ConfigFile
+    $myXml.WriteStartElement('SetupFile')
+    $myXml.WriteStartElement('isCompliant','')
+    $myXml.WriteEndElement()
+        # - end: ConfigFile
     # - End: Configuration
     $myXml.WriteEndElement()
 
@@ -1309,3 +1314,152 @@ Function Update-HmDRunSetupXml {
     # return result
     return $arrayResult
 }
+
+function Get-HmDValidates {
+   <#
+        .SYNOPSIS
+        Validates data in the runSetup.xml file.
+
+        .DESCRIPTION
+        This function loads the runSetup.xml file and validates the data under the Forest and Domain nodes.
+        It checks if the FullName values match a specified regex pattern and outputs a custom object with
+        the FullName, its value, and the match result.
+
+        .NOTES
+        Version: 01.000.000 -- Jérôme Bezet-Torres (JM2K69)
+        History: 2024/10/17 -- Script creation.
+
+        .PARAMETER None
+        This function does not take any parameters.
+
+        .OUTPUTS
+        PSCustomObject
+        The function outputs a custom object with the following properties:
+        - FullName: The name of the node (Forest or Domain).
+        - Value: The FullName value from the XML node.
+        - Match: The result of the regex match ("ok" or "not ok").
+
+        .EXAMPLE
+        PS> Get-HmDValidates
+        This command validates the data in the runSetup.xml file and outputs the validation results.
+   #>
+
+    param (
+    )
+
+    # Load the XML file
+    $xmlRunSetup = Get-XmlContent .\Configuration\RunSetup.xml -ErrorAction SilentlyContinue
+
+
+    # Define regular expressions for validation
+    $domainRegex = '^(?=.{1,255}$)(?:(?!-)[A-Za-z0-9-]{1,63}(?<!-)\.)+[A-Za-z]{2,6}$'
+    $yesNoRegex = '^(Yes|No)$'
+    $functionalLevelRegex = '^\d+$'
+
+    # Create PowerShell objects to store the results Result contains the result of the validation for two nodes: Forest and Domain
+    $result = [PSCustomObject]@{
+        Forest = [PSCustomObject]@{
+            Installation = $null
+            FullName = $null
+            NetBIOS = $null
+            FunctionalLevel = $null
+            RecycleBin = $null
+            PAM = $null
+            IsValidInstallation = $false
+            IsValidFullName = $false
+            IsValidNetBIOS = $false
+            IsValidFunctionalLevel = $false
+            IsValidRecycleBin = $false
+            IsValidPAM = $false
+        }
+        Domain = [PSCustomObject]@{
+            Type = $null
+            FullName = $null
+            NetBIOS = $null
+            FunctionalLevel = $null
+            SysvolPath = $null
+            NtdsPath = $null
+            IsValidType = $false
+            IsValidFullName = $false
+            IsValidNetBIOS = $false
+            IsValidFunctionalLevel = $false
+            IsValidSysvolPath = $false
+            IsValidNtdsPath = $false
+        }
+    }
+
+    $hasInvalidValue = $false
+
+    # Validate elements under Forest
+    $forest = $xmlRunSetup.Configuration.Forest
+    $result.Forest.Installation = $forest.Installation
+    $result.Forest.IsValidInstallation = $forest.Installation -match $yesNoRegex
+    if (-not $result.Forest.IsValidInstallation) { $hasInvalidValue = $true }
+
+    $result.Forest.FullName = $forest.FullName
+    $result.Forest.IsValidFullName = $forest.FullName -match $domainRegex
+    if ($result.Forest.IsValidFullName -ne $true) { $hasInvalidValue = $true }
+
+    $result.Forest.NetBIOS = $forest.NetBIOS
+    $result.Forest.IsValidNetBIOS = $null -ne $forest.NetBIOS
+    if (-not $result.Forest.IsValidNetBIOS) { $hasInvalidValue = $true }
+
+    $result.Forest.FunctionalLevel = $forest.FunctionalLevel
+    $result.Forest.IsValidFunctionalLevel = $forest.FunctionalLevel -match $functionalLevelRegex
+    if (-not $result.Forest.IsValidFunctionalLevel) { $hasInvalidValue = $true }
+
+    $result.Forest.RecycleBin = $forest.RecycleBin
+    $result.Forest.IsValidRecycleBin = $forest.RecycleBin -match $yesNoRegex
+    if (-not $result.Forest.IsValidRecycleBin) { $hasInvalidValue = $true }
+
+    $result.Forest.PAM = $forest.PAM
+    $result.Forest.IsValidPAM = $forest.PAM -match $yesNoRegex
+    if (-not $result.Forest.IsValidPAM) { $hasInvalidValue = $true }
+
+    # Validate elements under Domain
+    $domain = $xmlRunSetup.Configuration.Domain
+    $result.Domain.Type = $domain.Type
+    $result.Domain.IsValidType = $null -ne $domain.Type
+    if (-not $result.Domain.IsValidType) { $hasInvalidValue = $true }
+
+    $result.Domain.FullName = $domain.FullName
+    $result.Domain.IsValidFullName = $domain.FullName -match $domainRegex
+    if ($result.Domain.IsValidFullName -ne $true) { $hasInvalidValue = $true }
+
+    $result.Domain.NetBIOS = $domain.NetBIOS
+    $result.Domain.IsValidNetBIOS = $null -ne $domain.NetBIOS
+    if (-not $result.Domain.IsValidNetBIOS) { $hasInvalidValue = $true }
+
+    $result.Domain.FunctionalLevel = $domain.FunctionalLevel
+    $result.Domain.IsValidFunctionalLevel = $domain.FunctionalLevel -match $functionalLevelRegex
+    if (-not $result.Domain.IsValidFunctionalLevel) { $hasInvalidValue = $true }
+
+    $result.Domain.SysvolPath = $domain.SysvolPath
+    $result.Domain.IsValidSysvolPath = $null -ne $domain.SysvolPath
+    if (-not $result.Domain.IsValidSysvolPath) { $hasInvalidValue = $true }
+
+    $result.Domain.NtdsPath = $domain.NtdsPath
+    $result.Domain.IsValidNtdsPath = $null -ne $domain.NtdsPath
+    if (-not $result.Domain.IsValidNtdsPath) { $hasInvalidValue = $true }
+
+    if ($hasInvalidValue) {
+
+        Write-Host "`nRunSetup.xml is not in the expected format!" -ForegroundColor Red
+        Write-Host  "Error message...: The file RunSetup.xml contain invalid data" -ForegroundColor Yellow
+        Write-Host  "Advised solution: run the script with the parameter '-UpdateConfigFile'.`n"-ForegroundColor Yellow
+        
+        # Output the results to the screen
+        Write-Output $result.Forest | Format-List
+        Write-Output $result.Domain | Format-List
+
+        $arrayScriptLog += @(' ', "RunSetup.xml contain invalid data", "Error:$($result.Forest | Format-Table)")
+        $arrayScriptLog += @(' ', "RunSetup.xml contain invalid data", "Error:$($result.Domain | Format-Table)")
+
+        # Log the error to the event log
+        Write-toEventLog ERROR $arrayScriptLog
+
+    } else {
+        return $null
+    }
+}
+
