@@ -79,7 +79,7 @@ Param
 # > xmlRunSetup.......: xml data from RunSetup.xml. Null on loading, filled-up with the function Get-XmlContent.
 
 $ScriptPrerequesite = $True
-$ScriptEdition = '1.1.0'
+$ScriptEdition = '1.1.2 Quick fix 002'
 $arrayScriptLog = @("Running Hello My DIR! Edition $ScriptEdition.")
 $xmlDomainSettings = $null
 $xmlScriptSettings = $null
