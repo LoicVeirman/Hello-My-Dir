@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Settings Edition='1.1.0'>
+<Settings Edition='1.1.2 Quick Fix 002'>
     <Logging Name="HelloMyDir" Prefix="HmD_" />
     <Message>
         <Text ID='000' Line1="Welcome!" Line2="This script will assist you in creating a new domain fully secured." Line3="" Line4="" />
