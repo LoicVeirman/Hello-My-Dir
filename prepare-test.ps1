@@ -33,7 +33,8 @@ Catch {
 }
 if ($DCinstalled) {
     Try {
-        Uninstall-ADDSdomainController -LastDomainControllerInDomain -LocalAdministratorPassword (ConvertTo-SecureString -AsPlainText "C1mo2pasS==" -Force) -NoRebootOnCompletion -ErrorAction Stop
+        $pwd = (ConvertTo-SecureString -AsPlainText "C1mo2pasS==" -Force)
+        Uninstall-ADDSdomainController -LastDomainControllerInDomain -LocalAdministratorPassword $pwd -NoRebootOnCompletion -ErrorAction Stop -SkipPreChecks -Force
     }
     Catch {
         Write-Warning "Failed to uninstall ADDS: $($_.ToString())"
