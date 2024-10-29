@@ -67,8 +67,8 @@ Param
 )
 
 # Script requirement
-#Requires -RunAsAdministrator
-#Requires -Version 5.0
+#Require s -RunAsAdministrator
+#Require s -Version 5.0
 
 # Common variables for this script:
 # > ScriptPrerequesite: True at init. Set to false if one of the prerequesite fails (loading modules, reading configuration files, ...)
@@ -327,13 +327,13 @@ Switch ($ScriptMode) {
                 # What will we do? 
                 Switch ($InsStat) {
                     # Available for installation
-                    "Available" {
+                    {$_ -ne "Installed"} {
                         # Update xml
                         $xmlRunSetup.Configuration.WindowsFeatures.$($Binary.Name) = "Yes"
                         $arrayScriptLog += @("Install $($Binary.Name): Yes")
                     }
                     # Any other status may end in error...
-                    Default {
+                    {$_ -eq "Installed"} {
                         # Update xml
                         $xmlRunSetup.Configuration.WindowsFeatures.$($Binary.Name) = "No"  
                         $arrayScriptLog += @("Install $($Binary.Name): No")
@@ -464,19 +464,18 @@ Switch ($ScriptMode) {
         foreach ($Binary in $binaries) {
             # Getting Install Status
             $InsStat = (Get-WindowsFeature $Binary.Name).InstallState
-
             # What will we do? 
             Switch ($InsStat) {
                 # Available for installation
-                "Available" {
+                {$_ -eq "installed"} {
                     # Update xml
-                    $xmlRunSetup.Configuration.WindowsFeatures.$($Binary.Name) = "Yes"
+                    $xmlRunSetup.Configuration.WindowsFeatures.$($Binary.Name) = "No"
                     $arrayScriptLog += @("Install $($Binary.Name): Yes")
                 }
-                # Any other status may end in error...
-                Default {
+                # Any other status may end in error... So installing
+                {$_ -ne "installed"} {
                     # Update xml
-                    $xmlRunSetup.Configuration.WindowsFeatures.$($Binary.Name) = "No"  
+                    $xmlRunSetup.Configuration.WindowsFeatures.$($Binary.Name) = "Yes"  
                     $arrayScriptLog += @("Install $($Binary.Name): No")
                 }
             }
@@ -484,7 +483,7 @@ Switch ($ScriptMode) {
         
         # Write Setup file compliant
         $xmlRunSetup.Configuration.SetupFile.isCompliant = "True"
-      
+
         # Saving RunSetup.xml
         $xmlRunSetup.save((Resolve-Path .\Configuration\RunSetup.xml).Path)
         $arrayScriptLog += @(' ', 'File RunSetup.xml updated and saved.', ' ')
@@ -537,9 +536,8 @@ Switch ($ScriptMode) {
                     if ($BinariesStatus.$ReqBinary -eq 'Yes') {
                         # installing
                         Write-Progression -Step Update -code Running -CursorPosition $CursorPosition
-
                         Try {
-                            install-windowsFeature -Name $ReqBinary -IncludeAllSubFeature -ErrorAction Stop | Out-Null
+                            [void](install-windowsFeature -Name $ReqBinary -IncludeAllSubFeature -ErrorAction Stop -WarningAction SilentlyContinue)
                             Write-Progression -Step Update success $CursorPosition
                             $xmlRunSetup.Configuration.WindowsFeatures.$ReqBinary = "No"
                         }
