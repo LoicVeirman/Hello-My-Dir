@@ -67,8 +67,8 @@ Param
 )
 
 # Script requirement
-#Requires -RunAsAdministrator
-#Requires -Version 5.0
+#Require s -RunAsAdministrator
+#Require s -Version 5.0
 
 # Common variables for this script:
 # > ScriptPrerequesite: True at init. Set to false if one of the prerequesite fails (loading modules, reading configuration files, ...)
@@ -319,7 +319,7 @@ Switch ($ScriptMode) {
 
             # Checking for binaries...
             $binaries = $xmlScriptSettings.Settings.WindowsFeatures.Role
-
+            $rebootPending = $false
             foreach ($Binary in $binaries) {
                 # Getting Install Status
                 $InsStat = (Get-WindowsFeature $Binary.Name).InstallState
@@ -327,16 +327,22 @@ Switch ($ScriptMode) {
                 # What will we do? 
                 Switch ($InsStat) {
                     # Available for installation
-                    "Available" {
+                    {$_ -eq "installed"} {
                         # Update xml
-                        $xmlRunSetup.Configuration.WindowsFeatures.$($Binary.Name) = "Yes"
-                        $arrayScriptLog += @("Install $($Binary.Name): Yes")
-                    }
-                    # Any other status may end in error...
-                    Default {
-                        # Update xml
-                        $xmlRunSetup.Configuration.WindowsFeatures.$($Binary.Name) = "No"  
+                        $xmlRunSetup.Configuration.WindowsFeatures.$($Binary.Name) = "No"
                         $arrayScriptLog += @("Install $($Binary.Name): No")
+                    }
+                    # Special use case : reboot requiered
+                    {$_ -eq "InstallPending"} {
+                        $xmlRunSetup.Configuration.WindowsFeatures.$($Binary.Name) = "Yes"  
+                        $arrayScriptLog += @("Install $($Binary.Name): Yes (warning: reboot requiered)")
+                        $rebootPending = $true
+                    }
+                    # Any other status may end in error... So installing
+                    {$_ -ne "installed" -and $_ -ne "InstallPending"} {
+                        # Update xml
+                        $xmlRunSetup.Configuration.WindowsFeatures.$($Binary.Name) = "Yes"  
+                        $arrayScriptLog += @("Install $($Binary.Name): Yes")
                     }
                 }
             }
@@ -353,6 +359,14 @@ Switch ($ScriptMode) {
             Write-ToEventLog Error $arrayScriptLog
         }
         Write-Host
+
+        # If a reboot is pending, ask to do so
+        if ($RebootPending) {
+            Write-toEventLog -EventType INFO -EventMsg "Reboot due to PendingInstall status!"
+            write-Warning "`nSome binaries won't succeed in installing (InstallPending). Press a key to reboot this system first."
+            $Host.UI.RawUI.ReadKey("IncludeKeyDown,NoEcho")
+            Restart-computer -Force
+        }
     }
     #endregion
     #region first run
@@ -460,31 +474,36 @@ Switch ($ScriptMode) {
 
         # Checking for binaries...
         $binaries = $xmlScriptSettings.Settings.WindowsFeatures.Role
-
+        $rebootPending = $false
         foreach ($Binary in $binaries) {
             # Getting Install Status
             $InsStat = (Get-WindowsFeature $Binary.Name).InstallState
-
             # What will we do? 
             Switch ($InsStat) {
                 # Available for installation
-                "Available" {
+                {$_ -eq "installed"} {
                     # Update xml
-                    $xmlRunSetup.Configuration.WindowsFeatures.$($Binary.Name) = "Yes"
-                    $arrayScriptLog += @("Install $($Binary.Name): Yes")
-                }
-                # Any other status may end in error...
-                Default {
-                    # Update xml
-                    $xmlRunSetup.Configuration.WindowsFeatures.$($Binary.Name) = "No"  
+                    $xmlRunSetup.Configuration.WindowsFeatures.$($Binary.Name) = "No"
                     $arrayScriptLog += @("Install $($Binary.Name): No")
+                }
+                # Special use case : reboot requiered
+                {$_ -eq "InstallPending"} {
+                    $xmlRunSetup.Configuration.WindowsFeatures.$($Binary.Name) = "Yes"  
+                    $arrayScriptLog += @("Install $($Binary.Name): Yes (warning: reboot requiered)")
+                    $rebootPending = $true
+                }
+                # Any other status may end in error... So installing
+                {$_ -ne "installed" -and $_ -ne "InstallPending"} {
+                    # Update xml
+                    $xmlRunSetup.Configuration.WindowsFeatures.$($Binary.Name) = "Yes"  
+                    $arrayScriptLog += @("Install $($Binary.Name): Yes")
                 }
             }
         }
         
         # Write Setup file compliant
         $xmlRunSetup.Configuration.SetupFile.isCompliant = "True"
-      
+
         # Saving RunSetup.xml
         $xmlRunSetup.save((Resolve-Path .\Configuration\RunSetup.xml).Path)
         $arrayScriptLog += @(' ', 'File RunSetup.xml updated and saved.', ' ')
@@ -494,12 +513,20 @@ Switch ($ScriptMode) {
         # Validating new data
         $arrayScriptLog += @(' ', "Validating new data:")
         Get-HmDValidates
+
+        # If a reboot is pending, ask to do so
+        if ($RebootPending) {
+            Write-toEventLog -EventType INFO -EventMsg "Reboot due to PendingInstall status!"
+            write-Warning "`nSome binaries won't succeed in installing (InstallPending). Press a key to reboot this system first."
+            $Host.UI.RawUI.ReadKey("IncludeKeyDown,NoEcho")
+            Restart-computer -Force
+        }
     }
     #endregion
     #region new domain
     "Create new Domain" {
         # Checking if the domain is to be installed or not
-        $isDomain = (gwmi win32_computersystem).partofdomain
+        $isDomain = (Get-WmiObject win32_computersystem).partofdomain
 
         # Switching following result
         Switch ($isDomain) {
@@ -534,19 +561,30 @@ Switch ($ScriptMode) {
         
                 foreach ($ReqBinary in $reqBinaries) {
                     $CursorPosition = Write-Progression -Step Create -message "binaries installation.....: $ReqBinary"
-                    if ($BinariesStatus.$ReqBinary -eq 'Yes') {
-                        # installing
-                        Write-Progression -Step Update -code Running -CursorPosition $CursorPosition
 
-                        Try {
-                            install-windowsFeature -Name $ReqBinary -IncludeAllSubFeature -ErrorAction Stop | Out-Null
-                            Write-Progression -Step Update success $CursorPosition
-                            $xmlRunSetup.Configuration.WindowsFeatures.$ReqBinary = "No"
-                        }
-                        Catch {
-                            Write-Progression -Step Update -code error -CursorPosition $CursorPosition
-                            $arrayScriptLog += @(' ', "Error: $($_.ToString())")
+                    if ($BinariesStatus.$ReqBinary -eq 'Yes') {
+                        # Ensure that installation is still requiered
+                        $InsStat = (Get-WindowsFeature $reqBinary).InstallState
+                        if ($InsStat -eq "Available") {
+                            # installing
+                            Write-Progression -Step Update -code Running -CursorPosition $CursorPosition
+                            Try {
+                                [void](install-windowsFeature -Name $ReqBinary -IncludeAllSubFeature -ErrorAction Stop -WarningAction SilentlyContinue)
+                                Write-Progression -Step Update -code success -cursorPosition $CursorPosition
+                                $xmlRunSetup.Configuration.WindowsFeatures.$ReqBinary = "No"
+                            }
+                            Catch {
+                                Write-Progression -Step Update -code error -CursorPosition $CursorPosition
+                                $arrayScriptLog += @(' ', "Error: $($_.ToString())")
+                                $prerequesiteKO = $True
+                            }
+                        } Elseif ($InsStat -eq "PendingInstall") {
+                            Write-Progression -Step Update -code Warning -CursorPosition $CursorPosition
+                            $arrayScriptLog += @(' ', "Warning: Package $($reqBinary) is in PendingInstall state. A reboot is expected.")
                             $prerequesiteKO = $True
+                        }
+                        else {
+                            Write-Progression -Step Update -code success -CursorPosition $CursorPosition
                         }
                     }
                     Else {
@@ -555,7 +593,12 @@ Switch ($ScriptMode) {
                 }
                 $xmlRunSetup.Save((Resolve-Path .\Configuration\RunSetup.xml).Path)
                 $ProgressPreference = "Continue"
-        
+                
+                # Exit if prerequesite are failing
+                if ($prerequesiteKO) {
+                    $CurPos = Write-Progression -Step Create -message "Prerequesite check has failed. Consider rebooting the server and retry."
+                    Exit 600
+                }
                 # Display data
                 $CursorPosition = Write-Progression -Step Create -message "Installing your new domain $($xmlRunSetup.Configuration.Domain.FullName)"
                 Write-Progression -Step Update -code Running -CursorPosition $CursorPosition
@@ -672,6 +715,32 @@ Switch ($ScriptMode) {
 
                     # Calling the fix
                     $fixResult = &"resolve-$($Resolution -replace '-','')"
+                    
+                    # Switching display based on returned value
+                    switch ($fixResult) {
+                        "Info" { 
+                            Write-Progression -Step Update -code Success -CursorPosition $CursorPosition
+                            $isSuccess++
+                        }
+                        "Warning" {
+                            Write-Progression -Step Update -code Warning -CursorPosition $CursorPosition
+                            $isWarning++
+                        }
+                        "Error" {
+                            Write-Progression -Step Update -code Error -CursorPosition $CursorPosition
+                            $isFailure++
+                        }
+                    }
+                }
+
+                # MS Fix 
+                $MSfixList = @('NlaSvc-On-DC')
+                foreach ($Resolution in $MSfixList) {
+                    $CursorPosition = Write-Progression -Step Create -message "Fixing Microsoft known bug: $Resolution"
+                    Write-Progression -Step Update -code Running -CursorPosition $CursorPosition
+
+                    # Calling the fix
+                    $fixResult = &"repair-$($Resolution -replace '-','')"
                     
                     # Switching display based on returned value
                     switch ($fixResult) {

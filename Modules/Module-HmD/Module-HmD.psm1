@@ -128,9 +128,9 @@ Function Get-HmDForest {
     # QUESTION: FOREST DNS NAME #
     #############################
     ## Fist, check if the host is member of a domain. If so, the domain will be used as 
-    if ((gwmi win32_computersystem).partofdomain -eq $true -and $ForestDNS -ne '' -and $null -ne $ForestDNS) {
+    if ((Get-WmiObject win32_computersystem).partofdomain -eq $true -and $ForestDNS -ne '' -and $null -ne $ForestDNS) {
             # Set the value as default root domain name
-            $ForestDNS = (gwmi win32_computersystem).domain
+            $ForestDNS = (Get-WmiObject win32_computersystem).domain
     }
     ## Now query user
     ### Calling Lurch from Adam's family...
