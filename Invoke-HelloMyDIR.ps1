@@ -564,7 +564,7 @@ Switch ($ScriptMode) {
 
                     if ($BinariesStatus.$ReqBinary -eq 'Yes') {
                         # Ensure that installation is still requiered
-                        $InsStat = (Get-WindowsFeature $Binary.Name).InstallState
+                        $InsStat = (Get-WindowsFeature $reqBinary).InstallState
                         if ($InsStat -eq "Available") {
                             # installing
                             Write-Progression -Step Update -code Running -CursorPosition $CursorPosition
@@ -580,7 +580,7 @@ Switch ($ScriptMode) {
                             }
                         } Elseif ($InsStat -eq "PendingInstall") {
                             Write-Progression -Step Update -code Warning -CursorPosition $CursorPosition
-                            $arrayScriptLog += @(' ', "Warning: Package $reqBinary is in PendingInstall state. A reboot is expected.")
+                            $arrayScriptLog += @(' ', "Warning: Package $($reqBinary) is in PendingInstall state. A reboot is expected.")
                             $prerequesiteKO = $True
                         }
                         else {
@@ -715,6 +715,32 @@ Switch ($ScriptMode) {
 
                     # Calling the fix
                     $fixResult = &"resolve-$($Resolution -replace '-','')"
+                    
+                    # Switching display based on returned value
+                    switch ($fixResult) {
+                        "Info" { 
+                            Write-Progression -Step Update -code Success -CursorPosition $CursorPosition
+                            $isSuccess++
+                        }
+                        "Warning" {
+                            Write-Progression -Step Update -code Warning -CursorPosition $CursorPosition
+                            $isWarning++
+                        }
+                        "Error" {
+                            Write-Progression -Step Update -code Error -CursorPosition $CursorPosition
+                            $isFailure++
+                        }
+                    }
+                }
+
+                # MS Fix 
+                $MSfixList = @('NlaSvc-On-DC')
+                foreach ($Resolution in $MSfixList) {
+                    $CursorPosition = Write-Progression -Step Create -message "Fixing Microsoft known bug: $Resolution"
+                    Write-Progression -Step Update -code Running -CursorPosition $CursorPosition
+
+                    # Calling the fix
+                    $fixResult = &"repair-$($Resolution -replace '-','')"
                     
                     # Switching display based on returned value
                     switch ($fixResult) {
