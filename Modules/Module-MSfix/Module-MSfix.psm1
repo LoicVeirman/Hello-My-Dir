@@ -6,7 +6,7 @@ Function Repair-NlaSvcOnDC
 
         .DESCRIPTION
         When a DC starts, the NLASVC service is not properly detecting the network profile as Domain and fallback to the Public one.
-        This script operate a change to the DNS services to ensure that detection will works as expected.
+        This script operate a change to the Network Location Awareness services to ensure that detection will works as expected.
 
         .NOTES
         Version 1.0.0
@@ -16,7 +16,7 @@ Function Repair-NlaSvcOnDC
     $desiredDependencies = @("DNS")
 
     # test if dependency exist
-    foreach ($dependency in $dependencies) {
+    foreach ($dependency in $desiredDependencies) {
         if (-not (Get-Service $dependency -ErrorAction SilentlyContinue)) {
             return
         }
@@ -41,7 +41,7 @@ Function Repair-NlaSvcOnDC
     if ($missingDependencies.Count -gt 0) {
         $newDependencies = $currentDependencies + $missingDependencies
         Try {
-            [void](Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\$serviceName" -Name "DependOnService" -Value $newDependencies)
+            [void](Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\$serviceName" -Name "DependOnService" -Value $($newDependencies | Out-String))
         }
         Catch {
             $asFailed = $True
