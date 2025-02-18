@@ -25,7 +25,7 @@ This procedure will guide you through the process of adding a second DC to your 
 + Fire-up PowerShell with admin rights (id est runas administrator).  
 + Run the script, without the specific parameter AddDC:  
 `cd c:\HmD`  
-`.\invoke-helloMyDir.ps1 -addDC` 
+`.\invoke-helloMyDir.ps1` 
 + The scripts deploys mandatory binaries, then it will prompt you to provide the password for the account _DLGUSER01_.  
 + Once the domain joining is done, the script will reboot (you have to press a key first). Wait a few minutes for the joining process to fullfill its needs...  
 + Once the reboot is done, logging back _as the domain administrator, or any other account with domain admins rights_.
