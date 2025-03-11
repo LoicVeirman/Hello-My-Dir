@@ -569,7 +569,7 @@ Switch ($ScriptMode) {
                             # installing
                             Write-Progression -Step Update -code Running -CursorPosition $CursorPosition
                             Try {
-                                [void](install-windowsFeature -Name $ReqBinary -IncludeAllSubFeature -ErrorAction Stop -WarningAction SilentlyContinue)
+                                [void](install-windowsFeature -Name $ReqBinary -IncludeManagementTools -IncludeAllSubFeature -ErrorAction Stop -WarningAction SilentlyContinue)
                                 Write-Progression -Step Update -code success -cursorPosition $CursorPosition
                                 $xmlRunSetup.Configuration.WindowsFeatures.$ReqBinary = "No"
                             }
@@ -864,7 +864,7 @@ Switch ($ScriptMode) {
                 $CursorPosition = Write-Progression -Step Create -Message "binaries installation.....: $ReqBinary"
                 write-Progression -Step Update -code Running -CursorPosition $CursorPosition
                 Try {
-                    install-windowsFeature -Name $ReqBinary -IncludeAllSubFeature -ErrorAction Stop | Out-Null
+                    install-windowsFeature -Name $ReqBinary -IncludeManagementTools -IncludeAllSubFeature -ErrorAction Stop | Out-Null
                     write-Progression -Step Update -code Success -CursorPosition $CursorPosition
                     $arrayScriptLog += "$($ReqBinary): installed sucessfully."
                 }
