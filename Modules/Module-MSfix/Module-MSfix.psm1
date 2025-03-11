@@ -41,7 +41,7 @@ Function Repair-NlaSvcOnDC
     if ($missingDependencies.Count -gt 0) {
         $newDependencies = $currentDependencies + $missingDependencies
         Try {
-            [void](Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\$serviceName" -Name "DependOnService" -Value $($newDependencies | Out-String))
+            [void](Set-ItemProperty -Type MultiString -Path "HKLM:\SYSTEM\CurrentControlSet\Services\$serviceName" -Name "DependOnService" -Value $newDependencies)
         }
         Catch {
             $asFailed = $True
