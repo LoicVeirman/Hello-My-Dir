@@ -74,7 +74,6 @@ Param
 # > ScriptPrerequesite..: True at init. Set to false if one of the prerequesite fails (loading modules, reading configuration files, ...)
 # > ScriptEdition.......: Contains the HmD current edition. Used to check if an existing RunSetup.xml is in the expected format.
 # > arrayScriptLog......: Data to be added to the Event Log of the system for troubleshooting.
-# > CoreSKU.............: List of ID SKU Core (https://learn.microsoft.com/fr-fr/windows/win32/cimwin32prov/win32-operatingsystem)
 # > OperatingSystemSKU..: SKU of current operating system
 # > xmlDomainSettings...: xml data from DomainSettings.xml. Null on loading, filled-up with the function Get-XmlContent.
 # > xmlScriptSettings...: xml data from ScriptSettings.xml. Null on loading, filled-up with the function Get-XmlContent.
@@ -83,7 +82,6 @@ Param
 $ScriptPrerequesite = $True
 $ScriptEdition = '1.1.2 Quick fix 002'
 $arrayScriptLog = @("Running Hello My DIR! Edition $ScriptEdition.")
-$CoreSKU = @("12","13","14","29","39","40","41","43","44","45","46","63","147","148")
 $OperatingSystemSKU = (Get-WmiObject Win32_OperatingSystem).OperatingSystemSKU
 $xmlDomainSettings = $null
 $xmlScriptSettings = $null
