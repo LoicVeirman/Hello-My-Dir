@@ -106,7 +106,12 @@ Function Get-HmDForest {
         # XML dataset with previous choices
         [Parameter(Mandatory,Position=1)]
         [XML]
-        $PreviousChoices
+        $PreviousChoices,
+
+        # SKU of the operating system
+        [Parameter(Mandatory,Position=1)]
+        [Int32]
+        $OperatingSystemSKU
     )
 
     # Initiate logging. A specific variable is used to inform on the final result (info, warning or error).
@@ -410,9 +415,13 @@ Function Get-HmDForest {
         ## Analyzing key pressed
         ## Pressed ENTER
         if ($key.VirtualKeyCode -eq 13) {
-            # Is Last Choice or Yes if no previous choice
             if ([String]::IsNullOrEmpty($ManagementTools)) {
-                $ManagementTools = "Yes"
+                # If OperatingSystemSKU is Core then set default to No else Yes
+                If ($OperatingSystemSKU -in @("12","13","14","29","39","40","41","43","44","45","46","63","147","148")) {
+                    $ManagementTools = "No"
+                } Else {
+                    $ManagementTools = "Yes"
+                }
                 $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
                 Write-Host $StringCleanSet -NoNewline
                 $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y

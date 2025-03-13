@@ -84,7 +84,7 @@ $ScriptPrerequesite = $True
 $ScriptEdition = '1.1.2 Quick fix 002'
 $arrayScriptLog = @("Running Hello My DIR! Edition $ScriptEdition.")
 $CoreSKU = @("12","13","14","29","39","40","41","43","44","45","46","63","147","148")
-$OperatingSystemSKU = Get-WmiObject Win32_OperatingSystem | Select-Object OperatingSystemSKU
+$OperatingSystemSKU = (Get-WmiObject Win32_OperatingSystem).OperatingSystemSKU
 $xmlDomainSettings = $null
 $xmlScriptSettings = $null
 $xmlRunSetup = $null
@@ -312,7 +312,7 @@ Switch ($ScriptMode) {
             $arrayScriptLog += @("Install a new forest: $ForestChoice")
 
             # Getting Forest Data
-            $xmlRunSetup = Get-HmDForest $ForestChoice $xmlRunSetup
+            $xmlRunSetup = Get-HmDForest $ForestChoice $xmlRunSetup $OperatingSystemSKU
             $arrayScriptLog += @("Forest - FullName: $($xmlRunSetup.Configuration.Forest.FullName)", "Forest - NetBIOS: $($xmlRunSetup.Configuration.Forest.NetBIOS)", "Forest - FFL: $($xmlRunSetup.Configuration.Forest.FunctionalLevel)")
             $arrayScriptLog += @("Forest - RecycleBin: $($xmlRunSetup.Configuration.Forest.RecycleBin)", "Forest - PAM: $($xmlRunSetup.Configuration.Forest.PAM)")
 
@@ -467,7 +467,7 @@ Switch ($ScriptMode) {
         $arrayScriptLog += @("Install a new forest: $ForestChoice")
 
         # Getting Forest Data
-        $xmlRunSetup = Get-HmDForest $ForestChoice $xmlRunSetup
+        $xmlRunSetup = Get-HmDForest $ForestChoice $xmlRunSetup $OperatingSystemSKU
         $arrayScriptLog += @("Forest - FullName: $($xmlRunSetup.Configuration.Forest.FullName)", "Forest - NetBIOS: $($xmlRunSetup.Configuration.Forest.NetBIOS)", "Forest - FFL: $($xmlRunSetup.Configuration.Forest.FunctionalLevel)")
         $arrayScriptLog += @("Forest - RecycleBin: $($xmlRunSetup.Configuration.Forest.RecycleBin)", "Forest - PAM: $($xmlRunSetup.Configuration.Forest.PAM)")
 
@@ -573,8 +573,7 @@ Switch ($ScriptMode) {
                             # installing
                             Write-Progression -Step Update -code Running -CursorPosition $CursorPosition
                             Try {
-                                If ($OperatingSystemSKU -in $CoreSKU) {
-                                    # Server Core - No Management Tools 
+                                If ($xmlRunSetupConfiguration.WindowsFeatures.ManagementTools -eq "No") {
                                     [void](install-windowsFeature -Name $ReqBinary -IncludeAllSubFeature -ErrorAction Stop -WarningAction SilentlyContinue)
                                 } Else {
                                     [void](install-windowsFeature -Name $ReqBinary -IncludeManagementTools -IncludeAllSubFeature -ErrorAction Stop -WarningAction SilentlyContinue)
