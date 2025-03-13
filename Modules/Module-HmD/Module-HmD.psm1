@@ -90,6 +90,9 @@ Function Get-HmDForest {
         .PARAMETER PreviousChoices
         XML dataset with previous choices to offer a more dynamic experience.
 
+        .PARAMETER OperatingSystemSKU
+        SKU of the operating system.
+
         .NOTES
         Version: 01.000.000 -- Loic VEIRMAN (MSSec)
         History: 2024/05/10 -- Script creation.
@@ -110,7 +113,7 @@ Function Get-HmDForest {
 
         # SKU of the operating system
         [Parameter(Mandatory,Position=2)]
-        [Int32]
+        [String]
         $OperatingSystemSKU
     )
 

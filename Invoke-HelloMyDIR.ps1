@@ -82,7 +82,7 @@ Param
 $ScriptPrerequesite = $True
 $ScriptEdition = '1.1.2 Quick fix 002'
 $arrayScriptLog = @("Running Hello My DIR! Edition $ScriptEdition.")
-$OperatingSystemSKU = (Get-WmiObject Win32_OperatingSystem).OperatingSystemSKU
+$OperatingSystemSKU = [String](Get-WmiObject Win32_OperatingSystem).OperatingSystemSKU
 $xmlDomainSettings = $null
 $xmlScriptSettings = $null
 $xmlRunSetup = $null
