@@ -71,16 +71,20 @@ Param
 #Require s -Version 5.0
 
 # Common variables for this script:
-# > ScriptPrerequesite: True at init. Set to false if one of the prerequesite fails (loading modules, reading configuration files, ...)
-# > ScriptEdition.....: Contains the HmD current edition. Used to check if an existing RunSetup.xml is in the expected format.
-# > arrayScriptLog....: Data to be added to the Event Log of the system for troubleshooting.
-# > xmlDomainSettings.: xml data from DomainSettings.xml. Null on loading, filled-up with the function Get-XmlContent.
-# > xmlScriptSettings.: xml data from ScriptSettings.xml. Null on loading, filled-up with the function Get-XmlContent.
-# > xmlRunSetup.......: xml data from RunSetup.xml. Null on loading, filled-up with the function Get-XmlContent.
+# > ScriptPrerequesite..: True at init. Set to false if one of the prerequesite fails (loading modules, reading configuration files, ...)
+# > ScriptEdition.......: Contains the HmD current edition. Used to check if an existing RunSetup.xml is in the expected format.
+# > arrayScriptLog......: Data to be added to the Event Log of the system for troubleshooting.
+# > CoreSKU.............: List of ID SKU Core (https://learn.microsoft.com/fr-fr/windows/win32/cimwin32prov/win32-operatingsystem)
+# > OperatingSystemSKU..: SKU of current operating system
+# > xmlDomainSettings...: xml data from DomainSettings.xml. Null on loading, filled-up with the function Get-XmlContent.
+# > xmlScriptSettings...: xml data from ScriptSettings.xml. Null on loading, filled-up with the function Get-XmlContent.
+# > xmlRunSetup.........: xml data from RunSetup.xml. Null on loading, filled-up with the function Get-XmlContent.
 
 $ScriptPrerequesite = $True
 $ScriptEdition = '1.1.2 Quick fix 002'
 $arrayScriptLog = @("Running Hello My DIR! Edition $ScriptEdition.")
+$CoreSKU = @("12","13","14","29","39","40","41","43","44","45","46","63","147","148")
+$OperatingSystemSKU = Get-WmiObject Win32_OperatingSystem | Select-Object OperatingSystemSKU
 $xmlDomainSettings = $null
 $xmlScriptSettings = $null
 $xmlRunSetup = $null
@@ -569,7 +573,12 @@ Switch ($ScriptMode) {
                             # installing
                             Write-Progression -Step Update -code Running -CursorPosition $CursorPosition
                             Try {
-                                [void](install-windowsFeature -Name $ReqBinary -IncludeManagementTools -IncludeAllSubFeature -ErrorAction Stop -WarningAction SilentlyContinue)
+                                If ($OperatingSystemSKU -in $CoreSKU) {
+                                    # Server Core - No Management Tools 
+                                    [void](install-windowsFeature -Name $ReqBinary -IncludeAllSubFeature -ErrorAction Stop -WarningAction SilentlyContinue)
+                                } Else {
+                                    [void](install-windowsFeature -Name $ReqBinary -IncludeManagementTools -IncludeAllSubFeature -ErrorAction Stop -WarningAction SilentlyContinue)
+                                }
                                 Write-Progression -Step Update -code success -cursorPosition $CursorPosition
                                 $xmlRunSetup.Configuration.WindowsFeatures.$ReqBinary = "No"
                             }
@@ -864,7 +873,12 @@ Switch ($ScriptMode) {
                 $CursorPosition = Write-Progression -Step Create -Message "binaries installation.....: $ReqBinary"
                 write-Progression -Step Update -code Running -CursorPosition $CursorPosition
                 Try {
-                    install-windowsFeature -Name $ReqBinary -IncludeManagementTools -IncludeAllSubFeature -ErrorAction Stop | Out-Null
+                    If ($OperatingSystemSKU -in $CoreSK) {
+                        # Server Core - No Management Tools 
+                        install-windowsFeature -Name $ReqBinary -IncludeAllSubFeature -ErrorAction Stop | Out-Null
+                    } Else {
+                        install-windowsFeature -Name $ReqBinary -IncludeManagementTools -IncludeAllSubFeature -ErrorAction Stop | Out-Null
+                    }
                     write-Progression -Step Update -code Success -CursorPosition $CursorPosition
                     $arrayScriptLog += "$($ReqBinary): installed sucessfully."
                 }
