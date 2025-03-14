@@ -389,7 +389,7 @@ Function Get-HmDForest {
     # QUESTION: MANAGEMENT TOOLS #
     ##############################*
     ### Getting option available for this host
-    $CoreVersion = If ((Get-Process -Name servercoreshell -ErrorAction SilentlyContinue).Count -eq 0) { $true } Else { $false }
+    $CoreVersion = If ((Get-Process -Name servercoreshell -ErrorAction SilentlyContinue).Count -eq 0) { $false } Else { $true }
     
     $DbgLog += @("CoreVersion is $CoreVersion"," ")
 
