@@ -74,7 +74,6 @@ Param
 # > ScriptPrerequesite..: True at init. Set to false if one of the prerequesite fails (loading modules, reading configuration files, ...)
 # > ScriptEdition.......: Contains the HmD current edition. Used to check if an existing RunSetup.xml is in the expected format.
 # > arrayScriptLog......: Data to be added to the Event Log of the system for troubleshooting.
-# > OperatingSystemSKU..: SKU of current operating system
 # > xmlDomainSettings...: xml data from DomainSettings.xml. Null on loading, filled-up with the function Get-XmlContent.
 # > xmlScriptSettings...: xml data from ScriptSettings.xml. Null on loading, filled-up with the function Get-XmlContent.
 # > xmlRunSetup.........: xml data from RunSetup.xml. Null on loading, filled-up with the function Get-XmlContent.
@@ -82,7 +81,6 @@ Param
 $ScriptPrerequesite = $True
 $ScriptEdition = '1.1.2 Quick fix 002'
 $arrayScriptLog = @("Running Hello My DIR! Edition $ScriptEdition.")
-$OperatingSystemSKU = [String](Get-WmiObject Win32_OperatingSystem).OperatingSystemSKU
 $xmlDomainSettings = $null
 $xmlScriptSettings = $null
 $xmlRunSetup = $null
@@ -310,7 +308,7 @@ Switch ($ScriptMode) {
             $arrayScriptLog += @("Install a new forest: $ForestChoice")
 
             # Getting Forest Data
-            $xmlRunSetup = Get-HmDForest $ForestChoice $xmlRunSetup $OperatingSystemSKU
+            $xmlRunSetup = Get-HmDForest $ForestChoice $xmlRunSetup
             $arrayScriptLog += @("Forest - FullName: $($xmlRunSetup.Configuration.Forest.FullName)", "Forest - NetBIOS: $($xmlRunSetup.Configuration.Forest.NetBIOS)", "Forest - FFL: $($xmlRunSetup.Configuration.Forest.FunctionalLevel)")
             $arrayScriptLog += @("Forest - RecycleBin: $($xmlRunSetup.Configuration.Forest.RecycleBin)", "Forest - PAM: $($xmlRunSetup.Configuration.Forest.PAM)")
 
@@ -465,7 +463,7 @@ Switch ($ScriptMode) {
         $arrayScriptLog += @("Install a new forest: $ForestChoice")
 
         # Getting Forest Data
-        $xmlRunSetup = Get-HmDForest $ForestChoice $xmlRunSetup $OperatingSystemSKU
+        $xmlRunSetup = Get-HmDForest $ForestChoice $xmlRunSetup
         $arrayScriptLog += @("Forest - FullName: $($xmlRunSetup.Configuration.Forest.FullName)", "Forest - NetBIOS: $($xmlRunSetup.Configuration.Forest.NetBIOS)", "Forest - FFL: $($xmlRunSetup.Configuration.Forest.FunctionalLevel)")
         $arrayScriptLog += @("Forest - RecycleBin: $($xmlRunSetup.Configuration.Forest.RecycleBin)", "Forest - PAM: $($xmlRunSetup.Configuration.Forest.PAM)")
 
@@ -870,7 +868,7 @@ Switch ($ScriptMode) {
                 $CursorPosition = Write-Progression -Step Create -Message "binaries installation.....: $ReqBinary"
                 write-Progression -Step Update -code Running -CursorPosition $CursorPosition
                 Try {
-                    If ($OperatingSystemSKU -in $CoreSK) {
+                    If ($xmlRunSetup.Configuration.WindowsFeatures.ManagementTools -eq "No") {
                         # Server Core - No Management Tools 
                         install-windowsFeature -Name $ReqBinary -IncludeAllSubFeature -ErrorAction Stop | Out-Null
                     } Else {

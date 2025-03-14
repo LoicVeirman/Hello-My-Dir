@@ -90,9 +90,6 @@ Function Get-HmDForest {
         .PARAMETER PreviousChoices
         XML dataset with previous choices to offer a more dynamic experience.
 
-        .PARAMETER OperatingSystemSKU
-        SKU of the operating system.
-
         .NOTES
         Version: 01.000.000 -- Loic VEIRMAN (MSSec)
         History: 2024/05/10 -- Script creation.
@@ -109,12 +106,7 @@ Function Get-HmDForest {
         # XML dataset with previous choices
         [Parameter(Mandatory,Position=1)]
         [XML]
-        $PreviousChoices,
-
-        # SKU of the operating system
-        [Parameter(Mandatory,Position=2)]
-        [String]
-        $OperatingSystemSKU
+        $PreviousChoices
     )
 
     # Initiate logging. A specific variable is used to inform on the final result (info, warning or error).
@@ -395,11 +387,16 @@ Function Get-HmDForest {
 
     ##############################
     # QUESTION: MANAGEMENT TOOLS #
-    ##############################
+    ##############################*
+    ### Getting option available for this host
+    $CoreVersion = If ((Get-Process -Name servercoreshell -ErrorAction SilentlyContinue).Count -eq 0) { $true } Else { $false }
+    
+    $DbgLog += @("CoreVersion is $CoreVersion"," ")
+
     ## Display question 
     $toDisplayXml = Select-Xml $ScriptSettings -XPath "//Text[@ID='006']" | Select-Object -ExpandProperty Node
     $toDisplayArr = @($toDisplayXml.Line1)
-    $toDisplayArr += $toDisplayXml.Line2
+    $toDisplayArr += If ($CoreVersion) { $toDisplayXml.Line2.Replace("Y/n", "y/N") } Else { $toDisplayXml.Line2 }
     Write-UserChoice $toDisplayArr
     
     ## Yes/No time
@@ -419,12 +416,7 @@ Function Get-HmDForest {
         ## Pressed ENTER
         if ($key.VirtualKeyCode -eq 13) {
             if ([String]::IsNullOrEmpty($ManagementTools)) {
-                # If OperatingSystemSKU is Core then set default to No else Yes
-                If ($OperatingSystemSKU -in @("12","13","14","29","39","40","41","43","44","45","46","63","147","148")) {
-                    $ManagementTools = "No"
-                } Else {
-                    $ManagementTools = "Yes"
-                }
+                If ($CoreVersion) { $ManagementTools = "No" } Else { $ManagementTools = "Yes" }
                 $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
                 Write-Host $StringCleanSet -NoNewline
                 $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
