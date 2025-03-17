@@ -570,10 +570,15 @@ Switch ($ScriptMode) {
                             # installing
                             Write-Progression -Step Update -code Running -CursorPosition $CursorPosition
                             Try {
-                                If ($xmlRunSetupConfiguration.WindowsFeatures.ManagementTools -eq "No") {
-                                    [void](install-windowsFeature -Name $ReqBinary -IncludeAllSubFeature -ErrorAction Stop -WarningAction SilentlyContinue)
+                                If ($CoreVersion -eq $true) {
+                                    # Server Core - No Management Tools 
+                                    install-windowsFeature -Name $ReqBinary -IncludeAllSubFeature -ErrorAction Stop | Out-Null
                                 } Else {
-                                    [void](install-windowsFeature -Name $ReqBinary -IncludeManagementTools -IncludeAllSubFeature -ErrorAction Stop -WarningAction SilentlyContinue)
+                                    If ($xmlRunSetup.Configuration.WindowsFeatures.ManagementTools -eq "Yes") {
+                                        install-windowsFeature -Name $ReqBinary -IncludeManagementTools -IncludeAllSubFeature -ErrorAction Stop | Out-Null
+                                    } Else {
+                                        install-windowsFeature -Name $ReqBinary -IncludeAllSubFeature -ErrorAction Stop | Out-Null
+                                    }
                                 }
                                 Write-Progression -Step Update -code success -cursorPosition $CursorPosition
                                 $xmlRunSetup.Configuration.WindowsFeatures.$ReqBinary = "No"
