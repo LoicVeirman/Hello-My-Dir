@@ -8,7 +8,7 @@
         <Text ID='003' Line1="What is the Root Domain NetBIOS name of the forest?" Line2="[your] " Line3="" Line4="" />
         <Text ID='004' Line1="The following Functional Level are available to you:" Line2="" Line3="" Line4="" />
         <Text ID='005' Line1="What will be the Forest Functional Level?" Line2=" " Line3="" Line4="" />
-        <Text ID='006' Line1="Do you want to install the Management Tools?" Line2="[Y/n] " Line3="" Line4="" />
+        <Text ID='006' Line1="Do you want to install the Management Tools (exclusively for GUI) ?" Line2="[Y/n] " Line3="" Line4="" />
         <Text ID='008' Line1="Do you want to enable the AD REcycle Bin Feature?" Line2="[Y/n] " Line3="" Line4="" />
         <Text ID='009' Line1="Do you want to enable the Privilege Access Management Feature (require FIM)?" Line2="[y/N] " Line3="" Line4="" />
         <Text ID='010' Line1="What type of domain will it be: (c)hild or (i)solated?" Line2="[C/i] " Line3="" Line4="" />

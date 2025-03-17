@@ -84,6 +84,7 @@ $arrayScriptLog = @("Running Hello My DIR! Edition $ScriptEdition.")
 $xmlDomainSettings = $null
 $xmlScriptSettings = $null
 $xmlRunSetup = $null
+$CoreVersion = If ((Get-Process -Name servercoreshell -ErrorAction SilentlyContinue).Count -eq 0) { $false } Else { $true }
 
 # Ensure running in PShell 5.x
 if ($PSVersionTable.PSVersion.Major -ne 5) {
@@ -868,11 +869,15 @@ Switch ($ScriptMode) {
                 $CursorPosition = Write-Progression -Step Create -Message "binaries installation.....: $ReqBinary"
                 write-Progression -Step Update -code Running -CursorPosition $CursorPosition
                 Try {
-                    If ($xmlRunSetup.Configuration.WindowsFeatures.ManagementTools -eq "No") {
+                    If ($CoreVersion -eq $true) {
                         # Server Core - No Management Tools 
                         install-windowsFeature -Name $ReqBinary -IncludeAllSubFeature -ErrorAction Stop | Out-Null
                     } Else {
-                        install-windowsFeature -Name $ReqBinary -IncludeManagementTools -IncludeAllSubFeature -ErrorAction Stop | Out-Null
+                        If ($xmlRunSetup.Configuration.WindowsFeatures.ManagementTools -eq "Yes") {
+                            install-windowsFeature -Name $ReqBinary -IncludeManagementTools -IncludeAllSubFeature -ErrorAction Stop | Out-Null
+                        } Else {
+                            install-windowsFeature -Name $ReqBinary -IncludeAllSubFeature -ErrorAction Stop | Out-Null
+                        }
                     }
                     write-Progression -Step Update -code Success -CursorPosition $CursorPosition
                     $arrayScriptLog += "$($ReqBinary): installed sucessfully."
