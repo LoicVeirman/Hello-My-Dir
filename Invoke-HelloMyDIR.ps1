@@ -84,7 +84,7 @@ $arrayScriptLog = @("Running Hello My DIR! Edition $ScriptEdition.")
 $xmlDomainSettings = $null
 $xmlScriptSettings = $null
 $xmlRunSetup = $null
-$CoreVersion = If ((Get-Process -Name servercoreshell -ErrorAction SilentlyContinue).Count -eq 0) { $false } Else { $true }
+$CoreVersion = ((Get-Process -Name servercoreshell -ErrorAction SilentlyContinue).Count -eq 1)
 
 # Ensure running in PShell 5.x
 if ($PSVersionTable.PSVersion.Major -ne 5) {
