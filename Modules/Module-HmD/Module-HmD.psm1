@@ -50,6 +50,7 @@ Function New-HmDRunSetupXml {
     $myXml.WriteElementString('RSAT-DNS-Server','')
     $myXml.WriteElementString('RSAT-DFS-Mgmt-Con','')
     $myXml.WriteElementString('GPMC','')
+    $myXml.WriteElementString('ManagementTools','')
     $myXml.WriteEndElement()
     # - end: WindowsFeatures
     # - Start: ADObjects
@@ -121,6 +122,7 @@ Function Get-HmDForest {
     $ForestFFL = $PreviousChoices.Configuration.Forest.FunctionalLevel
     $ForestBIN = $PreviousChoices.Configuration.Forest.RecycleBin
     $ForestPAM = $PreviousChoices.Configuration.Forest.PAM
+    $ManagementTools = $PreviousChoices.Configuration.Forest.ManagementTools
 
     $DbgLog += @('Previous choices:',"> Forest Fullname: $ForestDNS","> Forest NetBIOS name: $ForestNtB","> Forest Functional Level: $ForestFFL","> Enable Recycle Bin: $ForestBIN","> Enable PAM: $ForestPAM",' ')
 
@@ -382,6 +384,80 @@ Function Get-HmDForest {
 
     # Write to XML
     $PreviousChoices.Configuration.Forest.FunctionalLevel = $ForestFFL
+
+    ##############################
+    # QUESTION: MANAGEMENT TOOLS #
+    ##############################*
+    ## Display question 
+    $toDisplayXml = Select-Xml $ScriptSettings -XPath "//Text[@ID='006']" | Select-Object -ExpandProperty Node
+    $toDisplayArr = @($toDisplayXml.Line1)
+    $toDisplayArr += $toDisplayXml.Line2 
+    Write-UserChoice $toDisplayArr
+    
+    ## Yes/No time
+    ### Getting cursor position for relocation
+    $CursorPosition = $Host.UI.RawUI.CursorPosition
+
+    ### Writing default previous choice (will be used if RETURN is pressed)
+    Write-Host $ManagementTools -NoNewline -ForegroundColor Magenta
+
+    ### Querying input: waiting for Y,N or ENTER.
+    $isKO = $True
+    While ($isKO)
+    {
+        ## Reading key press
+        $key = $Host.UI.RawUI.ReadKey("IncludeKeyDown,NoEcho")
+        ## Analyzing key pressed
+        ## Pressed ENTER
+        if ($key.VirtualKeyCode -eq 13) {
+            if ([String]::IsNullOrEmpty($ManagementTools)) {
+                $ManagementTools = "Yes"
+                $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                Write-Host $StringCleanSet -NoNewline
+                $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                Write-Host $ManagementTools -ForegroundColor Green
+                $isKO = $false
+            }
+            Else {
+                if ($ManagementTools -eq 'No') { $color = 'Red' } Else { $color = 'Green' }
+                $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+                Write-Host $ManagementTools -ForegroundColor $color
+            }
+            $isKO = $false
+        }
+        ## Pressed Y or y
+        Elseif ($key.VirtualKeyCode -eq 89) {
+            # Is Yes
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+            Write-Host $StringCleanSet -NoNewline
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+            Write-Host "Yes" -ForegroundColor Green
+            $ManagementTools = "Yes"
+            $isKO = $false
+        }
+        ## Pressed N or N
+        elseif ($key.VirtualKeyCode -eq 78) {
+            # Is No
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+            Write-Host $StringCleanSet -NoNewline
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+            Write-Host "No" -ForegroundColor Red
+            $ManagementTools = "No"
+            $isKO = $false
+        }
+        ## Pressed any other key
+        Else {
+            # Do it again!
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+            Write-Host $StringCleanSet -NoNewline
+            $Host.UI.RawUI.CursorPosition = New-Object System.Management.Automation.Host.Coordinates $CursorPosition.X, $CursorPosition.Y
+            Write-Host (Get-Random $LurchMood) -ForegroundColor DarkGray -NoNewline
+            $isKO = $true
+        }
+    }
+
+    ## Writing result to XML
+    $PreviousChoices.Configuration.WindowsFeatures.ManagementTools = $ManagementTools
 
     ############################
     # QUESTION: AD RECYCLE BIN #
@@ -1269,6 +1345,7 @@ Function Update-HmDRunSetupXml {
         $myXml.WriteElementString('RSAT-DNS-Server',$pvXml.Configuration.WindowsFeatures."RSAT-DNS-Server")
         $myXml.WriteElementString('RSAT-DFS-Mgmt-Con',$pvXml.Configuration.WindowsFeatures."RSAT-DFS-Mgmt-Con")
         $myXml.WriteElementString('GPMC',$pvXml.Configuration.WindowsFeatures.GPMC)
+        $myXml.WriteElementString('ManagementTools',$pvXml.Configuration.WindowsFeatures.ManagementTools)
         $myXml.WriteEndElement()
         # - end: WindowsFeatures
         # - Start: ADObjects
