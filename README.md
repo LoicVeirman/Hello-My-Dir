@@ -11,6 +11,9 @@ Invoke-HelloMyDir.ps1 -UpdateConfigFile
 
 ## They talk about it (and we thanks them ;))
 https://www.it-connect.fr/comment-creer-un-domaine-active-directory-respectueux-des-bonnes-pratiques-de-securite/
+https://mbnetsys.fr/windows-server/securiser-son-active-directory-avec-loutil-hello-my-dir/
+https://www.linkedin.com/posts/laurent-minne_security-cybersecurity-activedirectory-ugcPost-7288441308229058560-kPCq/
+
 
 ## Project description  
 This project is specifically made for brand new directories and ease their creation with all security rules in place:
