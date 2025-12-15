@@ -1,7 +1,7 @@
 ![logo hello my dir baniere fond gris](https://github.com/user-attachments/assets/83c3f729-8adc-4084-9765-51318256cbb6)
 
 # Hello My Dir!
-#### Release 01.01.02.002 - *Hello My DC!*
+#### Release 01.01.02.004 - *Hello My DC!*
 
 ## Important notice  
 You should always update your existing HmD repository with the latest edition and run the below command to adapt your configuration file:
