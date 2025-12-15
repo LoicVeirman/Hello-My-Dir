@@ -13,7 +13,7 @@ This procedure will guide you through the process of adding a second DC to your 
 `New-SmbShare -Temporary -ReadAccess HELLO\DLGUSER01 -Path C:\HmD -Name HmD` 
 + Log back to your futur DC and fire-up powershell as administrator.  
 + Create a mount point on your system (replace the domain name with yours):  
-`net use z: \\your.dc.fqdn\c$\HmD /user:DLGUSER01@hello.y.dir` 
+`net use z: \\your.dc.fqdn\HmD /user:DLGUSER01@hello.y.dir` 
 + When prompted, type in the DLGUSER01 password. The drive map should then succeed.  
 + Next, copy the HmD binaries from the existing DC to your server:  
 `robocopy z:\ C:\HmD /MIR` 
